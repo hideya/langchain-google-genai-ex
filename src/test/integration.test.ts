@@ -408,7 +408,7 @@ async function testComplexSchemaHandling() {
     const extendedLlm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
     const agent = createReactAgent({ llm: extendedLlm, tools: mcpTools });
 
-    // const testQuery = "Can you help me check the weather? Just give me a brief response.";
+    // const testQuery = "Are there any weather alerts in California?";
     const testQuery = "Please use the 'notion-get-self' tool to get information about my Notion account";
 
     console.log(`   Query: ${testQuery}`);

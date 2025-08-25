@@ -23,15 +23,15 @@ const llm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
 
 ## Tested MCP Servers
 
-This package has been tested with the following MCP servers that generate complex schemas
-(all of them fails with the plain `ChatGoogleGenerativeAI`):
+This package has been tested with the following feature rich MCP servers
+that fails with the plain `ChatGoogleGenerativeAI`, as of Aug 26, 2025:
 
 - ✅ **Notion** (`https://mcp.notion.com/mcp`) - Complex nested objects, anyOf unions
 - ✅ **GitHub** (`https://api.githubcopilot.com/mcp/`)
 - ✅ **File Systems** ([@modelcontextprotocol/server-filesystem](https://www.npmjs.com/package/@modelcontextprotocol/server-filesystem))
 - ✅ **SQLite** ([mcp-server-sqlite](https://pypi.org/project/mcp-server-sqlite/))
 
-- ✅ **Playwright** ([@playwright/mcp@latest](https://www.npmjs.com/package/@playwright/mcp))
+- ✅ **Playwright** ([@playwright/mcp](https://www.npmjs.com/package/@playwright/mcp))
 
 
 ## Prerequisites
