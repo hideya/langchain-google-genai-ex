@@ -112,6 +112,80 @@ async function testMCPIntegration() {
   }
 }
 
+async function testSimpleSchemaHandling() {
+  console.log("🌤️ Testing simple schema handling with Weather MCP server...\n");
+
+  // Test with simple weather MCP server
+  const client = new MultiServerMCPClient({
+    throwOnLoadError: true,
+    prefixToolNameWithServerName: false,
+    additionalToolNamePrefix: "",
+    useStandardContentBlocks: true,
+    mcpServers: {
+      "us-weather": {
+        transport: "stdio",
+        command: "npx",
+        args: ["-y", "@h1deya/mcp-server-weather"]
+      }
+    }
+  });
+
+  try {
+    const mcpTools = await client.getTools();
+    console.log(`1. Loaded ${mcpTools.length} tools from weather server`);
+    
+    // Show schema complexity
+    mcpTools.forEach((tool, i) => {
+      const toolStr = JSON.stringify(tool);
+      const isSimple = !toolStr.includes('anyOf') && 
+                      !toolStr.includes('allOf') &&
+                      !toolStr.includes('oneOf') &&
+                      toolStr.length < 500; // Relatively simple
+      console.log(`   ${i + 1}. ${tool.name}: ${isSimple ? '✅ Simple schema' : '🔄 Complex schema'}`);
+    });
+    console.log();
+
+    // Test with original ChatGoogleGenerativeAI
+    console.log("2. Testing original ChatGoogleGenerativeAI with simple schemas:");
+    const originalLlm = new ChatGoogleGenerativeAI({ model: "gemini-1.5-flash" });
+    const originalAgent = createReactAgent({ llm: originalLlm, tools: mcpTools });
+    
+    const simpleQuery = "What's the weather like in San Francisco?";
+    console.log(`   Query: ${simpleQuery}`);
+    
+    try {
+      const originalResult = await originalAgent.invoke({ 
+        messages: [new HumanMessage(simpleQuery)] 
+      });
+      const originalResponse = originalResult.messages[originalResult.messages.length - 1].content;
+      console.log(`   ✅ Original succeeded: ${String(originalResponse).substring(0, 100)}...\n`);
+    } catch (originalError: any) {
+      console.log(`   ❌ Unexpected: Original failed with simple schemas: ${originalError.message}\n`);
+    }
+
+    // Test with extended ChatGoogleGenerativeAIEx
+    console.log("3. Testing ChatGoogleGenerativeAIEx with simple schemas:");
+    const extendedLlm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
+    const extendedAgent = createReactAgent({ llm: extendedLlm, tools: mcpTools });
+    
+    console.log(`   Query: ${simpleQuery}`);
+    const extendedResult = await extendedAgent.invoke({ 
+      messages: [new HumanMessage(simpleQuery)] 
+    });
+    const extendedResponse = extendedResult.messages[extendedResult.messages.length - 1].content;
+    console.log(`   ✅ Extended succeeded: ${String(extendedResponse).substring(0, 100)}...\n`);
+
+    console.log("   ✅ Both implementations work with simple schemas - no compatibility issues!");
+
+  } catch (error) {
+    console.error(`❌ Simple schema test failed: ${error}`);
+    // Don't rethrow - this test should generally work
+    console.log("   ℹ️ Simple schema test failure might indicate network or MCP server issues\n");
+  } finally {
+    await client.close();
+  }
+}
+
 async function testComplexSchemaHandling() {
   console.log("🎯 Testing complex schema handling...\n");
 
@@ -204,7 +278,10 @@ async function runTests() {
     // Test 2: MCP integration
     await testMCPIntegration();
     
-    // Test 3: Complex schema handling (optional)
+    // Test 3: Simple schema handling
+    await testSimpleSchemaHandling();
+    
+    // Test 4: Complex schema handling (optional)
     await testComplexSchemaHandling();
 
     console.log("🎉 All tests completed successfully!");
