@@ -409,7 +409,7 @@ async function testComplexSchemaHandling() {
     const agent = createReactAgent({ llm: extendedLlm, tools: mcpTools });
 
     // const testQuery = "Can you help me check the weather? Just give me a brief response.";
-    const testQuery = "Please use the 'notion-get-self' tool to find out info on my Notion account";
+    const testQuery = "Please use the 'notion-get-self' tool to get information about my Notion account";
 
     console.log(`   Query: ${testQuery}`);
     

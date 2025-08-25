@@ -45,7 +45,8 @@ const client = new MultiServerMCPClient({
   const agent = createReactAgent({ llm, tools: mcpTools });
 
   // const query = "Are there any weather alerts in California?";
-  const query = "Please use the 'notion-get-self' tool to find out info on my Notion account";
+  const query = "Tell me about my Notion account";
+  // const query = "Please use the 'notion-get-self' tool to get information about my Notion account";
 
   const messages =  { messages: [new HumanMessage(query)] };
   const result = await agent.invoke(messages);
