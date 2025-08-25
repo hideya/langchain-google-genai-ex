@@ -44,6 +44,7 @@
     "build:watch": "tsup src/index.ts --format cjs,esm --dts --watch",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "test": "node --test dist/test/*.js",
+    "test:simple": "tsx src/test/simple.test.ts",
     "test:integration": "tsx src/test/integration.test.ts",
     "test:negative": "tsx src/test/negative.test.ts",
     "lint": "eslint src/**/*.ts",
