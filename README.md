@@ -4,6 +4,9 @@
 
 This library provides an extended version of `ChatGoogleGenerativeAI` that **fixes Gemini schema compatibility issues with feature rich MCP servers** like GitHub, Notion, etc.
 
+The schema error usually looks like:  
+`[GoogleGenerativeAI Error]: ... [400 Bad Request] Invalid JSON payload received.`
+
 ## Quick Example
 
 ```typescript
