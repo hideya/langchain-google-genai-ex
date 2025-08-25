@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { ChatGoogleGenerativeAIEx } from "../ChatGoogleGenerativeAIEx.js";
-// import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 // import { ChatOpenAI } from "@langchain/openai";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { HumanMessage } from "@langchain/core/messages";
@@ -31,7 +31,14 @@ const client = new MultiServerMCPClient({
       transport: "stdio",
       "command": "npx",
       "args": ["-y", "mcp-remote", "https://mcp.notion.com/mcp"],
-    }
+    },
+    github: {
+      transport: "http",
+      url: "https://api.githubcopilot.com/mcp/",
+      headers: {
+        "Authorization": `Bearer ${process.env.GITHUB_PERSONAL_ACCESS_TOKEN}`
+      }
+    },
   }
 });
 
@@ -45,8 +52,8 @@ const client = new MultiServerMCPClient({
   const agent = createReactAgent({ llm, tools: mcpTools });
 
   // const query = "Are there any weather alerts in California?";
-  const query = "Tell me about my Notion account";
-  // const query = "Please use the 'notion-get-self' tool to get information about my Notion account";
+  // const query = "Tell me about my Notion account";
+  const query = "Tell me information about my GitHub profile"
 
   const messages =  { messages: [new HumanMessage(query)] };
   const result = await agent.invoke(messages);

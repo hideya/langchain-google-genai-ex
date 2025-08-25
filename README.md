@@ -1,13 +1,15 @@
-# Google Gemini + LangChain.js + MCP Tools = Fixed!
+# Google Gemini + MCP Tools + LangChain.js → Fixed!
 
-**ChatGoogleGenerativeAI extension that fixes schema compatibility issues with MCP tools, Gemini API, and LangChain.js.**
+### Library to fix schema errors with MCP tools, Gemini API, and LangChain.js
 
-## Quick Start
+This library provides an extended version of `ChatGoogleGenerativeAI` that **fixes Gemini schema compatibility issues with feature rich MCP servers** like GitHub, Notion, etc.
+
+## Quick Example
 
 ```typescript
 import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
 
-// ❌ This fails with complex MCP tools
+// ❌ This fails with complex MCP tools of GitHub, Notion, etc.
 const llm = new ChatGoogleGenerativeAI({ model: "google-2.5-flash" });
 
 // ✅ This works with complex MCP tools  
@@ -21,9 +23,9 @@ const llm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
 Before installing, make sure you have:
 
 - **Node.js 18+** - Required for modern JavaScript features
-- **LangChain.js** - This package extends `@langchain/google-genai`
 - **Google API Key** - Get yours at [Google AI Studio](https://ai.google.dev/gemini-api/docs/api-key)
-- **MCP Tools** - From servers like Notion, GitHub, etc.
+- **LangChain.js** - This package works with [`@langchain/core`](https://www.npmjs.com/package/@langchain/core)
+- **MCP Servers** - Access to the MCP servers of your favorite, such as Notion and GitHub.
 
 ```bash
 # Core LangChain dependencies (if not already installed)

@@ -90,7 +90,7 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
       : modelParams;
 
     // NOTE: It is required to access the private property to implement the feature 
-    // Replace the client with a properly configured one to apply the schema transformation
+    // Replace the client with the one that is configured to apply the schema transformation
     // @ts-expect-error: Intentional access to private property for cached content functionality
     this.client = new GoogleGenerativeAI(this.apiKey)
       .getGenerativeModelFromCachedContent(patchedCached, patchedParams, requestOptions);
