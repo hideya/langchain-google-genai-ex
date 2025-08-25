@@ -1,0 +1,81 @@
+{
+  "name": "@hideya/langchain-google-genai-ex",
+  "version": "0.1.0",
+  "description": "Extended ChatGoogleGenerativeAI with access to internal client for advanced use cases",
+  "keywords": [
+    "langchain",
+    "google",
+    "generative-ai",
+    "gemini",
+    "ai",
+    "llm",
+    "chatbot",
+    "mcp",
+    "tools"
+  ],
+  "author": "Hideya",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hideya/langchain-google-genai-ex.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hideya/langchain-google-genai-ex/issues"
+  },
+  "homepage": "https://github.com/hideya/langchain-google-genai-ex#readme",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "build:watch": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "test": "node --test dist/test/*.js",
+    "test:integration": "tsx src/test/integration.test.ts",
+    "test:negative": "tsx src/test/negative.test.ts",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "type-check": "tsc --noEmit",
+    "prepublishOnly": "npm run build",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "@langchain/google-genai": "^0.2.16"
+  },
+  "peerDependencies": {
+    "@langchain/core": ">=0.3.0"
+  },
+  "devDependencies": {
+    "@langchain/core": "^0.3.0",
+    "@langchain/langgraph": "^0.2.0",
+    "@langchain/mcp-adapters": "^0.6.0",
+    "@types/node": "^22.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "dotenv": "^16.4.0",
+    "eslint": "^9.0.0",
+    "tsup": "^8.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.5.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
