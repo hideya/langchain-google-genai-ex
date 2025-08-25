@@ -29,7 +29,7 @@ async function testOriginalChatGoogleGenerativeAI(mcpTools: any[]): Promise<Test
 
   try {
     // Test 1: Model name issue
-    console.log("1. Testing model name handling:");
+    console.log("\n1. Testing model name handling:");
     console.log("   Creating ChatGoogleGenerativeAI with model: 'google-2.5-flash'");
     
     const originalLlm = new ChatGoogleGenerativeAI({ model: "google-2.5-flash" });
@@ -88,10 +88,10 @@ async function testExtendedChatGoogleGenerativeAIEx(mcpTools: any[]): Promise<Te
   console.log("🚀 Testing ChatGoogleGenerativeAIEx with the same complex MCP tools...\n");
 
   try {
-    console.log("1. Creating ChatGoogleGenerativeAIEx with model: 'google-2.5-flash'");
+    console.log("\n1. Creating ChatGoogleGenerativeAIEx with model: 'google-2.5-flash'");
     const extendedLlm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
-    console.log(`   ✅ Model created. Remapped model name: ${extendedLlm.getModelName()}`);
-    console.log(`   ✅ Model name transformation: google-2.5-flash → ${extendedLlm.getModelName()}`);
+    console.log(`   ✅ Model created. Remapped model name: ${extendedLlm.model}`);
+    console.log(`   ✅ Model name transformation: google-2.5-flash → ${extendedLlm.model}`);
     
     console.log("\n2. Testing with complex MCP tools:");
     const agent = createReactAgent({ llm: extendedLlm, tools: mcpTools });

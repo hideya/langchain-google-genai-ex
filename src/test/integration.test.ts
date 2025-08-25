@@ -189,18 +189,20 @@ async function testBasicFunctionality() {
   console.log("🧪 Testing basic ChatGoogleGenerativeAIEx functionality...\n");
 
   // Test 1: Model name remapping
-  console.log("1. Testing model name remapping:");
+  console.log("\n1. Testing model name remapping:");
   const llmEx = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
   const llmOriginal = new ChatGoogleGenerativeAI({ model: "google-2.5-flash" });
   
   console.log(`   Original model: ${llmOriginal.model}`);
   console.log(`   Extended model: ${llmEx.model}`);
-  console.log(`   ✅ Model remapped: google-2.5-flash → ${llmEx.name}\n`);
+  console.log(`   ✅ Model remapped: google-2.5-flash → ${llmEx.model}\n`);
 
   // Test 2: Client access
   console.log("2. Testing client access:");
-  // const client = llmEx.client;
-  // console.log(`   ✅ Client accessible: ${client ? 'Yes' : 'No'}`);
+  // NOTE: It is required to access the private property to implement the feature 
+  // @ts-expect-error: Check if the access to private property is still doable
+  const client = llmEx.client;
+  console.log(`   ✅ Client accessible: ${client ? 'Yes' : 'No'}`);
   console.log(`   ✅ API Key accessible: ${llmEx.apiKey ? 'Yes (hidden)' : 'No'}\n`);
 
   // Test 3: Simple message without tools
@@ -236,7 +238,7 @@ async function testMCPIntegration() {
   });
 
   try {
-    console.log("1. Connecting to MCP servers...");
+    console.log("\n1. Connecting to MCP servers...");
     const mcpTools = await client.getTools();
     console.log(`   ✅ Connected! Found ${mcpTools.length} tools`);
     mcpTools.forEach((tool, i) => {
@@ -302,7 +304,7 @@ async function testSimpleSchemaHandling() {
 
   try {
     const mcpTools = await client.getTools();
-    console.log(`1. Loaded ${mcpTools.length} tools from weather server`);
+    console.log(`\n1. Loaded ${mcpTools.length} tools from weather server`);
     
     // Show schema complexity with better detection
     mcpTools.forEach((tool, i) => {
@@ -378,7 +380,7 @@ async function testComplexSchemaHandling() {
 
   try {
     const mcpTools = await client.getTools();
-    console.log(`1. Loaded ${mcpTools.length} tools for complex schema testing`);
+    console.log(`\n1. Loaded ${mcpTools.length} tools for complex schema testing`);
 
     // Show which tools have complex schemas with detailed analysis
     mcpTools.forEach((tool, i) => {
@@ -401,22 +403,8 @@ async function testComplexSchemaHandling() {
       }
     });
 
-    // Test schema transformation directly
-    console.log("\n2. Testing schema transformation:");
-    const complexTool = mcpTools.find(tool => 
-      JSON.stringify(tool).includes('anyOf') || JSON.stringify(tool).includes('properties')
-    );
-
-    if (complexTool) {
-      console.log(`   Testing transformation on: ${complexTool.name}`);
-      // Here you could add more detailed schema transformation testing
-      console.log("   ✅ Schema transformation handling available");
-    } else {
-      console.log("   ℹ️ No complex schemas found in available tools");
-    }
-
     // Test with the extended class
-    console.log("\n3. Testing extended class with all available tools:");
+    console.log("\n2. Testing extended class with all available tools:");
     const extendedLlm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
     const agent = createReactAgent({ llm: extendedLlm, tools: mcpTools });
 
