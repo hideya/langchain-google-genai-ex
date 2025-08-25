@@ -1,6 +1,6 @@
 # Google Gemini + MCP Tools + LangChain.js → Fixed!
 
-### Library to fix schema errors with MCP tools, Gemini API, and LangChain.js
+### Simple library to fix Gemini API schema issues with MCP tools / LangChain.js
 
 This library provides an extended version of `ChatGoogleGenerativeAI` that **fixes Gemini schema compatibility issues with feature rich MCP servers** like GitHub, Notion, etc.
 
@@ -25,20 +25,21 @@ Before installing, make sure you have:
 - **Node.js 18+** - Required for modern JavaScript features
 - **Google API Key** - Get yours at [Google AI Studio](https://ai.google.dev/gemini-api/docs/api-key)
 - **LangChain.js** - This package works with [`@langchain/core`](https://www.npmjs.com/package/@langchain/core)
+  and [`@langchain/mcp-adapters`](https://www.npmjs.com/package/@langchain/mcp-adapters)
 - **MCP Servers** - Access to the MCP servers of your favorite, such as Notion and GitHub.
-
-```bash
-# Core LangChain dependencies (if not already installed)
-npm install @langchain/core
-
-# For MCP integration (if needed)
-npm install @langchain/mcp-adapters @langchain/langgraph
-```
 
 ## Installation
 
 ```bash
 npm install @hideya/langchain-google-genai-ex
+```
+and the followings as needed:
+```bash
+# LangChain dependencies (if not already installed)
+npm install @langchain/core @langchain/mcp-adapters
+
+# Utilities for MCP Tool calling (as needed)
+npm install @langchain/langgraph
 ```
 
 ## The Problem You're Probably Having
@@ -47,15 +48,18 @@ When using feature rich MCP tools with Google Gemini via LangChain.js, you get e
 
 ```
 [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent: [400 Bad Request] Invalid JSON payload received. Unknown name "type" at 'tools[0].function_declarations[8].parameters.properties[2].value.items.all_of[1].any_of[1]...': Proto field is not repeating, cannot start list.
+... followed by many more
 ```
 
-**Why this happens:** Many MCP servers (like Notion, Slack, etc.) generate complex JSON schemas that work with most LLM providers, but Google Gemini has strict OpenAPI 3.0 subset requirements.
+**Why this happens:** Many MCP servers (like GitHub, Notion, etc.) generate complex JSON schemas that work with most LLM providers, but [Google Gemini has strict OpenAPI 3.0 subset requirements](https://ai.google.dev/api/caching#Schema).
+
+**Note:** Google Vertex AI (not Gemini API) provides OpenAI-compatible endpoints that support more relaxed requirements.
 
 **What breaks Gemini:**
-- `allOf`, `anyOf`, `oneOf` schema composition
-- `$ref` references and `$defs`  
-- Complex nested schemas with type arrays
 - Properties not supported in OpenAPI 3.0 subset
+- `allOf`, `anyOf`, `oneOf` schema composition
+- Complex nested schemas with type arrays
+- `$ref` references and `$defs`
 
 **This library handles all these schema incompatibilities automatically, transforming complex MCP tool schemas into Gemini-friendly formats so you can focus on building instead of debugging schema errors.**
 
@@ -113,61 +117,23 @@ await client.close();
 - Filters invalid required fields
 - Handles complex nested structures
 
-### ✅ **Model Name Remapping**
-```typescript
-// Automatically converts google-* to gemini-* format
-const llm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
-console.log(llm.getModelName()); // "gemini-2.5-flash"
-```
+## Tested MCP Servers
 
-### ✅ **Enhanced Cached Content Support**
-```typescript
-const llm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
-
-// Proper model name handling for cached content
-llm.useCachedContent(cachedContent, modelParams);
-```
-
-## Supported MCP Servers
-
-This package has been tested with MCP servers that generate complex schemas:
+This package has been tested with MCP servers that generate complex schemas
+(all of them fails with errors when used with plain `ChatGoogleGenerativeAI`):
 
 - ✅ **Notion** (`https://mcp.notion.com/mcp`) - Complex nested objects, anyOf unions
-- ✅ **Weather Services** (`@h1deya/mcp-server-weather`) - Simple schemas (works with both)
-- ✅ **File Systems** - Deep nesting, complex array items
-- ✅ **Database Tools** - Schema references, multiple types
+- ✅ **GitHub** (`https://api.githubcopilot.com/mcp/`)
+- ✅ **File Systems** ([@modelcontextprotocol/server-filesystem](https://www.npmjs.com/package/@modelcontextprotocol/server-filesystem))
+- ✅ **SQLite** ([mcp-server-sqlite](https://pypi.org/project/mcp-server-sqlite/))
 
-## Why Not Just Use the Original?
-
-| Feature | ChatGoogleGenerativeAI | ChatGoogleGenerativeAIEx |
-|---------|------------------------|--------------------------|
-| Simple tools | ✅ Works | ✅ Works |
-| Complex MCP tools | ❌ Schema errors | ✅ Works |
-| Model name mapping | ❌ Manual | ✅ Automatic |
-| Cached content | ⚠️ Name issues | ✅ Fixed |
-| Schema transformation | ❌ None | ✅ Comprehensive |
+- ✅ **Playwright** ([@playwright/mcp@latest](https://www.npmjs.com/package/@playwright/mcp))
 
 ## API Reference
 
 For complete API documentation with detailed examples and type information, see:
 
 **[📖 Full API Documentation](https://hideya.github.io/langchain-google-genai-ex/)**
-
-
-## Testing Your Setup
-
-Run our negative test to verify your setup handles complex schemas:
-
-```typescript
-import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
-import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
-
-// This should fail with complex MCP tools
-const original = new ChatGoogleGenerativeAI({ model: "google-2.5-flash" });
-
-// This should work with the same tools
-const enhanced = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
-```
 
 ## Contributing
 

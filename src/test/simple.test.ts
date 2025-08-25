@@ -22,10 +22,13 @@ const client = new MultiServerMCPClient({
   // Server configuration
   mcpServers: {
     // https://github.com/modelcontextprotocol/quickstart-resources/tree/main/weather-server-python
-    "us-weather": {  // US weather only
-      transport: "stdio",
+    filesystem: {
       command: "npx",
-      args: ["-y", "@h1deya/mcp-server-weather"]
+      args: [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "."  // path to a directory to allow access to
+      ],
     },
     notionMCP: {
       transport: "stdio",
@@ -39,6 +42,21 @@ const client = new MultiServerMCPClient({
         "Authorization": `Bearer ${process.env.GITHUB_PERSONAL_ACCESS_TOKEN}`
       }
     },
+    sqlite: {
+      command: "uvx",
+      args: [
+        "mcp-server-sqlite",
+        "--db-path",
+        "mcp-server-sqlite-test.sqlite3"
+      ],
+      cwd: "/tmp"  // the working directory to be use by the server
+    },
+    playwright: {
+      command: "npx",
+      args: [
+        "@playwright/mcp@latest"
+      ]
+    },
   }
 });
 
@@ -51,9 +69,13 @@ const client = new MultiServerMCPClient({
 
   const agent = createReactAgent({ llm, tools: mcpTools });
 
-  // const query = "Are there any weather alerts in California?";
+  // const query = "Tell me how many of directories in `.`";
   // const query = "Tell me about my Notion account";
-  const query = "Tell me about my GitHub profile"
+  // const query = "Tell me about my GitHub profile"
+  // const query = "Make a new table in SQLite DB and put items apple and orange " +
+  //   "with counts 123 and 345 respectively, " +
+  //   "then increment the coutns by 1, and show all the items in the table."
+  const query = "Open bbc.com page";
 
   console.log("\x1b[33m");  // color to yellow
   console.log("[Q]", query);

@@ -5,6 +5,8 @@ import { transformMcpToolForGemini } from "./schema-adapter-gemini.js";
 /**
  * Remaps model names from LangChain format to Google's expected format
  * Converts "google-*" to "gemini-*" and handles model prefixes
+ * Note: This remapping is supposed to be handled by LangChain at some level,
+ * but somehow it needs to be handled explicitly in this case.
  */
 function remapModelName(input?: string): string | undefined {
   if (!input) return input;
