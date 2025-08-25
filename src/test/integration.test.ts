@@ -15,6 +15,176 @@ import { MultiServerMCPClient } from "@langchain/mcp-adapters";
  * 4. ReAct agent functionality
  */
 
+/**
+ * Analyzes the complexity of an MCP tool schema
+ * Returns detailed information about what makes it complex
+ */
+function analyzeSchemaComplexity(tool: any): { isComplex: boolean; reason: string } {
+  const toolStr = JSON.stringify(tool);
+  
+  // Check multiple possible schema locations for LangChain tools
+  const schema = tool.inputSchema || tool.parameters || tool.function?.parameters || 
+                 tool.schema || tool.args_schema || tool.args || {};
+  
+  // Also check if there's a _call method or func that might contain schema info
+  const hasCallMethod = typeof tool._call === 'function';
+  const hasFunc = typeof tool.func === 'function';
+  
+  // Check for problematic JSON Schema constructs that break Gemini
+  const complexityChecks = [
+    {
+      check: () => toolStr.includes('"anyOf"') || toolStr.includes('anyOf'),
+      reason: 'anyOf unions'
+    },
+    {
+      check: () => toolStr.includes('"allOf"') || toolStr.includes('allOf'),
+      reason: 'allOf composition'
+    },
+    {
+      check: () => toolStr.includes('"oneOf"') || toolStr.includes('oneOf'),
+      reason: 'oneOf unions'
+    },
+    {
+      check: () => hasDeepNesting(schema, 0),
+      reason: 'deep nesting (4+ levels)'
+    },
+    {
+      check: () => hasComplexArrayItems(schema),
+      reason: 'complex array items'
+    },
+    {
+      check: () => toolStr.includes('"$ref"') || toolStr.includes('$ref'),
+      reason: '$ref references'
+    },
+    {
+      check: () => hasMultipleTypes(schema),
+      reason: 'multiple type definitions'
+    },
+    {
+      check: () => toolStr.length > 5000, // LangChain tools are verbose
+      reason: 'very large tool definition'
+    },
+    {
+      check: () => hasComplexProperties(schema),
+      reason: 'nested object properties'
+    }
+  ];
+  
+  for (const complexity of complexityChecks) {
+    if (complexity.check()) {
+      return { isComplex: true, reason: complexity.reason };
+    }
+  }
+  
+  // If it's a LangChain DynamicStructuredTool, it might have complex schemas hidden
+  if (toolStr.includes('DynamicStructuredTool')) {
+    return { isComplex: false, reason: 'LangChain tool (schema abstracted)' };
+  }
+  
+  // If no schema found in obvious places
+  const hasAnySchema = !!(tool.inputSchema || tool.parameters || tool.function?.parameters ||
+                          tool.schema || tool.args_schema || tool.args);
+  
+  if (!hasAnySchema && !hasCallMethod && !hasFunc) {
+    return { isComplex: false, reason: 'no schema found' };
+  }
+  
+  return { isComplex: false, reason: 'basic types only' };
+}
+
+function hasDeepNesting(obj: any, depth: number): boolean {
+  if (depth > 3) return true; // 4+ levels is complex
+  if (typeof obj !== 'object' || obj === null) return false;
+  
+  for (const value of Object.values(obj)) {
+    if (typeof value === 'object' && value !== null) {
+      if (hasDeepNesting(value, depth + 1)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function hasComplexArrayItems(schema: any): boolean {
+  const checkObject = (obj: any): boolean => {
+    if (typeof obj !== 'object' || obj === null) return false;
+    
+    // Check if items property has complex structure
+    if (obj.items) {
+      if (Array.isArray(obj.items)) {
+        return true; // Tuple-style items are complex
+      }
+      if (typeof obj.items === 'object' && obj.items.properties) {
+        return true; // Object items with properties are complex
+      }
+    }
+    
+    // Recursively check nested objects
+    for (const value of Object.values(obj)) {
+      if (checkObject(value)) {
+        return true;
+      }
+    }
+    return false;
+  };
+  
+  return checkObject(schema);
+}
+
+function hasComplexProperties(schema: any): boolean {
+  const checkObject = (obj: any): boolean => {
+    if (typeof obj !== 'object' || obj === null) return false;
+    
+    // Check if properties has nested objects with their own properties
+    if (obj.properties) {
+      for (const prop of Object.values(obj.properties)) {
+        if (typeof prop === 'object' && prop !== null) {
+          // If property has its own properties, it's complex
+          if ((prop as any).properties) {
+            return true;
+          }
+          // If property is an array with object items
+          if ((prop as any).items && typeof (prop as any).items === 'object' && (prop as any).items.properties) {
+            return true;
+          }
+        }
+      }
+    }
+    
+    // Recursively check nested objects
+    for (const value of Object.values(obj)) {
+      if (checkObject(value)) {
+        return true;
+      }
+    }
+    return false;
+  };
+  
+  return checkObject(schema);
+}
+
+function hasMultipleTypes(schema: any): boolean {
+  const checkObject = (obj: any): boolean => {
+    if (typeof obj !== 'object' || obj === null) return false;
+    
+    // Check for type arrays like ["string", "null"]
+    if (obj.type && Array.isArray(obj.type) && obj.type.length > 1) {
+      return true;
+    }
+    
+    // Recursively check nested objects
+    for (const value of Object.values(obj)) {
+      if (checkObject(value)) {
+        return true;
+      }
+    }
+    return false;
+  };
+  
+  return checkObject(schema);
+}
+
 async function testBasicFunctionality() {
   console.log("🧪 Testing basic ChatGoogleGenerativeAIEx functionality...\n");
 
@@ -134,14 +304,10 @@ async function testSimpleSchemaHandling() {
     const mcpTools = await client.getTools();
     console.log(`1. Loaded ${mcpTools.length} tools from weather server`);
     
-    // Show schema complexity
+    // Show schema complexity with better detection
     mcpTools.forEach((tool, i) => {
-      const toolStr = JSON.stringify(tool);
-      const isSimple = !toolStr.includes('anyOf') && 
-                      !toolStr.includes('allOf') &&
-                      !toolStr.includes('oneOf') &&
-                      toolStr.length < 500; // Relatively simple
-      console.log(`   ${i + 1}. ${tool.name}: ${isSimple ? '✅ Simple schema' : '🔄 Complex schema'}`);
+      const complexity = analyzeSchemaComplexity(tool);
+      console.log(`   ${i + 1}. ${tool.name}: ${complexity.isComplex ? '🔄 Complex schema' : '✅ Simple schema'} (${complexity.reason})`);
     });
     console.log();
 
@@ -214,12 +380,25 @@ async function testComplexSchemaHandling() {
     const mcpTools = await client.getTools();
     console.log(`1. Loaded ${mcpTools.length} tools for complex schema testing`);
 
-    // Show which tools have complex schemas
+    // Show which tools have complex schemas with detailed analysis
     mcpTools.forEach((tool, i) => {
-      const hasComplexSchema = JSON.stringify(tool).includes('anyOf') || 
-                              JSON.stringify(tool).includes('allOf') ||
-                              JSON.stringify(tool).includes('oneOf');
-      console.log(`   ${i + 1}. ${tool.name}: ${hasComplexSchema ? '🔄 Complex' : '✅ Simple'} schema`);
+      const complexity = analyzeSchemaComplexity(tool);
+      console.log(`   ${i + 1}. ${tool.name}: ${complexity.isComplex ? '🔄 Complex' : '✅ Simple'} schema (${complexity.reason})`);
+      
+      // DEBUG: Show actual schema structure for a few tools
+      if (tool.name === 'notion-create-pages' || tool.name === 'notion-update-page' || i < 2) {
+        console.log(`        DEBUG - Tool properties:`);
+        console.log(`        name: ${tool.name}`);
+        console.log(`        description: ${tool.description}`);
+        if (tool.schema) {
+          console.log(`        schema: ${JSON.stringify(tool.schema, null, 2).substring(0, 300)}...`);
+        }
+        if (tool.args_schema) {
+          console.log(`        args_schema: ${JSON.stringify(tool.args_schema, null, 2).substring(0, 300)}...`);
+        }
+        // Check all available properties
+        console.log(`        Available properties: ${Object.keys(tool).join(', ')}`);
+      }
     });
 
     // Test schema transformation directly
