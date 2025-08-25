@@ -18,6 +18,19 @@ const llm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
 
 **That's it!** Your MCP tool schema errors are gone. 🎉
 
+## Tested MCP Servers
+
+This package has been tested with the following MCP servers that generate complex schemas
+(all of them fails with the plain `ChatGoogleGenerativeAI`):
+
+- ✅ **Notion** (`https://mcp.notion.com/mcp`) - Complex nested objects, anyOf unions
+- ✅ **GitHub** (`https://api.githubcopilot.com/mcp/`)
+- ✅ **File Systems** ([@modelcontextprotocol/server-filesystem](https://www.npmjs.com/package/@modelcontextprotocol/server-filesystem))
+- ✅ **SQLite** ([mcp-server-sqlite](https://pypi.org/project/mcp-server-sqlite/))
+
+- ✅ **Playwright** ([@playwright/mcp@latest](https://www.npmjs.com/package/@playwright/mcp))
+
+
 ## Prerequisites
 
 Before installing, make sure you have:
@@ -103,7 +116,7 @@ console.log(result.messages[result.messages.length - 1].content);
 await client.close();
 ```
 
-## Enhanced Features
+## Features
 
 ### ✅ **All Original ChatGoogleGenerativeAI Features**
 `ChatGoogleGenerativeAIEx` extends the original class, so you get everything:
@@ -116,18 +129,6 @@ await client.close();
 - Removes unsupported JSON Schema features
 - Filters invalid required fields
 - Handles complex nested structures
-
-## Tested MCP Servers
-
-This package has been tested with MCP servers that generate complex schemas
-(all of them fails with errors when used with plain `ChatGoogleGenerativeAI`):
-
-- ✅ **Notion** (`https://mcp.notion.com/mcp`) - Complex nested objects, anyOf unions
-- ✅ **GitHub** (`https://api.githubcopilot.com/mcp/`)
-- ✅ **File Systems** ([@modelcontextprotocol/server-filesystem](https://www.npmjs.com/package/@modelcontextprotocol/server-filesystem))
-- ✅ **SQLite** ([mcp-server-sqlite](https://pypi.org/project/mcp-server-sqlite/))
-
-- ✅ **Playwright** ([@playwright/mcp@latest](https://www.npmjs.com/package/@playwright/mcp))
 
 ## API Reference
 
