@@ -1,6 +1,6 @@
 {
   "name": "@hideya/langchain-google-genai-ex",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "Extended ChatGoogleGenerativeAI with access to internal client for advanced use cases",
   "keywords": [
     "langchain",
@@ -49,8 +49,13 @@
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "type-check": "tsc --noEmit",
-    "prepublishOnly": "npm run build",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "clean:all": "git clean -fdxn -e .env && echo 'Files to be deleted ^. Continue? (Ctrl+C to cancel)' && read -p 'Press Enter to continue...' && git clean -fdx -e .env",
+    "publish:test": "npm run clean:all && npm install && npm run build && npm publish --access=public --dry-run",
+    "publish:do": "npm run clean:all && npm install && npm run build && npm publish --access=public",
+    "docs:build": "npx typedoc --options typedoc.json",
+    "docs:deploy": "npm run docs:build && ghp-import -n -p -f docs",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
@@ -70,7 +75,9 @@
     "eslint": "^9.0.0",
     "tsup": "^8.0.0",
     "tsx": "^4.0.0",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "typedoc": "^0.26.0",
+    "ghp-import": "^2.1.0"
   },
   "engines": {
     "node": ">=18.0.0"
