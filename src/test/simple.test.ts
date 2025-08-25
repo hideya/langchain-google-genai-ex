@@ -53,13 +53,19 @@ const client = new MultiServerMCPClient({
 
   // const query = "Are there any weather alerts in California?";
   // const query = "Tell me about my Notion account";
-  const query = "Tell me information about my GitHub profile"
+  const query = "Tell me about my GitHub profile"
+
+  console.log("\x1b[33m");  // color to yellow
+  console.log("[Q]", query);
+  console.log("\x1b[0m");  // reset the color
 
   const messages =  { messages: [new HumanMessage(query)] };
   const result = await agent.invoke(messages);
   const response = result.messages[result.messages.length - 1].content;
 
-  console.log(response);
+  console.log("\x1b[36m");  // color to cyan
+  console.log("[A]", response);
+  console.log("\x1b[0m");  // reset the color
 
   await client.close();
 })();
