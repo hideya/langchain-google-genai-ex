@@ -70,15 +70,6 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   }
 
   /**
-   * Get access to the internal Google Generative AI client
-   * Useful for advanced operations not exposed by the LangChain wrapper
-   */
-  public getClient() {
-    // @ts-expect-error: Intentional access to private property for advanced use cases
-    return this.client;
-  }
-
-  /**
    * Enhanced cached content support with proper model name remapping
    * Fixes issues where cached content models revert to unsupported google-* names
    */
@@ -111,21 +102,5 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   override invocationParams(options?: any): any {
     const req = super.invocationParams(options);
     return normalizeGeminiToolsPayload({ ...req });
-  }
-
-  /**
-   * Get the API key used by this instance
-   * Useful for creating additional clients or debugging
-   */
-  public getApiKey(): string | undefined {
-    return this.apiKey;
-  }
-
-  /**
-   * Get the current model name after remapping
-   * Useful for debugging model name transformations
-   */
-  public getModelName(): string | undefined {
-    return this.model;
   }
 }

@@ -194,14 +194,14 @@ async function testBasicFunctionality() {
   const llmOriginal = new ChatGoogleGenerativeAI({ model: "google-2.5-flash" });
   
   console.log(`   Original model: ${llmOriginal.model}`);
-  console.log(`   Extended model: ${llmEx.getModelName()}`);
-  console.log(`   ✅ Model remapped: google-2.5-flash → ${llmEx.getModelName()}\n`);
+  console.log(`   Extended model: ${llmEx.model}`);
+  console.log(`   ✅ Model remapped: google-2.5-flash → ${llmEx.name}\n`);
 
   // Test 2: Client access
   console.log("2. Testing client access:");
-  const client = llmEx.getClient();
-  console.log(`   ✅ Client accessible: ${client ? 'Yes' : 'No'}`);
-  console.log(`   ✅ API Key accessible: ${llmEx.getApiKey() ? 'Yes (hidden)' : 'No'}\n`);
+  // const client = llmEx.client;
+  // console.log(`   ✅ Client accessible: ${client ? 'Yes' : 'No'}`);
+  console.log(`   ✅ API Key accessible: ${llmEx.apiKey ? 'Yes (hidden)' : 'No'}\n`);
 
   // Test 3: Simple message without tools
   console.log("3. Testing simple message:");
@@ -393,9 +393,9 @@ async function testComplexSchemaHandling() {
         if (tool.schema) {
           console.log(`        schema: ${JSON.stringify(tool.schema, null, 2).substring(0, 300)}...`);
         }
-        if (tool.args_schema) {
-          console.log(`        args_schema: ${JSON.stringify(tool.args_schema, null, 2).substring(0, 300)}...`);
-        }
+        // if (tool.args_schema) {
+        //   console.log(`        args_schema: ${JSON.stringify(tool.args_schema, null, 2).substring(0, 300)}...`);
+        // }
         // Check all available properties
         console.log(`        Available properties: ${Object.keys(tool).join(', ')}`);
       }

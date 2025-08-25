@@ -1,7 +1,7 @@
 {
   "name": "@hideya/langchain-google-genai-ex",
   "version": "0.0.0",
-  "description": "Extended ChatGoogleGenerativeAI with access to internal client for advanced use cases",
+  "description": "ChatGoogleGenerativeAI extension that fixes schema compatibility issues with MCP tools and Gemini API",
   "keywords": [
     "langchain",
     "google",
