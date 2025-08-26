@@ -8,16 +8,16 @@ import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 
 // Create client and connect to server
 const client = new MultiServerMCPClient({
-  // Global tool configuration options
-  // Whether to throw on errors if a tool fails to load (optional, default: true)
-  throwOnLoadError: true,
-  // Whether to prefix tool names with the server name (optional, default: false)
-  prefixToolNameWithServerName: false,
-  // Optional additional prefix for tool names (optional, default: "")
-  additionalToolNamePrefix: "",
+  // // Global tool configuration options
+  // // Whether to throw on errors if a tool fails to load (optional, default: true)
+  // throwOnLoadError: true,
+  // // Whether to prefix tool names with the server name (optional, default: false)
+  // prefixToolNameWithServerName: false,
+  // // Optional additional prefix for tool names (optional, default: "")
+  // additionalToolNamePrefix: "",
 
-  // Use standardized content block format in tool outputs
-  useStandardContentBlocks: true,
+  // // Use standardized content block format in tool outputs
+  // useStandardContentBlocks: true,
 
   // Server configuration
   mcpServers: {
@@ -66,20 +66,20 @@ const client = new MultiServerMCPClient({
 (async () => {
   const mcpTools = await client.getTools();
 
-  // const llm = new ChatGoogleGenerativeAIEx({model: "google-2.5-flash"});
-  const llm = new ChatGoogleGenerativeAI({model: "google-2.5-flash"});
+  const llm = new ChatGoogleGenerativeAIEx({model: "google-2.5-flash"});
+  // const llm = new ChatGoogleGenerativeAI({model: "google-2.5-flash"});
   // const llm = new ChatOpenAI({model: "gpt-5-mini"});
 
   const agent = createReactAgent({ llm, tools: mcpTools });
 
   // const query = "Are there any weather alerts in California?";
   // const query = "Tell me how many of directories in `.`";
-  const query = "Tell me about my Notion account";
+  // const query = "Tell me about my Notion account";
   // const query = "Tell me about my GitHub profile"
   // const query = "Make a new table in SQLite DB and put items apple and orange " +
   //   "with counts 123 and 345 respectively, " +
   //   "then increment the coutns by 1, and show all the items in the table."
-  // const query = "Open bbc.com page";
+  const query = "Open bbc.com page";
 
   console.log("\x1b[33m");  // color to yellow
   console.log("[Q]", query);
