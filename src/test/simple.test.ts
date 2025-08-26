@@ -72,9 +72,9 @@ const client = new MultiServerMCPClient({
 
   const agent = createReactAgent({ llm, tools: mcpTools });
 
-  const query = "Are there any weather alerts in California?";
+  // const query = "Are there any weather alerts in California?";
   // const query = "Tell me how many of directories in `.`";
-  // const query = "Tell me about my Notion account";
+  const query = "Tell me about my Notion account";
   // const query = "Tell me about my GitHub profile"
   // const query = "Make a new table in SQLite DB and put items apple and orange " +
   //   "with counts 123 and 345 respectively, " +

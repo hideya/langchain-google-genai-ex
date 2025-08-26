@@ -12,7 +12,7 @@ The schema error usually looks like:
 ```typescript
 import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
 
-// ❌ This fails with complex MCP tools of GitHub, Notion, etc.
+// ❌ This fails with complex MCP tools, such as GitHub, Notion, etc.
 const llm = new ChatGoogleGenerativeAI({ model: "google-2.5-flash" });
 
 // ✅ This works with complex MCP tools  
@@ -24,13 +24,12 @@ const llm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
 ## Tested MCP Servers
 
 This package has been tested with the following feature rich MCP servers
-that fails with the plain `ChatGoogleGenerativeAI`, as of Aug 26, 2025:
+(these fail with the plain `ChatGoogleGenerativeAI` as of Aug 26, 2025):
 
 - ✅ **Notion** (`https://mcp.notion.com/mcp`) - Complex nested objects, anyOf unions
 - ✅ **GitHub** (`https://api.githubcopilot.com/mcp/`)
-- ✅ **File Systems** ([@modelcontextprotocol/server-filesystem](https://www.npmjs.com/package/@modelcontextprotocol/server-filesystem))
 - ✅ **SQLite** ([mcp-server-sqlite](https://pypi.org/project/mcp-server-sqlite/))
-
+- ✅ **File Systems** ([@modelcontextprotocol/server-filesystem](https://www.npmjs.com/package/@modelcontextprotocol/server-filesystem))
 - ✅ **Playwright** ([@playwright/mcp](https://www.npmjs.com/package/@playwright/mcp))
 
 

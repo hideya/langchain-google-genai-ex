@@ -5,13 +5,15 @@
   "keywords": [
     "langchain",
     "google",
-    "generative-ai",
     "gemini",
-    "ai",
-    "llm",
-    "chatbot",
+    "model context protocol",
     "mcp",
-    "tools"
+    "tools",
+    "function calling",
+    "schema",
+    "llm",
+    "generative-ai",
+    "ai"
   ],
   "author": "Hideya",
   "license": "MIT",
