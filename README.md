@@ -132,6 +132,16 @@ await client.close();
 - Filters invalid required fields
 - Handles complex nested structures
 
+## How It Works
+
+`ChatGoogleGenerativeAIEx` solves the schema compatibility problem by intercepting
+tool definitions at the critical moment - right before they're sent to Gemini's API.
+It transforms problematic schema constructs into Gemini-compatible formats
+without affecting the original tool functionality or  your application logic.
+
+This targeted approach ensures reliability while maintaining full compatibility
+with the original `ChatGoogleGenerativeAI` interface.
+
 ## API Reference
 
 For complete API documentation with detailed examples and type information, see:

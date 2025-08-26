@@ -56,10 +56,9 @@ function normalizeGeminiToolsPayload(req: any): any {
  * Extended ChatGoogleGenerativeAI class with enhanced capabilities:
  * 
  * - Model name remapping (google-* → gemini-*)
- * - Access to internal client for advanced use cases
  * - Enhanced cached content support with proper model name patching
  * - Tool payload normalization for better Gemini compatibility
- * - Support for complex MCP tool schemas
+ *   to support complex MCP tool schemas
  */
 export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   constructor(fields: any) {
