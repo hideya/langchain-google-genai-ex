@@ -43,6 +43,9 @@ Before installing, make sure you have:
   and [`@langchain/mcp-adapters`](https://www.npmjs.com/package/@langchain/mcp-adapters)
 - **MCP Servers** - Access to the MCP servers of your favorite, such as Notion and GitHub.
 
+**Note on Dependencies:** This package uses specific versions of `@langchain/google-genai` (~0.2.16) and `@google/generative-ai` (~0.21.0) to ensure schema transformation reliability. If your project uses different versions, npm will resolve compatibility automatically.
+
+
 ## Installation
 
 ```bash

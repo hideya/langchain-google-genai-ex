@@ -49,6 +49,7 @@
     "test:simple": "tsx src/test/simple.test.ts",
     "test:integration": "tsx src/test/integration.test.ts",
     "test:negative": "tsx src/test/negative.test.ts",
+    "test:slim": "tsx src/test/slim.test.ts",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "type-check": "tsc --noEmit",
@@ -61,8 +62,8 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@google/generative-ai": "0.21.0",
-    "@langchain/google-genai": "0.2.16"
+    "@google/generative-ai": "~0.21.0",
+    "@langchain/google-genai": "~0.2.16"
   },
   "peerDependencies": {
     "@langchain/core": ">=0.3.0"

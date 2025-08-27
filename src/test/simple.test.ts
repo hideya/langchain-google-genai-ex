@@ -6,7 +6,7 @@ import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { HumanMessage } from "@langchain/core/messages";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 
-// Create client and connect to server
+// Create MCP client and connect to servers
 const client = new MultiServerMCPClient({
   // // Global tool configuration options
   // // Whether to throw on errors if a tool fails to load (optional, default: true)
@@ -79,7 +79,7 @@ const client = new MultiServerMCPClient({
   // const query = "Make a new table in SQLite DB and put items apple and orange " +
   //   "with counts 123 and 345 respectively, " +
   //   "then increment the coutns by 1, and show all the items in the table."
-  const query = "Open bbc.com page";
+  const query = "Open the BBC.com page once";
 
   console.log("\x1b[33m");  // color to yellow
   console.log("[Q]", query);
