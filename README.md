@@ -149,7 +149,7 @@ This targeted approach ensures reliability while maintaining full compatibility
 with the original `ChatGoogleGenerativeAI` interface.
 
 Note that the implementation has slight dependencies on the internals of the base class.
-To ensure the reliability,
+To ensure functionality, 
 this package uses specific versions of `@langchain/google-genai` (~0.2.16) and `@google/generative-ai` (~0.21.0) 
 
 
