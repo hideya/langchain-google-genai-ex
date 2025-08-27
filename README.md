@@ -43,7 +43,7 @@ Before installing, make sure you have:
   and [`@langchain/mcp-adapters`](https://www.npmjs.com/package/@langchain/mcp-adapters)
 - **MCP Servers** - Access to the MCP servers of your favorite, such as Notion and GitHub.
 
-**Note on Dependencies:** This package uses specific versions of `@langchain/google-genai` (~0.2.16) and `@google/generative-ai` (~0.21.0) to ensure schema transformation reliability. If your project uses different versions, npm will resolve compatibility automatically.
+**Note on Dependencies:** This package uses specific versions of `@langchain/google-genai` (~0.2.16) and `@google/generative-ai` (~0.21.0) to ensure schema transformation reliability.
 
 
 ## Installation
@@ -80,6 +80,7 @@ When using feature rich MCP tools with Google Gemini via LangChain.js, you get e
 - `$ref` references and `$defs`
 
 **This library handles all these schema incompatibilities automatically, transforming complex MCP tool schemas into Gemini-friendly formats so you can focus on building instead of debugging schema errors.**
+
 
 ## Complete Usage Example
 
@@ -121,6 +122,7 @@ console.log(result.messages[result.messages.length - 1].content);
 await client.close();
 ```
 
+
 ## Features
 
 ### ✅ **All Original ChatGoogleGenerativeAI Features**
@@ -135,6 +137,7 @@ await client.close();
 - Filters invalid required fields
 - Handles complex nested structures
 
+
 ## How It Works
 
 `ChatGoogleGenerativeAIEx` solves the schema compatibility problem by intercepting
@@ -145,11 +148,16 @@ without affecting the original tool functionality or  your application logic.
 This targeted approach ensures reliability while maintaining full compatibility
 with the original `ChatGoogleGenerativeAI` interface.
 
+Note that, to ensure schema transformation reliability,
+this package uses specific versions of `@langchain/google-genai` (~0.2.16) and `@google/generative-ai` (~0.21.0) 
+
+
 ## API Reference
 
 For complete API documentation with detailed examples and type information, see:
 
 **[📖 Full API Documentation](https://hideya.github.io/langchain-google-genai-ex/)**
+
 
 ## Contributing
 
@@ -159,9 +167,11 @@ Issues and PRs welcome! This package specifically targets the intersection of:
 - MCP (Model Context Protocol) tools
 - Complex JSON Schema compatibility
 
+
 ## License
 
 MIT
+
 
 ## Links
 
