@@ -138,6 +138,39 @@ await client.close();
 - Handles complex nested structures
 
 
+## 🆕 Google's Official Fix vs. This Library
+
+### Google's New SDK Solution
+Google has officially addressed this schema compatibility issue in their new **Google GenAI SDK** (`@google/genai`):
+
+- ✅ **Fixed**: `@google/genai` + `mcpToTool()` handles MCP schema transformation automatically
+- ✅ **Official**: Built-in MCP support with proper schema conversion
+- ✅ **Active**: Actively maintained and includes latest Gemini 2.0+ features
+
+### Why This Library is Still Essential
+
+**LangChain.js Integration Gap**: The new Google SDK doesn't integrate with LangChain.js ecosystem:
+
+- ❌ **LangChain.js** still uses the legacy `@google/generative-ai` (EOL Aug 2025)
+- ❌ **@langchain/mcp-adapters** doesn't work with Google's new `mcpToTool()`
+- ❌ **Schema issues persist** in the LangChain.js → legacy SDK → Gemini API pathway
+
+### Migration Path
+```typescript
+// ✅ If you use Google's SDK directly:
+import { GoogleGenAI, mcpToTool } from '@google/genai';
+const ai = new GoogleGenAI({});
+// Use Google's official solution!
+
+// ✅ If you use LangChain.js:
+import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
+const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
+// Use this library until LangChain.js migrates to new Google SDK
+```
+
+**Bottom Line**: This library serves as a critical bridge for LangChain.js users while the ecosystem transitions to Google's new official SDK.
+
+
 ## How It Works
 
 `ChatGoogleGenerativeAIEx` solves the schema compatibility problem by intercepting
@@ -149,8 +182,8 @@ This targeted approach ensures reliability while maintaining full compatibility
 with the original `ChatGoogleGenerativeAI` interface.
 
 Note that the implementation has slight dependencies on the internals of the base class.
-To ensure functionality, 
-this package uses specific versions of `@langchain/google-genai` (~0.2.16) and `@google/generative-ai` (~0.21.0) 
+To ensure functionality, this package uses specific versions of 
+`@langchain/google-genai` (~0.2.16) and `@google/generative-ai` (~0.21.0) 
 
 
 ## API Reference
