@@ -168,9 +168,13 @@ Google has officially addressed this schema compatibility issue in their new **G
 ### Migration Path
 ```typescript
 // If you use Google's SDK directly:
-import { GoogleGenAI, mcpToTool } from '@google/genai';
+import { GoogleGenAI, mcpToTool } from "@google/genai";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+
 const ai = new GoogleGenAI({});
+
 // Use Google's official solution!
+const client = new Client(...);
 const response = await ai.models.generateContent({
   model: "gemini-2.5-flash",
   contents: "What is the weather in London?",
@@ -182,7 +186,9 @@ const response = await ai.models.generateContent({
 
 ```typescript
 // If you use LangChain.js:
-import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
+import { ChatGoogleGenerativeAIEx } from "@hideya/langchain-google-genai-ex";
+import { MultiServerMCPClient } from "@langchain/mcp-adapters";
+
 // Use this library until LangChain.js migrates to new Google SDK
 const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
 
@@ -250,7 +256,7 @@ Issues and PRs welcome! This package specifically targets the intersection of:
 
 ## License
 
-MIT
+[MIT](./LICENSE)
 
 
 ## Links
