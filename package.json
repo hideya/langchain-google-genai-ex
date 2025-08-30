@@ -48,6 +48,7 @@
     "test": "node --test dist/test/*.js",
     "test:simple": "tsx src/test/simple.test.ts",
     "test:integration": "tsx src/test/integration.test.ts",
+    "test:individualServers": "tsx src/test/individual-servers.test.ts",
     "test:negative": "tsx src/test/negative.test.ts",
     "test:slim": "tsx src/test/slim.test.ts",
     "lint": "eslint src/**/*.ts",

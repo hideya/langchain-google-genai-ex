@@ -79,7 +79,7 @@ const client = new MultiServerMCPClient({
   // const query = "Make a new table in SQLite DB and put items apple and orange " +
   //   "with counts 123 and 345 respectively, " +
   //   "then increment the coutns by 1, and show all the items in the table."
-  // const query = "Open the BBC.com page once";
+  // const query = "Open the BBC.com page, then close it";
 
   console.log("\x1b[33m");  // color to yellow
   console.log("[Q]", query);

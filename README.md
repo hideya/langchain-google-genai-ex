@@ -206,7 +206,7 @@ const agent = createReactAgent({ llm, tools: mcpTools });
 
 `ChatGoogleGenerativeAIEx` solves the schema compatibility problem through **surgical interception** at the critical conversion point:
 
-> **📋 Want to understand why upstream fixes don't work?** See our detailed [**Tool Conversion Pipeline Analysis**](./LANGCHAIN_TOOL_CONVERSION_PIPELINE.md) explaining LangChain.js's hidden "double conversion" problem.
+> **📋 Want to understand why upstream fixes don't work?** See our detailed [**Tool Conversion Pipeline Analysis**](./LANGCHAIN_TOOL_CONVERSION_PIPELINE.md) explaining LangChain.js's hidden "double conversion" approach.
 
 > **🔬 Want to understand the broader ecosystem issues?** See our comprehensive [**Technical Analysis**](./GOOGLE_OFFICIAL_FIX_COMPATIBILITY.md) explaining why LangChain.js can't directly use Google's official fix.
 
@@ -235,7 +235,7 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
 
 This solution is built on extensive research of LangChain.js's internal architecture:
 
-> **🔍 Deep Technical Analysis**: Our approach is proven through comprehensive analysis of LangChain's tool conversion pipeline, ecosystem compatibility challenges, and architectural trade-offs. See the technical documents linked above for the complete research foundation. 
+> **Deep Technical Analysis**: Our approach is proven through comprehensive analysis of LangChain's tool conversion pipeline, ecosystem compatibility challenges, and architectural trade-offs. See the technical documents linked above for the complete research foundation. 
 
 
 ## API Reference
