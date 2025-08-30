@@ -23,14 +23,15 @@ const llm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
 
 ## Tested MCP Servers
 
-This package has been tested with the following feature rich MCP servers
-(these fail with the plain `ChatGoogleGenerativeAI` as of Aug 26, 2025):
+This package has been tested with the following **feature-rich MCP servers** that generate complex JSON schemas incompatible with Gemini's strict requirements:
 
-- ✅ **Notion** (`https://mcp.notion.com/mcp`) - Complex nested objects, anyOf unions
-- ✅ **GitHub** (`https://api.githubcopilot.com/mcp/`)
-- ✅ **SQLite** ([mcp-server-sqlite](https://pypi.org/project/mcp-server-sqlite/))
-- ✅ **File Systems** ([@modelcontextprotocol/server-filesystem](https://www.npmjs.com/package/@modelcontextprotocol/server-filesystem))
-- ✅ **Playwright** ([@playwright/mcp](https://www.npmjs.com/package/@playwright/mcp))
+- ✅ **Notion** (`https://mcp.notion.com/mcp`) - Complex nested objects, `anyOf` unions, `$ref` definitions
+- ✅ **GitHub** (`https://api.githubcopilot.com/mcp/`) - Advanced schema composition with `allOf`/`oneOf`
+- ✅ **SQLite** ([mcp-server-sqlite](https://pypi.org/project/mcp-server-sqlite/)) - Dynamic schema generation
+- ✅ **File Systems** ([@modelcontextprotocol/server-filesystem](https://www.npmjs.com/package/@modelcontextprotocol/server-filesystem)) - File operation schemas
+- ✅ **Playwright** ([@playwright/mcp](https://www.npmjs.com/package/@playwright/mcp)) - Browser automation schemas
+
+> **Note**: These servers work perfectly with other LLM providers (OpenAI, Anthropic, etc.) but fail with Gemini due to its [strict OpenAPI 3.0 subset requirements](https://ai.google.dev/api/caching#Schema).
 
 
 ## Prerequisites
@@ -69,15 +70,16 @@ When using feature rich MCP tools with Google Gemini via LangChain.js, you get e
 ... followed by many more
 ```
 
-**Why this happens:** Many MCP servers (like GitHub, Notion, etc.) generate complex JSON schemas that work with most LLM providers, but [Google Gemini has strict OpenAPI 3.0 subset requirements](https://ai.google.dev/api/caching#Schema).
+**Why this happens:** This isn't a simple bug - it's an **architectural compatibility issue**. Many MCP servers generate sophisticated JSON schemas using advanced features that work with most LLM providers, but [Google Gemini enforces strict OpenAPI 3.0 subset requirements](https://ai.google.dev/api/caching#Schema) for security and performance reasons.
 
-**Note:** Google Vertex AI (not Gemini API) provides OpenAI-compatible endpoints that support more relaxed requirements.
+**What breaks Gemini's validation:**
+- **Schema composition**: `allOf`, `anyOf`, `oneOf` keywords
+- **Reference systems**: `$ref` pointers and `$defs` definitions  
+- **Type flexibility**: Arrays of types like `["string", "null"]`
+- **Advanced properties**: `additionalProperties`, `patternProperties`, etc.
+- **Conditional logic**: `if`/`then`/`else` schema constructs
 
-**What breaks Gemini:**
-- Properties not supported in OpenAPI 3.0 subset
-- `allOf`, `anyOf`, `oneOf` schema composition
-- Complex nested schemas with type arrays
-- `$ref` references and `$defs`
+> **Technical Note**: Google Vertex AI (not Gemini API) provides OpenAI-compatible endpoints with more relaxed schema requirements, but requires different authentication and billing setup.
 
 **This library handles all these schema incompatibilities automatically, transforming complex MCP tool schemas into Gemini-friendly formats so you can focus on building instead of debugging schema errors.**
 
@@ -131,11 +133,13 @@ await client.close();
 - All model parameters and configurations
 - Full LangChain.js integration
 
-### ✅ **Automatic Schema Transformation** 
-- Converts `allOf`/`anyOf`/`oneOf` to Gemini-compatible formats
-- Removes unsupported JSON Schema features
-- Filters invalid required fields
-- Handles complex nested structures
+### ✅ **Intelligent Schema Transformation**
+- **Smart conversion** of `allOf`/`anyOf`/`oneOf` to equivalent object structures
+- **Reference resolution** - handles `$ref` and `$defs` by flattening definitions
+- **Type normalization** - converts type arrays `["string", "null"]` to `nullable` properties
+- **Property validation** - filters `required` fields that don't exist in `properties`
+- **Format compatibility** - removes unsupported JSON Schema formats and keywords
+- **Nested structure handling** - recursively processes complex object hierarchies
 
 
 ## 🆕 Google's Official Fix vs. This Library
@@ -170,20 +174,33 @@ const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
 
 **Bottom Line**: This library serves as a critical bridge for LangChain.js users while the ecosystem transitions to Google's new official SDK.
 
+> **🔬 Want to understand the technical details?** See our comprehensive [**Technical Analysis**](./TECHNICAL_ANALYSIS.md) explaining why LangChain.js can't directly use Google's official fix and the architectural challenges involved.
+
 
 ## How It Works
 
-`ChatGoogleGenerativeAIEx` solves the schema compatibility problem by intercepting
-tool definitions at the critical moment - right before they're sent to Gemini's API.
-It transforms problematic schema constructs into Gemini-compatible formats
-without affecting the original tool functionality or  your application logic.
+`ChatGoogleGenerativeAIEx` solves the schema compatibility problem through **surgical interception** at the critical conversion point:
 
-This targeted approach ensures reliability while maintaining full compatibility
-with the original `ChatGoogleGenerativeAI` interface.
+```typescript
+// The magic happens in the invocationParams() override
+export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
+  override invocationParams(options?: any): any {
+    const req = super.invocationParams(options);
+    return normalizeGeminiToolsPayload({ ...req }); // ← Schema transformation here
+  }
+}
+```
 
-Note that the implementation has slight dependencies on the internals of the base class.
-To ensure functionality, this package uses specific versions of 
-`@langchain/google-genai` (~0.2.16) and `@google/generative-ai` (~0.21.0) 
+**Why this approach works:**
+
+1. **🎯 Precise Timing**: Intercepts tool definitions right before API submission
+2. **🔄 Non-Destructive**: Original tool functionality remains completely intact  
+3. **🔗 Full Compatibility**: Extends rather than replacing the original class
+4. **🛡️ Transparent**: Your application logic doesn't need to change
+
+**Architectural Context**: This works within LangChain.js's existing tool conversion pipeline, transforming schemas after LangChain's universal tool processing but before Google's API validation.
+
+> **Stability Note**: The implementation uses specific versions of `@langchain/google-genai` (~0.2.16) and `@google/generative-ai` (~0.21.0) to ensure reliable interception of the conversion process. 
 
 
 ## API Reference
@@ -210,6 +227,7 @@ MIT
 ## Links
 
 - [📖 **Full API Documentation**](https://hideya.github.io/langchain-google-genai-ex/)
+- [🔬 **Technical Analysis**](./TECHNICAL_ANALYSIS.md) - Deep dive into the architectural challenges
 - [📦 **NPM Package**](https://www.npmjs.com/package/@hideya/langchain-google-genai-ex)
 - [🐛 **Issues & Bug Reports**](https://github.com/hideya/langchain-google-genai-ex/issues)
 - [🔧 **Source Code**](https://github.com/hideya/langchain-google-genai-ex)
