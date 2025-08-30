@@ -187,12 +187,16 @@ const agent = createReactAgent({ llm, tools: mcpTools });
 
 **Bottom Line**: This library serves as a critical bridge for LangChain.js users while the ecosystem transitions to Google's new official SDK.
 
-> **🔬 Want to understand the technical details?** See our comprehensive [**Technical Analysis**](./TECHNICAL_ANALYSIS.md) explaining why LangChain.js can't directly use Google's official fix and the architectural challenges involved.
+> **🔬 Want to understand the technical details?** See our comprehensive [**Technical Analysis**](./GOOGLE_OFFICIAL_FIX_COMPATIBILITY.md) explaining why LangChain.js can't directly use Google's official fix and the architectural challenges involved.
 
 
 ## How It Works
 
 `ChatGoogleGenerativeAIEx` solves the schema compatibility problem through **surgical interception** at the critical conversion point:
+
+> **📋 Want to understand why upstream fixes don't work?** See our detailed [**Tool Conversion Pipeline Analysis**](./LANGCHAIN_TOOL_CONVERSION_PIPELINE.md) explaining LangChain.js's hidden "double conversion" problem.
+
+> **🔬 Want to understand the broader ecosystem issues?** See our comprehensive [**Technical Analysis**](./GOOGLE_OFFICIAL_FIX_COMPATIBILITY.md) explaining why LangChain.js can't directly use Google's official fix.
 
 ```typescript
 // The magic happens in the invocationParams() override
@@ -240,7 +244,8 @@ MIT
 ## Links
 
 - [📖 **Full API Documentation**](https://hideya.github.io/langchain-google-genai-ex/)
-- [🔬 **Technical Analysis**](./TECHNICAL_ANALYSIS.md) - Deep dive into the architectural challenges
+- [🔬 **Google Official Fix Compatibility Analysis**](./GOOGLE_OFFICIAL_FIX_COMPATIBILITY.md) - Why LangChain.js can't use Google's official MCP schema fix
+- [📋 **Tool Conversion Pipeline Analysis**](./LANGCHAIN_TOOL_CONVERSION_PIPELINE.md) - Why upstream schema fixes fail in LangChain.js
 - [📦 **NPM Package**](https://www.npmjs.com/package/@hideya/langchain-google-genai-ex)
 - [🐛 **Issues & Bug Reports**](https://github.com/hideya/langchain-google-genai-ex/issues)
 - [🔧 **Source Code**](https://github.com/hideya/langchain-google-genai-ex)
