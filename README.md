@@ -79,7 +79,7 @@ When using feature rich MCP tools with Google Gemini via LangChain.js, you get e
 - **Advanced properties**: `additionalProperties`, `patternProperties`, etc.
 - **Conditional logic**: `if`/`then`/`else` schema constructs
 
-> **📢 Recent Updates**: Google has relaxed some schema requirements in newer SDK versions (v1.7.0+) and Gemini 2.5, now supporting `$ref`, `$defs`, and other JSON Schema features through new `*JsonSchema` fields. However, LangChain.js `ChatGoogleGenerativeAI` still uses the legacy `parameters` field with the original OpenAPI 3.0 subset restrictions.
+> **📣 Recent Updates**: Google has relaxed some schema requirements in newer SDK versions (v1.7.0+) and Gemini 2.5, now supporting `$ref`, `$defs`, and other JSON Schema features through new `*JsonSchema` fields. However, LangChain.js `ChatGoogleGenerativeAI` still uses the legacy `parameters` field with the original OpenAPI 3.0 subset restrictions.
 
 > **Technical Note**: Google Vertex AI (not Gemini API) provides OpenAI-compatible endpoints with more relaxed schema requirements, but requires different authentication and billing setup.
 
@@ -163,7 +163,7 @@ Google has officially addressed this schema compatibility issue in their new **G
 
 ### Migration Path
 ```typescript
-// ✅ If you use Google's SDK directly:
+// If you use Google's SDK directly:
 import { GoogleGenAI, mcpToTool } from '@google/genai';
 const ai = new GoogleGenAI({});
 // Use Google's official solution!
@@ -175,7 +175,7 @@ const response = await ai.models.generateContent({
   },
 });
 
-// ✅ If you use LangChain.js:
+// If you use LangChain.js:
 import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
 const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
 // Use this library until LangChain.js migrates to new Google SDK
@@ -206,10 +206,10 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
 
 **Why this approach works:**
 
-1. **🎯 Precise Timing**: Intercepts tool definitions right before API submission
-2. **🔄 Non-Destructive**: Original tool functionality remains completely intact  
-3. **🔗 Full Compatibility**: Extends rather than replacing the original class
-4. **🛡️ Transparent**: Your application logic doesn't need to change
+1. **Precise Timing**: Intercepts tool definitions right before API submission
+2. **Non-Destructive**: Original tool functionality remains completely intact  
+3. **Full Compatibility**: Extends rather than replacing the original class
+4. **Transparent**: Your application logic doesn't need to change
 
 **Architectural Context**: This works within LangChain.js's existing tool conversion pipeline, transforming schemas after LangChain's universal tool processing but before Google's API validation.
 
