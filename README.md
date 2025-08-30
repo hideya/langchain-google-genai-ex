@@ -160,6 +160,7 @@ Google has officially addressed this schema compatibility issue in their new **G
 - ❌ **LangChain.js** still uses the legacy `@google/generative-ai` (EOL Aug 2025)
 - ❌ **@langchain/mcp-adapters** doesn't work with Google's new `mcpToTool()`
 - ❌ **Schema issues persist** in the LangChain.js → legacy SDK → Gemini API pathway
+- ❌ **Double conversion problem**: LangChain's `convertToOpenAIFunction()` re-breaks fixed schemas
 
 ### Migration Path
 ```typescript
@@ -215,9 +216,15 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
 3. **Full Compatibility**: Extends rather than replacing the original class
 4. **Transparent**: Your application logic doesn't need to change
 
-**Architectural Context**: This works within LangChain.js's existing tool conversion pipeline, transforming schemas after LangChain's universal tool processing but before Google's API validation.
+**Architectural Context**: This works within LangChain.js's existing tool conversion pipeline, transforming schemas **after** LangChain's universal tool processing but **before** Google's API validation—the only viable interception point.
 
-> **Stability Note**: The implementation uses specific versions of `@langchain/google-genai` (~0.2.16) and `@google/generative-ai` (~0.21.0) to ensure reliable interception of the conversion process. 
+> **Stability Note**: The implementation uses specific versions of `@langchain/google-genai` (~0.2.16) and `@google/generative-ai` (~0.21.0) to ensure reliable interception of the conversion process.
+
+### Technical Foundation
+
+This solution is built on extensive research of LangChain.js's internal architecture:
+
+> **🔍 Deep Technical Analysis**: Our approach is proven through comprehensive analysis of LangChain's tool conversion pipeline, ecosystem compatibility challenges, and architectural trade-offs. See the technical documents linked above for the complete research foundation. 
 
 
 ## API Reference
