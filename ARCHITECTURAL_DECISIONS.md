@@ -1,5 +1,7 @@
 # Architectural Decisions: Why We Fix at invocationParams() Level
 
+> **📅 Research Date**: This architectural analysis is based on research conducted on August 31, 2025, examining LangChain.js ecosystem design patterns and alternative approaches to schema compatibility. Technology stacks evolve rapidly, so please verify current best practices.
+
 ## Overview
 
 This document explains the architectural decisions behind `@hideya/langchain-google-genai-ex`, specifically why we chose to fix schema compatibility at the `invocationParams()` level rather than at the root cause (`zodToJsonSchema`) or other upstream levels.
@@ -238,3 +240,7 @@ Our approach proves that sometimes the "right" architectural decision is the one
 - [Google Official Fix Compatibility Analysis](./GOOGLE_OFFICIAL_FIX_COMPATIBILITY.md) - Ecosystem-level compatibility challenges
 - [zodToJsonSchema Library](https://github.com/StefanTerdell/zod-to-json-schema) - The root cause utility
 - [LangChain.js Core Utils](https://github.com/langchain-ai/langchainjs/tree/main/langchain-core/src/utils) - LangChain's function calling utilities
+
+---
+
+*For the most current information, please refer to the official documentation links provided throughout this document.*

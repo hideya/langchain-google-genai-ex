@@ -7,6 +7,9 @@ This library provides an extended version of `ChatGoogleGenerativeAI` that **fix
 The schema error usually looks like:  
 `[GoogleGenerativeAI Error]: ... [400 Bad Request] Invalid JSON payload received.`
 
+> This library addresses compatibility issues present as of August 31, 2025, with LangChain.js v0.2.16 and @google/generative-ai v0.21.0.
+
+
 ## Quick Example
 
 ```typescript

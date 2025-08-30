@@ -1,5 +1,7 @@
 # Technical Analysis: Why LangChain.js Can't Use Google's Official MCP Schema Fix
 
+> **📅 Research Date**: This analysis is based on research conducted on August 31, 2025, examining Google's GenAI SDK v1.7.0+, LangChain.js v0.2.16, and related packages. Given the rapid evolution of both ecosystems, please verify current versions and compatibility status.
+
 ## Executive Summary
 
 Google has officially solved the Gemini API schema compatibility issues with MCP tools in their new **Google GenAI SDK** (`@google/genai`) through the `mcpToTool()` function. However, LangChain.js users cannot benefit from this fix due to fundamental architectural differences between the two systems. This document explains the technical reasons behind this limitation and why bridge solutions like `@hideya/langchain-google-genai-ex` remain necessary.
@@ -244,4 +246,4 @@ This situation demonstrates the complexity of ecosystem transitions in the rapid
 
 ---
 
-*This analysis is based on research conducted in August 2025. For the most current information, please refer to the official documentation links provided throughout this document.*
+*For the most current information, please refer to the official documentation links provided throughout this document.*

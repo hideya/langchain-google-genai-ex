@@ -1,5 +1,7 @@
 # LangChain.js Tool Conversion Pipeline: Why Upstream Schema Fixes Fail
 
+> **📅 Research Date**: This analysis is based on research conducted on August 31, 2025, examining LangChain.js v0.2.16, @langchain/core utilities, and related packages. Given the active development of LangChain.js, please verify current implementation details.
+
 ## TL;DR
 
 **The Problem**: LangChain.js has a hidden "double conversion" issue where tools are converted to OpenAI format internally, even after upstream schema transformations. This re-introduces Gemini-incompatible schema features and breaks upstream fixes.
@@ -252,3 +254,7 @@ While upstream schema fixes seem logical, they fail because LangChain applies it
 This analysis explains why `@hideya/langchain-google-genai-ex` uses "surgical interception" rather than upstream transformation - it's not just an implementation choice, but an **architectural necessity** dictated by LangChain.js's internal design.
 
 Understanding this pattern will help developers facing similar compatibility issues with other LLM providers that have strict schema requirements.
+
+---
+
+*For the most current information, please refer to the official documentation links provided throughout this document.*
