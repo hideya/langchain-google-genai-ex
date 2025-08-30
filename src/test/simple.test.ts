@@ -34,7 +34,7 @@ const client = new MultiServerMCPClient({
         "."  // path to a directory to allow access to
       ]
     },
-    notionMCP: {
+    notion: {
       transport: "stdio",
       "command": "npx",
       "args": ["-y", "mcp-remote", "https://mcp.notion.com/mcp"],
@@ -74,12 +74,12 @@ const client = new MultiServerMCPClient({
 
   // const query = "Are there any weather alerts in California?";
   // const query = "Tell me how many of directories in `.`";
-  // const query = "Tell me about my Notion account";
+  const query = "Tell me about my Notion account";
   // const query = "Tell me about my GitHub profile"
   // const query = "Make a new table in SQLite DB and put items apple and orange " +
   //   "with counts 123 and 345 respectively, " +
   //   "then increment the coutns by 1, and show all the items in the table."
-  const query = "Open the BBC.com page once";
+  // const query = "Open the BBC.com page once";
 
   console.log("\x1b[33m");  // color to yellow
   console.log("[Q]", query);

@@ -245,7 +245,8 @@ MIT
 
 - [📖 **Full API Documentation**](https://hideya.github.io/langchain-google-genai-ex/)
 - [🔬 **Google Official Fix Compatibility Analysis**](./GOOGLE_OFFICIAL_FIX_COMPATIBILITY.md) - Why LangChain.js can't use Google's official MCP schema fix
-- [📋 **Tool Conversion Pipeline Analysis**](./LANGCHAIN_TOOL_CONVERSION_PIPELINE.md) - Why upstream schema fixes fail in LangChain.js
+- [📋 **Tool Conversion Pipeline Analysis**](./LANGCHAIN_TOOL_CONVERSION_PIPELINE.md) - Why upstream schema fixes fail in LangChain.js  
+- [🏗️ **Architectural Decisions**](./ARCHITECTURAL_DECISIONS.md) - Why we fix at invocationParams() level
 - [📦 **NPM Package**](https://www.npmjs.com/package/@hideya/langchain-google-genai-ex)
 - [🐛 **Issues & Bug Reports**](https://github.com/hideya/langchain-google-genai-ex/issues)
 - [🔧 **Source Code**](https://github.com/hideya/langchain-google-genai-ex)
