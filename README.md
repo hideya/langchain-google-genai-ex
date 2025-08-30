@@ -79,7 +79,7 @@ When using feature rich MCP tools with Google Gemini via LangChain.js, you get e
 - **Advanced properties**: `additionalProperties`, `patternProperties`, etc.
 - **Conditional logic**: `if`/`then`/`else` schema constructs
 
-> **📈 Recent Updates**: Google has relaxed some schema requirements in newer SDK versions (v1.7.0+) and Gemini 2.5, now supporting `$ref`, `$defs`, and other JSON Schema features through new `*JsonSchema` fields. However, LangChain.js `ChatGoogleGenerativeAI` still uses the legacy `parameters` field with the original OpenAPI 3.0 subset restrictions.
+> **📢 Recent Updates**: Google has relaxed some schema requirements in newer SDK versions (v1.7.0+) and Gemini 2.5, now supporting `$ref`, `$defs`, and other JSON Schema features through new `*JsonSchema` fields. However, LangChain.js `ChatGoogleGenerativeAI` still uses the legacy `parameters` field with the original OpenAPI 3.0 subset restrictions.
 
 > **Technical Note**: Google Vertex AI (not Gemini API) provides OpenAI-compatible endpoints with more relaxed schema requirements, but requires different authentication and billing setup.
 
@@ -167,11 +167,22 @@ Google has officially addressed this schema compatibility issue in their new **G
 import { GoogleGenAI, mcpToTool } from '@google/genai';
 const ai = new GoogleGenAI({});
 // Use Google's official solution!
+const response = await ai.models.generateContent({
+  model: "gemini-2.5-flash",
+  contents: "What is the weather in London?",
+  config: {
+    tools: [mcpToTool(client)], // ← Automatic schema transformation
+  },
+});
 
 // ✅ If you use LangChain.js:
 import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
 const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
 // Use this library until LangChain.js migrates to new Google SDK
+const client = new MultiServerMCPClient({ ...});
+const mcpTools = await client.getTools();
+const agent = createReactAgent({ llm, tools: mcpTools });
+  ︙
 ```
 
 **Bottom Line**: This library serves as a critical bridge for LangChain.js users while the ecosystem transitions to Google's new official SDK.
