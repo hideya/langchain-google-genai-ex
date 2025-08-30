@@ -147,7 +147,7 @@ await client.close();
 - **Nested structure handling** - recursively processes complex object hierarchies
 
 
-## 🆕 Google's Official Fix vs. This Library
+## Google's Official Fix vs. This Library
 
 ### Google's New SDK Solution
 Google has officially addressed this schema compatibility issue in their new **Google GenAI SDK** (`@google/genai`):
@@ -178,15 +178,17 @@ const response = await ai.models.generateContent({
     tools: [mcpToTool(client)], // ← Automatic schema transformation
   },
 });
+```
 
+```typescript
 // If you use LangChain.js:
 import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
-const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
 // Use this library until LangChain.js migrates to new Google SDK
-const client = new MultiServerMCPClient({ ...});
+const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
+
+const client = new MultiServerMCPClient({...});
 const mcpTools = await client.getTools();
 const agent = createReactAgent({ llm, tools: mcpTools });
-  ︙
 ```
 
 **Bottom Line**: This library serves as a critical bridge for LangChain.js users while the ecosystem transitions to Google's new official SDK.
