@@ -79,6 +79,8 @@ When using feature rich MCP tools with Google Gemini via LangChain.js, you get e
 - **Advanced properties**: `additionalProperties`, `patternProperties`, etc.
 - **Conditional logic**: `if`/`then`/`else` schema constructs
 
+> **📈 Recent Updates**: Google has relaxed some schema requirements in newer SDK versions (v1.7.0+) and Gemini 2.5, now supporting `$ref`, `$defs`, and other JSON Schema features through new `*JsonSchema` fields. However, LangChain.js `ChatGoogleGenerativeAI` still uses the legacy `parameters` field with the original OpenAPI 3.0 subset restrictions.
+
 > **Technical Note**: Google Vertex AI (not Gemini API) provides OpenAI-compatible endpoints with more relaxed schema requirements, but requires different authentication and billing setup.
 
 **This library handles all these schema incompatibilities automatically, transforming complex MCP tool schemas into Gemini-friendly formats so you can focus on building instead of debugging schema errors.**
