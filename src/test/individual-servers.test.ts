@@ -39,8 +39,7 @@ const MCP_SERVERS: ServerTestConfig[] = [
       args: ["-y", "@h1deya/mcp-server-weather"]
     },
     testQuery: "Are there any weather alerts in California?",
-    expectedToolNames: ["get-alerts", "get-forecast"],
-    requiresAuth: false
+    expectedToolNames: ["get-alerts", "get-forecast"]
   },
   {
     name: "fetch",
@@ -51,8 +50,7 @@ const MCP_SERVERS: ServerTestConfig[] = [
       args: ["mcp-server-fetch"]
     },
     testQuery: "Summarize the beginning of the news headlines on BBC.com",
-    expectedToolNames: ["fetch"],
-    requiresAuth: false
+    expectedToolNames: ["fetch"]
   },
   {
     name: "filesystem",
@@ -66,8 +64,7 @@ const MCP_SERVERS: ServerTestConfig[] = [
       ]
     },
     testQuery: "Tell me how many directories are in the current directory",
-    expectedToolNames: ["read_file", "list_directory"],
-    requiresAuth: false
+    expectedToolNames: ["read_file", "list_directory"]
   },
   {
     name: "notion",
@@ -81,7 +78,6 @@ const MCP_SERVERS: ServerTestConfig[] = [
     expectedToolNames: ["notion-get-self", "notion-search-pages"],
     // requiresAuth: true,
     // authEnvVar: "NOTION_TOKEN"
-    requiresAuth: false
   },
   {
     name: "github",
@@ -114,6 +110,18 @@ const MCP_SERVERS: ServerTestConfig[] = [
     testQuery: "Please list all the users"
   },
   {
+    name: "airtable",
+    displayName: "Airtable Server",
+    config: {
+      command: "npx",
+      args: ["-y", "airtable-mcp-server"],
+      env: {
+        "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
+      }
+    },
+    testQuery: "Tell me about my Airtable account"
+  },
+  {
     name: "sqlite",
     displayName: "SQLite Server",
     config: {
@@ -126,19 +134,17 @@ const MCP_SERVERS: ServerTestConfig[] = [
     },
     testQuery: "Make a new table called 'fruits' with columns 'name' and 'count', insert apple with count 123 and orange with count 345, then show all items",
     expectedToolNames: ["execute-query", "list-tables"],
-    requiresAuth: false
   },
   {
     name: "playwright",
     displayName: "Playwright Server",
     config: {
       command: "npx",
-      args: ["@playwright/mcp@latest"]
+      args: ["-y", "@playwright/mcp@latest"]
     },
     testQuery: "Open the BBC.com page, then close it",
     expectedToolNames: ["playwright_navigate", "playwright_screenshot"],
-    requiresAuth: false
-  }
+  },
 ];
 
 interface TestResult {

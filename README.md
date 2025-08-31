@@ -2,7 +2,7 @@
 
 ### Simple library to fix Gemini API schema issues with MCP tools / LangChain.js
 
-This library provides an extended version of `ChatGoogleGenerativeAI` that **fixes Gemini schema compatibility issues** when using MCP servers with complex schemas (like Notion). It prevents cascading failures where one complex server breaks the entire MCP integration.
+This library provides an extended version of `ChatGoogleGenerativeAI` that **fixes Gemini schema compatibility issues** when using MCP servers with complex schemas (like Notion, Airtable, etc.). It prevents cascading failures where one complex server breaks the entire MCP integration when using `MultiServerMCPClient()`.
 
 The schema error usually looks like:  
 `[GoogleGenerativeAI Error]: ... [400 Bad Request] Invalid JSON payload received.`
@@ -26,7 +26,10 @@ const llm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
 
 ## Tested MCP Servers
 
-This package has been tested with the following **Notion** (`https://mcp.notion.com/mcp`), which has complex schemas and requires schema transformation to work with Gemini.
+This package has been tested with the following, which require the schema transformation to work with Gemini (as of August 31, 2025).
+- **Notion** (`https://mcp.notion.com/mcp`)
+- **Airtable** (`npx -y airtable-mcp-server`)
+- **Filesystem** (`npx -y @modelcontextprotocol/server-filesystem`)
 
 When you configure **multiple servers** including one with complex schemas (like Notion), it breaks the **entire MCP integration** - even the simple servers stop working. This library prevents this cascading failure.
 
@@ -60,7 +63,7 @@ npm install @langchain/langgraph
 
 ## The Problem You're Probably Having
 
-When using MCP servers with complex schemas (like Notion) alongside Google Gemini via LangChain.js, you encounter a **cascading failure** where one complex server breaks the entire MCP integration:
+When using MCP servers with complex schemas (like Notion, Airtable, etc.) alongside Google Gemini via LangChain.js, you encounter a **cascading failure** where one complex server breaks the entire MCP integration:
 
 ```
 [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent: [400 Bad Request] Invalid JSON payload received. Unknown name "anyOf" at 'tools[0].function_declarations[8].parameters.properties[2]...': Proto field is not repeating, cannot start list.
