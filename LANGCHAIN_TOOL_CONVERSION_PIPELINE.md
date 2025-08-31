@@ -245,6 +245,50 @@ For any LLM provider integration with schema compatibility issues:
 - [LangChain tool conversion examples](https://github.com/langchain-ai/langgraphjs/blob/main/examples/chat_agent_executor_with_function_calling/base.ipynb)
 - [LangChain core function calling utilities](https://github.com/langchain-ai/langchainjs/blob/main/langchain/src/tools/convert_to_openai.ts)
 
+## When Tool Contamination Occurs
+
+The cascading failure happens earlier in the pipeline than you might expect:
+
+```typescript
+// The contamination sequence:
+const client = new MultiServerMCPClient({ /* multiple servers */ });
+const mcpTools = await client.getTools(); // ← CONTAMINATION HAPPENS HERE
+//   Returns: [simpleTool1, simpleTool2, complexTool1, complexTool2, ...]
+
+const agent = createReactAgent({ llm, tools: mcpTools }); // ← Receives pre-contaminated tools
+const result = await agent.invoke({ messages: [...] }); // ← Validation fails on entire collection
+```
+
+**Key insight**: `MultiServerMCPClient.getTools()` aggregates tools from all servers into a single collection. When this collection contains both simple and complex schemas, LangChain validates the **entire collection** at once, causing even simple tools to fail validation.
+
+This explains why individual servers work fine, but mixed configurations fail entirely:
+
+- **Individual server**: `getTools()` returns only simple tools → ✅ Validation passes
+- **Mixed servers**: `getTools()` returns simple + complex tools → ❌ Validation fails for all
+
+### Evidence from Real Testing
+
+```typescript
+// This works (individual server):
+const client = new MultiServerMCPClient({
+  mcpServers: { filesystem: { /* simple schemas */ } }
+});
+const tools = await client.getTools(); // [14 simple filesystem tools]
+// → Original ChatGoogleGenerativeAI: ✅ PASS
+
+// This fails (mixed servers):
+const client = new MultiServerMCPClient({
+  mcpServers: {
+    filesystem: { /* simple schemas */ },
+    notion: { /* complex schemas */ }     // ← Contaminates entire collection
+  }
+});
+const tools = await client.getTools(); // [14 simple + 13 complex tools]
+// → Original ChatGoogleGenerativeAI: ❌ FAIL (even filesystem calls fail)
+```
+
+This contamination effect makes the schema compatibility problem more critical than initially apparent - it's not just about supporting individual complex servers, but preventing them from breaking the entire MCP ecosystem.
+
 ## Conclusion
 
 The "double conversion" problem in LangChain.js reveals a fundamental architectural challenge: **universal tool processing doesn't account for provider-specific schema requirements**. 

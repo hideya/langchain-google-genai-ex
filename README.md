@@ -26,16 +26,9 @@ const llm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
 
 ## Tested MCP Servers
 
-This package has been tested with the following **MCP servers**, showing which ones have complex schemas that require fixing:
+This package has been tested with the following **Notion** (`https://mcp.notion.com/mcp`), which has complex schemas and requires schema transformation to work with Gemini.
 
-- 🎯 **Notion** (`https://mcp.notion.com/mcp`) - **Complex schemas**: Requires schema transformation to work with Gemini
-- ✅ **US Weather** (`@h1deya/mcp-server-weather`) - **Simple schemas**: Works with both original and extended versions
-- ✅ **GitHub** (`https://api.githubcopilot.com/mcp/`) - **Simple schemas**: Works with both implementations despite API complexity
-- ✅ **SQLite** ([mcp-server-sqlite](https://pypi.org/project/mcp-server-sqlite/)) - **Simple schemas**: Compatible with Gemini requirements  
-- ✅ **File Systems** ([@modelcontextprotocol/server-filesystem](https://www.npmjs.com/package/@modelcontextprotocol/server-filesystem)) - **Simple schemas**: No compatibility issues
-- ✅ **Playwright** ([@playwright/mcp](https://www.npmjs.com/package/@playwright/mcp)) - **Simple schemas**: Gemini-compatible automation tools
-
-> **⚠️ Critical Issue**: When you configure **multiple servers** including one with complex schemas (like Notion), it breaks the **entire MCP integration** - even the simple servers stop working. This library prevents this cascading failure.
+When you configure **multiple servers** including one with complex schemas (like Notion), it breaks the **entire MCP integration** - even the simple servers stop working. This library prevents this cascading failure.
 
 
 ## Prerequisites
@@ -87,8 +80,8 @@ When using MCP servers with complex schemas (like Notion) alongside Google Gemin
 // This configuration will fail entirely:
 const client = new MultiServerMCPClient({
   mcpServers: {
-    weather: { /* simple schema - works individually */ },
-    filesystem: { /* simple schema - works individually */ },
+    filesystem: { /* works individually */ },
+    github: { /* works individually */ },
     notion: { /* complex schema - breaks everything */ }  // ← This breaks ALL servers
   }
 });
