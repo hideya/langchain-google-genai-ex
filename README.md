@@ -2,7 +2,7 @@
 
 ### Simple library to fix Gemini API schema issues with MCP tools / LangChain.js
 
-This library provides an extended version of `ChatGoogleGenerativeAI` that **fixes Gemini schema compatibility issues with feature rich MCP servers** like GitHub, Notion, etc.
+This library provides an extended version of `ChatGoogleGenerativeAI` that **fixes Gemini schema compatibility issues** when using MCP servers with complex schemas (like Notion). It prevents cascading failures where one complex server breaks the entire MCP integration.
 
 The schema error usually looks like:  
 `[GoogleGenerativeAI Error]: ... [400 Bad Request] Invalid JSON payload received.`
@@ -15,26 +15,27 @@ The schema error usually looks like:
 ```typescript
 import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
 
-// ❌ This fails with complex MCP tools, such as GitHub, Notion, etc.
+// ❌ This fails when Notion (or other complex schema servers) are included
 const llm = new ChatGoogleGenerativeAI({ model: "google-2.5-flash" });
 
-// ✅ This works with complex MCP tools  
+// ✅ This works with complex MCP servers and prevents cascading failures 
 const llm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
 ```
 
-**That's it!** Your MCP tool schema errors are gone. 🎉
+**That's it!** Your MCP tool schema errors are gone, and simple servers remain functional even when complex ones are present. 🎉
 
 ## Tested MCP Servers
 
-This package has been tested with the following **feature-rich MCP servers** that generate complex JSON schemas incompatible with Gemini's strict requirements:
+This package has been tested with the following **MCP servers**, showing which ones have complex schemas that require fixing:
 
-- ✅ **Notion** (`https://mcp.notion.com/mcp`) - Complex nested objects, `anyOf` unions, `$ref` definitions
-- ✅ **GitHub** (`https://api.githubcopilot.com/mcp/`) - Advanced schema composition with `allOf`/`oneOf`
-- ✅ **SQLite** ([mcp-server-sqlite](https://pypi.org/project/mcp-server-sqlite/)) - Dynamic schema generation
-- ✅ **File Systems** ([@modelcontextprotocol/server-filesystem](https://www.npmjs.com/package/@modelcontextprotocol/server-filesystem)) - File operation schemas
-- ✅ **Playwright** ([@playwright/mcp](https://www.npmjs.com/package/@playwright/mcp)) - Browser automation schemas
+- 🎯 **Notion** (`https://mcp.notion.com/mcp`) - **Complex schemas**: Requires schema transformation to work with Gemini
+- ✅ **US Weather** (`@h1deya/mcp-server-weather`) - **Simple schemas**: Works with both original and extended versions
+- ✅ **GitHub** (`https://api.githubcopilot.com/mcp/`) - **Simple schemas**: Works with both implementations despite API complexity
+- ✅ **SQLite** ([mcp-server-sqlite](https://pypi.org/project/mcp-server-sqlite/)) - **Simple schemas**: Compatible with Gemini requirements  
+- ✅ **File Systems** ([@modelcontextprotocol/server-filesystem](https://www.npmjs.com/package/@modelcontextprotocol/server-filesystem)) - **Simple schemas**: No compatibility issues
+- ✅ **Playwright** ([@playwright/mcp](https://www.npmjs.com/package/@playwright/mcp)) - **Simple schemas**: Gemini-compatible automation tools
 
-> **Note**: These servers work perfectly with other LLM providers (OpenAI, Anthropic, etc.) but fail with Gemini due to its [strict OpenAPI 3.0 subset requirements](https://ai.google.dev/api/caching#Schema).
+> **⚠️ Critical Issue**: When you configure **multiple servers** including one with complex schemas (like Notion), it breaks the **entire MCP integration** - even the simple servers stop working. This library prevents this cascading failure.
 
 
 ## Prerequisites
@@ -66,21 +67,33 @@ npm install @langchain/langgraph
 
 ## The Problem You're Probably Having
 
-When using feature rich MCP tools with Google Gemini via LangChain.js, you get errors like this:
+When using MCP servers with complex schemas (like Notion) alongside Google Gemini via LangChain.js, you encounter a **cascading failure** where one complex server breaks the entire MCP integration:
 
 ```
-[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent: [400 Bad Request] Invalid JSON payload received. Unknown name "type" at 'tools[0].function_declarations[8].parameters.properties[2].value.items.all_of[1].any_of[1]...': Proto field is not repeating, cannot start list.
-... followed by many more
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent: [400 Bad Request] Invalid JSON payload received. Unknown name "anyOf" at 'tools[0].function_declarations[8].parameters.properties[2]...': Proto field is not repeating, cannot start list.
 ```
 
-**Why this happens:** This isn't a simple bug - it's an **architectural compatibility issue**. Many MCP servers generate sophisticated JSON schemas using advanced features that work with most LLM providers, but [Google Gemini enforces strict OpenAPI 3.0 subset requirements](https://ai.google.dev/api/caching#Schema) for security and performance reasons.
+**The Real Problem**: This isn't just about individual server compatibility - it's about **ecosystem contamination**. When you configure multiple MCP servers through `MultiServerMCPClient`, servers with complex schemas (like Notion) break the **entire tool collection**, making even simple servers (like filesystem or weather) unusable.
 
 **What breaks Gemini's validation:**
-- **Schema composition**: `allOf`, `anyOf`, `oneOf` keywords
+- **Complex schema servers**: Notion generates `anyOf`, `$ref`, `allOf` constructs that violate Gemini's requirements
+- **Schema composition**: `allOf`, `anyOf`, `oneOf` keywords in tool definitions
 - **Reference systems**: `$ref` pointers and `$defs` definitions  
 - **Type flexibility**: Arrays of types like `["string", "null"]`
 - **Advanced properties**: `additionalProperties`, `patternProperties`, etc.
-- **Conditional logic**: `if`/`then`/`else` schema constructs
+
+**The Cascading Effect**:
+```typescript
+// This configuration will fail entirely:
+const client = new MultiServerMCPClient({
+  mcpServers: {
+    weather: { /* simple schema - works individually */ },
+    filesystem: { /* simple schema - works individually */ },
+    notion: { /* complex schema - breaks everything */ }  // ← This breaks ALL servers
+  }
+});
+// Result: Even weather and filesystem calls fail!
+```
 
 > **📣 Recent Updates**: Google has relaxed some schema requirements in newer SDK versions (v1.7.0+) and Gemini 2.5, now supporting `$ref`, `$defs`, and other JSON Schema features through new `*JsonSchema` fields. However, LangChain.js `ChatGoogleGenerativeAI` still uses the legacy `parameters` field with the original OpenAPI 3.0 subset restrictions.
 

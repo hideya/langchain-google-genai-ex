@@ -66,15 +66,15 @@ const client = new MultiServerMCPClient({
 (async () => {
   const mcpTools = await client.getTools();
 
-  const llm = new ChatGoogleGenerativeAIEx({model: "google-2.5-flash"});
-  // const llm = new ChatGoogleGenerativeAI({model: "google-2.5-flash"});
+  // const llm = new ChatGoogleGenerativeAIEx({model: "google-2.5-flash"});
+  const llm = new ChatGoogleGenerativeAI({model: "google-2.5-flash"});
   // const llm = new ChatOpenAI({model: "gpt-5-mini"});
 
   const agent = createReactAgent({ llm, tools: mcpTools });
 
   // const query = "Are there any weather alerts in California?";
-  // const query = "Tell me how many of directories in `.`";
-  const query = "Tell me about my Notion account";
+  const query = "Tell me how many of directories in `.`";
+  // const query = "Tell me about my Notion account";
   // const query = "Tell me about my GitHub profile"
   // const query = "Make a new table in SQLite DB and put items apple and orange " +
   //   "with counts 123 and 345 respectively, " +
