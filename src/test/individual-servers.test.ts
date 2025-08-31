@@ -43,6 +43,18 @@ const MCP_SERVERS: ServerTestConfig[] = [
     requiresAuth: false
   },
   {
+    name: "fetch",
+    displayName: "Fetch Server",
+    config: {
+      transport: "stdio",
+      command: "uvx",
+      args: ["mcp-server-fetch"]
+    },
+    testQuery: "Summarize the beginning of the news headlines on BBC.com",
+    expectedToolNames: ["fetch"],
+    requiresAuth: false
+  },
+  {
     name: "filesystem",
     displayName: "Filesystem Server",
     config: {
@@ -85,6 +97,21 @@ const MCP_SERVERS: ServerTestConfig[] = [
     expectedToolNames: ["search_repositories", "get_user"],
     requiresAuth: true,
     authEnvVar: "GITHUB_PERSONAL_ACCESS_TOKEN"
+  },
+  {
+    name: "slack",
+    displayName: "Slack Server",
+    config: {
+      transport: "stdio",
+      command: "npx",
+      args: ["-y", "@teamsparta/mcp-server-slack"],
+      env: {
+        "SLACK_BOT_TOKEN": `${process.env.SLACK_BOT_TOKEN}`,
+        "SLACK_TEAM_ID": `${process.env.SLACK_TEAM_ID}`,
+        "SLACK_CHANNEL_IDS": `${process.env.SLACK_CHANNEL_IDS}`
+      },
+    },
+    testQuery: "Please list all the users"
   },
   {
     name: "sqlite",
