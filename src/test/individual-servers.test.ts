@@ -10,11 +10,14 @@ import { MultiServerMCPClient } from "@langchain/mcp-adapters";
  * 
  * This test suite tests each of the 6 MCP servers individually:
  * 1. us-weather: Weather information for US locations
- * 2. filesystem: File system operations
- * 3. notion: Notion workspace integration
- * 4. github: GitHub API integration  
- * 5. sqlite: SQLite database operations
- * 6. playwright: Browser automation
+ * 2. fetch: Web page fetching
+ * 3. filesystem: File system operations
+ * 4. notion: Notion workspace integration
+ * 5. github: GitHub API integration  
+ * 6. slack: Slack operations
+ * 7. Airtable: Airtable operations
+ * 8. sqlite: SQLite database operations
+ * 9. playwright: Browser automation
  * 
  * Each server is tested independently to isolate success/failure cases
  */
@@ -76,7 +79,7 @@ const MCP_SERVERS: ServerTestConfig[] = [
     },
     testQuery: "Tell me about my Notion account",
     expectedToolNames: ["notion-get-self", "notion-search-pages"],
-    // requiresAuth: true,
+    // requiresAuth: true,  //  OAuth via "mcp-remote"
     // authEnvVar: "NOTION_TOKEN"
   },
   {
@@ -107,7 +110,8 @@ const MCP_SERVERS: ServerTestConfig[] = [
         "SLACK_CHANNEL_IDS": `${process.env.SLACK_CHANNEL_IDS}`
       },
     },
-    testQuery: "Please list all the users"
+    testQuery: "Please list all the users",
+    expectedToolNames: ["slack_list_channels", "slack_post_message"]
   },
   {
     name: "airtable",
@@ -119,7 +123,8 @@ const MCP_SERVERS: ServerTestConfig[] = [
         "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
       }
     },
-    testQuery: "Tell me about my Airtable account"
+    testQuery: "Tell me about my Airtable account",
+    expectedToolNames: ["list_records", "list_tables"]
   },
   {
     name: "sqlite",
@@ -133,7 +138,7 @@ const MCP_SERVERS: ServerTestConfig[] = [
       ]
     },
     testQuery: "Make a new table called 'fruits' with columns 'name' and 'count', insert apple with count 123 and orange with count 345, then show all items",
-    expectedToolNames: ["execute-query", "list-tables"],
+    expectedToolNames: ["execute-query", "list-tables"]
   },
   {
     name: "playwright",
