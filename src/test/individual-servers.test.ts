@@ -337,7 +337,7 @@ function printSummaryTable(results: TestResult[]) {
     if (!result.originalSuccess && result.extendedSuccess) {
       benefit = "🎯 Fixed schema issues";
     } else if (result.originalSuccess && result.extendedSuccess) {
-      benefit = "✨ Both work (simple)";
+      benefit = "✨ Both work";
     } else if (!result.originalSuccess && !result.extendedSuccess) {
       benefit = "⚠️  Both failed";
     } else if (result.originalSuccess && !result.extendedSuccess) {
@@ -416,7 +416,7 @@ async function runIndividualServerTests() {
   }
 
   if (originalPassedTests > 0) {
-    console.log(`\n✨ Note: ${originalPassedTests} server(s) work with both implementations (simple schemas)`);
+    console.log(`\n✨ Note: ${originalPassedTests} server(s) work with both implementations`);
     const simpleServers = results
       .filter(r => !r.skipped && r.originalSuccess && r.extendedSuccess)
       .map(r => r.displayName);
