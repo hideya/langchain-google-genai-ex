@@ -266,9 +266,65 @@ async function runUpstreamFailureTests() {
   }
 }
 
+async function findLangChainSchemaSource() {
+  const client = new MultiServerMCPClient({
+    throwOnLoadError: true,
+    mcpServers: {
+      fetch: {
+        transport: "stdio", 
+        command: "uvx",
+        args: ["mcp-server-fetch"]
+      }
+    }
+  });
+  const mcpTools = await client.getTools();
+  const originalTool = mcpTools[0];
+  
+  console.log("\n🔍 INVESTIGATING MCP TOOL STRUCTURE:");
+  console.log("Tool name:", originalTool.name);
+  console.log("Tool type:", typeof originalTool);
+  console.log("Tool constructor:", originalTool.constructor?.name);
+  
+  // Check ALL properties that might contain schema
+  const allProps = Object.getOwnPropertyNames(originalTool);
+  console.log("All tool properties:", allProps);
+  
+  // Check for common LangChain tool properties
+  const schemaProps = ['inputSchema', 'schema', 'args_schema', 'parameters', 'func'];
+  schemaProps.forEach(prop => {
+    if (originalTool[prop]) {
+      try {
+        const propValue = originalTool[prop];
+        const jsonStr = JSON.stringify(propValue, null, 2);
+        
+        if (jsonStr) {  // Check if jsonStr is valid
+          console.log(`\n${prop}:`, jsonStr.length > 500 ? jsonStr.substring(0, 500) + '...' : jsonStr);
+          console.log(`${prop} has exclusiveMaximum:`, jsonStr.includes('exclusiveMaximum'));
+        } else {
+          console.log(`\n${prop}: [Cannot stringify - complex object]`);
+          console.log(`${prop} type:`, typeof propValue);
+        }
+      } catch (error) {
+        console.log(`\n${prop}: [JSON.stringify failed - ${error.message}]`);
+        console.log(`${prop} type:`, typeof originalTool[prop]);
+      }
+    }
+  });
+  
+  // Check if it's a DynamicStructuredTool or similar
+  if (originalTool._call || originalTool.call) {
+    console.log("\nTool has _call method - might be DynamicStructuredTool");
+  }
+  
+  // Check for hidden/enumerable properties
+  const descriptor = Object.getOwnPropertyDescriptor(originalTool, 'inputSchema');
+  console.log("inputSchema descriptor:", descriptor);
+}
+
 // Run tests if this file is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  runUpstreamFailureTests();
+  // runUpstreamFailureTests();
+  findLangChainSchemaSource();
 }
 
 export {
