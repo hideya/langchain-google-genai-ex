@@ -26,16 +26,19 @@ function transformLCMcpToolsForGemini(mcpTools: any[]) {
   console.log(`   📝 Transforming ${mcpTools.length} tools with transformMcpToolForGemini()...`);
   
   return mcpTools.map(tool => {
+    // Transform the schema property that LangChain actually uses
     const { functionDeclaration } = transformMcpToolForGemini({
       name: tool.name,
       description: tool.description,
-      inputSchema: tool.inputSchema || {}
+      // inputSchema: tool.inputSchema || {}
+      inputSchema: tool.schema || {}  // ← Use .schema, not .inputSchema
     });
     
-    // Convert back to LangChain tool format  
+    // Update the correct property
     return {
       ...tool,
-      inputSchema: functionDeclaration.parameters
+      // inputSchema: functionDeclaration.parameters
+      schema: functionDeclaration.parameters  // ← Transform the right property
     };
   });
 }
@@ -323,8 +326,8 @@ async function findLangChainSchemaSource() {
 
 // Run tests if this file is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  // runUpstreamFailureTests();
-  findLangChainSchemaSource();
+  runUpstreamFailureTests();
+  // findLangChainSchemaSource();
 }
 
 export {
