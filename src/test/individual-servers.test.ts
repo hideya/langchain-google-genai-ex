@@ -17,7 +17,8 @@ import { MultiServerMCPClient } from "@langchain/mcp-adapters";
  * 6. slack: Slack operations
  * 7. Airtable: Airtable operations
  * 8. sqlite: SQLite database operations
- * 9. playwright: Browser automation
+ * 9. brave-search: Brave web and local search
+ * 10. playwright: Browser automation
  * 
  * Each server is tested independently to isolate success/failure cases
  */
@@ -139,6 +140,17 @@ const MCP_SERVERS: ServerTestConfig[] = [
     },
     testQuery: "Make a new table called 'fruits' with columns 'name' and 'count', insert apple with count 123 and orange with count 345, then show all items",
     expectedToolNames: ["execute-query", "list-tables"]
+  },
+  {
+    name: "brave-search",
+    displayName: "Brave Serch Server",
+    config: {
+      command: "npx",
+      args: [ "-y", "@modelcontextprotocol/server-brave-search"],
+      env: { "BRAVE_API_KEY": `${process.env.BRAVE_API_KEY}` }
+    },
+    testQuery: "Use Brace search to find out today's top story in Japan",
+    expectedToolNames: ["brave_web_search", "brave_local_search"]
   },
   {
     name: "playwright",
