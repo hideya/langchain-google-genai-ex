@@ -63,6 +63,7 @@
     "test:slim": "tsx src/test/slim.test.ts",
     "test:upstream-approach-failure": "tsx src/test/upstream-approach-failure.test.ts",
     "test:tool-contamination-effect": "tsx src/test/tool-contamination-effect.test.ts",
+    "test:schema-pipeline-analysis": "tsx src/test/schema-transformation-pipeline-analysis.test.ts",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "type-check": "tsc --noEmit",
