@@ -73,13 +73,22 @@ function analyzeSchema(schema: any): { issues: string[], complexity: 'simple' | 
 
 /**
  * Intercepts what LangChain actually sends to Gemini API
+ * IMPORTANT: This intercepts AFTER any overridden invocationParams() processing
  */
 function interceptLangChainAPICall(llm: ChatGoogleGenerativeAI): Promise<any> {
   return new Promise((resolve) => {
-    const originalInvocationParams = llm.invocationParams.bind(llm);
+    // Store the current invocationParams method (which might be overridden)
+    const currentInvocationParams = llm.invocationParams.bind(llm);
+    
+    // Override it to intercept the final result
     llm.invocationParams = function(options?: any) {
-      const result = originalInvocationParams(options);
-      resolve(result.tools || []); // Capture the tools sent to API
+      // Let the current implementation (including ChatGoogleGenerativeAIEx overrides) do their work first
+      const result = currentInvocationParams(options);
+      
+      // Capture the final tools that will be sent to API (after all transformations)
+      resolve(result.tools || []);
+      
+      // Return the result so the API call can proceed normally
       return result;
     };
   });
