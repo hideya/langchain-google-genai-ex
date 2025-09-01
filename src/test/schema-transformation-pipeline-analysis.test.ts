@@ -40,6 +40,10 @@ interface SchemaAnalysis {
     schema: any;
     issues: string[];  
   };
+  pristineChatGoogleGenerativeAIEx: {
+    success: boolean;
+    error?: string;
+  };
   conclusion: string;
 }
 
@@ -128,6 +132,7 @@ async function analyzeServerSchemaTransformation(serverConfig: any): Promise<Sch
         afterManualTransform: { schema: {}, issues: [], wasFixed: false },
         langchainSendsToGemini: { schema: {}, issues: [], wasReCorrupted: false },
         chatGoogleGenerativeAIExSends: { schema: {}, issues: [] },
+        pristineChatGoogleGenerativeAIEx: { success: false },
         conclusion: ''
       };
       
@@ -197,7 +202,30 @@ async function analyzeServerSchemaTransformation(serverConfig: any): Promise<Sch
         console.log(`  ⚠️  Could not intercept LangChain API call: ${error}`);
       }
       
-      // 4. See what ChatGoogleGenerativeAIEx sends (for comparison)
+      // 4a. FIRST: Test ChatGoogleGenerativeAIEx with NO interference whatsoever
+      console.log(`  🧪 Testing ChatGoogleGenerativeAIEx (PRISTINE - no interception)...`);
+      try {
+        const pristineLlm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
+        const pristineAgent = createReactAgent({ llm: pristineLlm, tools: [tool] }); // Original tool!
+        
+        const pristineResult = await pristineAgent.invoke({
+          messages: [new HumanMessage("What tools do you have?")]
+        });
+        
+        console.log(`  ✅ PRISTINE ChatGoogleGenerativeAIEx succeeded - no schema issues`);
+        console.log(`  📝 Response preview: ${String(pristineResult.messages[pristineResult.messages.length - 1].content).substring(0, 100)}...`);
+        analysis.pristineChatGoogleGenerativeAIEx.success = true;
+      } catch (pristineError: any) {
+        console.log(`  ❌ PRISTINE ChatGoogleGenerativeAIEx failed: ${pristineError.message}`);
+        analysis.pristineChatGoogleGenerativeAIEx.success = false;
+        analysis.pristineChatGoogleGenerativeAIEx.error = pristineError.message;
+        if (pristineError.message.includes('any_of') || pristineError.message.includes('anyOf')) {
+          console.log(`  🚨 CONFIRMED: ChatGoogleGenerativeAIEx also has anyOf schema issues`);
+        }
+      }
+      
+      // 4b. THEN: See what ChatGoogleGenerativeAIEx sends (for comparison with interception)
+      console.log(`  🔬 Testing ChatGoogleGenerativeAIEx (with schema interception)...`);
       try {
         const extendedLlm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
         const extendedInterceptPromise = interceptLangChainAPICall(extendedLlm as any);
@@ -225,9 +253,13 @@ async function analyzeServerSchemaTransformation(serverConfig: any): Promise<Sch
         console.log(`  ⚠️  Could not test ChatGoogleGenerativeAIEx: ${error}`);
       }
       
-      // 5. Draw conclusion
+      // 5. Draw conclusion based on ALL test results
       if (analysis.langchainSendsToGemini.wasReCorrupted) {
         analysis.conclusion = "🚨 PROOF: LangChain re-corrupts manually fixed schemas";
+      } else if (!analysis.pristineChatGoogleGenerativeAIEx.success && analysis.afterManualTransform.wasFixed) {
+        analysis.conclusion = "🔥 SMOKING GUN: ChatGoogleGenerativeAIEx fails even with no interference";
+      } else if (analysis.pristineChatGoogleGenerativeAIEx.success && !analysis.afterManualTransform.wasFixed) {
+        analysis.conclusion = "🚀 ChatGoogleGenerativeAIEx succeeds where manual transformation fails";
       } else if (analysis.afterManualTransform.wasFixed && analysis.langchainSendsToGemini.issues.length === 0) {
         analysis.conclusion = "✅ Manual transformation works and stays clean";
       } else if (analysis.original.issues.length === 0) {
@@ -258,17 +290,33 @@ function printSchemaAnalysisReport(allResults: SchemaAnalysis[]) {
   
   // Group by conclusion type
   const smokingGuns = allResults.filter(r => r.langchainSendsToGemini.wasReCorrupted);
+  const realSmokingGuns = allResults.filter(r => r.conclusion.includes('SMOKING GUN'));
+  const chatExSucceeds = allResults.filter(r => r.conclusion.includes('ChatGoogleGenerativeAIEx succeeds where manual'));
   const manualWorks = allResults.filter(r => r.conclusion.includes('Manual transformation works'));
   const simpleSchemas = allResults.filter(r => r.conclusion.includes('Simple schema'));
   const complexCases = allResults.filter(r => r.conclusion.includes('Complex case'));
   
-  console.log(`\n🚨 SMOKING GUNS (LangChain Re-corrupts Fixed Schemas): ${smokingGuns.length}`);
-  smokingGuns.forEach(result => {
+  console.log(`\n🔥 REAL SMOKING GUNS (ChatGoogleGenerativeAIEx fails without interference): ${realSmokingGuns.length}`);
+  realSmokingGuns.forEach(result => {
     console.log(`   ${result.serverName}/${result.toolName}:`);
     console.log(`     Original issues: ${result.original.issues.join(', ')}`);
-    console.log(`     After manual fix: ${result.afterManualTransform.issues.join(', ') || 'CLEAN'}`);
+    console.log(`     Manual fixed: ${result.afterManualTransform.wasFixed ? 'YES' : 'NO'}`);
+    console.log(`     Pristine ChatGoogleGenerativeAIEx: FAILED`);
+    console.log(`     Error: ${result.pristineChatGoogleGenerativeAIEx.error?.substring(0, 100)}...`);
+  });
+  
+  console.log(`\n🚀 CHATGOOGLEGENERATIVEAIEX WINS: ${chatExSucceeds.length}`);
+  chatExSucceeds.forEach(result => {
+    console.log(`   ${result.serverName}/${result.toolName}:`);
+    console.log(`     Manual transformation: FAILED (still has ${result.afterManualTransform.issues.join(', ')})`);
+    console.log(`     ChatGoogleGenerativeAIEx: SUCCESS`);
+  });
+  
+  console.log(`\n🚨 LANGCHAIN RE-CORRUPTION: ${smokingGuns.length}`);
+  smokingGuns.forEach(result => {
+    console.log(`   ${result.serverName}/${result.toolName}:`);
+    console.log(`     After manual fix: CLEAN`);
     console.log(`     LangChain re-adds: ${result.langchainSendsToGemini.issues.join(', ')}`);
-    console.log(`     ChatGoogleGenerativeAIEx: ${result.chatGoogleGenerativeAIExSends.issues.join(', ') || 'CLEAN'}`);
   });
   
   console.log(`\n✅ MANUAL TRANSFORMATION WORKS: ${manualWorks.length}`);
