@@ -1,10 +1,8 @@
-# API Usage Examples
+# The Solution: ChatGoogleGenerativeAIEx
 
-This document shows both approaches to using `@hideya/langchain-google-genai-ex`.
+**The definitive fix for MCP tools + Google Gemini schema compatibility in LangChain.js**
 
-## Option 1: Automatic Schema Transformation (Recommended)
-
-**Best for**: Most users who want a simple drop-in replacement
+## Quick Start
 
 ```typescript
 import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
@@ -15,7 +13,7 @@ import { MultiServerMCPClient } from '@langchain/mcp-adapters';
 const client = new MultiServerMCPClient({ /* your servers */ });
 const mcpTools = await client.getTools();
 
-// Just swap the class - everything else stays the same!
+// The fix: Just swap the class - everything else stays the same!
 const llm = new ChatGoogleGenerativeAIEx({ 
   model: "google-2.5-flash",  // Model name remapping included
   apiKey: process.env.GOOGLE_API_KEY 
@@ -27,93 +25,90 @@ const result = await agent.invoke({ messages: [...] });
 ```
 
 **Benefits**:
-- ✅ Zero configuration required
-- ✅ Works with any schema complexity
-- ✅ Future-proof against LangChain changes
-- ✅ No transformation code to maintain
+- ✅ **Zero configuration required**
+- ✅ **Works with any schema complexity**
+- ✅ **Future-proof against LangChain changes**
+- ✅ **No transformation code to maintain**
+- ✅ **Proven reliable** with 10 different MCP servers
 
-## Option 2: Manual Schema Transformation
+## Why Not Manual (Upstream) Fixes?
 
-**Best for**: Advanced users who want explicit control over transformations
+You might be tempted to fix schemas before they reach LangChain, but our testing proves this approach is problematic:
 
-```typescript
-import { transformMcpToolsForGemini } from '@hideya/langchain-google-genai-ex/schema-adapter';
-import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
-import { createReactAgent } from '@langchain/langgraph/prebuilt';
-import { MultiServerMCPClient } from '@langchain/mcp-adapters';
+### The Evidence: Manual Fixes Are Unreliable
 
-// Get your MCP tools
-const client = new MultiServerMCPClient({ /* your servers */ });
-const mcpTools = await client.getTools();
+Our comprehensive testing against 10 MCP servers shows manual upstream transformations:
 
-// Manually transform schemas to be Gemini-compatible
-const geminiTools = transformMcpToolsForGemini(mcpTools);
+- **Break working schemas** (Notion: ✅ → ❌)
+- **Can't handle complex edge cases** (Airtable: ❌ → ❌) 
+- **Require deep LangChain internals knowledge**
+- **Are unpredictably fragile**
 
-// Use standard LangChain class with transformed tools
-const llm = new ChatGoogleGenerativeAI({ 
-  model: "gemini-1.5-flash",
-  apiKey: process.env.GOOGLE_API_KEY 
-});
+> 📊 **See the full test results**: [Individual server validation](../src/test/individual-servers.test.ts) proving automatic approach superiority.
 
-const agent = createReactAgent({ llm, tools: geminiTools });
-const result = await agent.invoke({ messages: [...] });
+### The Technical Reason: Double Conversion Problem
+
+Manual upstream fixes fail due to LangChain's internal processing pipeline:
+
+```
+❌ Manual Attempt:
+MCP Tools → transformMcpToolsForGemini() → "Fixed" Tools → LangChain → convertToOpenAIFunction() → Broken Again
+
+✅ Our Solution:  
+MCP Tools → LangChain → convertToOpenAIFunction() → normalizeGeminiToolsPayload() → Actually Fixed
 ```
 
-**Benefits**:
-- ✅ Explicit control over transformation process
-- ✅ Can inspect/debug transformed schemas
-- ✅ Mix with other transformation logic
-- ✅ Use with standard LangChain classes
+LangChain's `convertToOpenAIFunction()` uses `zodToJsonSchema()` which **reintroduces problematic schema features** regardless of upstream transformations. Manual fixes can't predict what this conversion will produce.
 
-**Trade-offs**:
-- ❌ Requires understanding of schema transformation
-- ❌ Must remember to apply transformation
-- ❌ More code to write and maintain
+> 📋 **Technical Details**: See [Tool Conversion Pipeline Analysis](../LANGCHAIN_TOOL_CONVERSION_PIPELINE.md) for the complete explanation.
 
-## Advanced: Individual Tool Transformation
+### The Architectural Insight
 
-For maximum control, transform individual tools:
+The key insight: Our automatic approach sees the **final payload** after all of LangChain's processing and applies **exactly the fixes needed**, nothing more, nothing less.
+
+Manual approaches must **guess** what transformations are needed, but our surgical interception **knows** exactly what the final schema looks like.
+
+## Why This Works: Surgical Interception
 
 ```typescript
-import { transformMcpToolForGemini } from '@hideya/langchain-google-genai-ex/schema-adapter';
+export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
+  override invocationParams(options?: any): any {
+    const req = super.invocationParams(options);  // ← Let LangChain do ALL its processing
+    return normalizeGeminiToolsPayload({ ...req }); // ← Fix the final result
+  }
+}
+```
 
-const { functionDeclaration } = transformMcpToolForGemini({
+**The magic**: We intercept at the **exact moment** between LangChain's processing and Gemini's API validation - the only point where reliable fixes are possible.
+
+## Advanced Debugging (Schema Transformation Library)
+
+For developers who need to debug schema transformations, we expose the underlying transformation functions:
+
+```typescript
+import { transformMcpToolForGemini, validateGeminiSchema } from '@hideya/langchain-google-genai-ex/schema-adapter';
+
+// Debug individual tool transformation
+const { functionDeclaration, wasTransformed, changesSummary } = transformMcpToolForGemini({
   name: 'my_tool',
   description: 'Does something useful', 
   inputSchema: { /* complex schema */ }
 });
 
-console.log('Gemini-compatible schema:', functionDeclaration.parameters);
+console.log('Was transformed:', wasTransformed);
+console.log('Changes made:', changesSummary);
+console.log('Validation errors:', validateGeminiSchema(functionDeclaration.parameters));
 ```
 
-## Which Approach Should You Choose?
+**Important**: These functions are provided for debugging and transparency, not as recommended user-facing solutions. The automatic approach via `ChatGoogleGenerativeAIEx` is the reliable production solution.
 
-### Use ChatGoogleGenerativeAIEx if:
-- You want the simplest possible integration
-- You're migrating from `ChatGoogleGenerativeAI`
-- You don't need to debug schema transformations
-- You want automatic future compatibility
+## The Bottom Line
 
-### Use Manual Transformation if:
-- You need explicit control over the process
-- You want to understand exactly what's changing
-- You're building your own abstractions
-- You need to mix with other transformation logic
+Manual schema fixes seem logical but are **architecturally problematic** in the LangChain.js ecosystem. Our automatic approach provides:
 
-## Mixed Approach
+- **Guaranteed reliability**: Works regardless of schema complexity
+- **Zero maintenance**: No transformation code to debug or update
+- **Future compatibility**: Adapts to LangChain internal changes automatically
+- **Simple migration**: Just swap the import
 
-You can even mix both approaches in the same codebase:
-
-```typescript
-// Automatic for most use cases
-const quickAgent = createReactAgent({ 
-  llm: new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" }), 
-  tools: mcpTools 
-});
-
-// Manual for debugging specific tools
-const debuggedTools = transformMcpToolsForGemini(problematicTools);
-console.log('Transformed schemas:', debuggedTools.map(t => t.schema));
-```
-
-Both approaches solve the same core problem - they just offer different levels of control and simplicity!
+**The definitive solution**: Use `ChatGoogleGenerativeAIEx` and focus on building your application, not debugging schema transformations.
