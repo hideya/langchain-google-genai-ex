@@ -1,6 +1,6 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { transformMcpToolForGemini } from "./schema-adapter-gemini.js";
+import { transformMcpToolForGemini } from "../schema-adapter/gemini.js";
 
 /**
  * Remaps model names from LangChain format to Google's expected format

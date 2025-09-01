@@ -11,21 +11,22 @@
  * - Support for complex MCP tool schemas
  */
 
-// Main export
-export { ChatGoogleGenerativeAIEx } from "./ChatGoogleGenerativeAIEx.js";
+// Chat Models - Extended classes with automatic schema transformation
+export { ChatGoogleGenerativeAIEx } from "./chat-models/index.js";
 
-// Schema transformation utilities
+// Schema Adapters - Manual transformation functions for advanced use cases  
 export { 
-  makeJsonSchemaGeminiCompatible,
+  transformMcpToolsForGemini,
   transformMcpToolForGemini,
+  makeJsonSchemaGeminiCompatible,
   validateGeminiSchema
-} from "./schema-adapter-gemini.js";
+} from "./schema-adapter/index.js";
 
 // Type definitions
 export type { 
   JsonSchemaDraft7, 
   TransformResult 
-} from "./schema-adapter-types.js";
+} from "./schema-adapter/types.js";
 
 // Re-export useful types from the base package
 export type { ChatGoogleGenerativeAI } from "@langchain/google-genai";

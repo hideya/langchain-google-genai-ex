@@ -33,6 +33,16 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
+    },
+    "./schema-adapter": {
+      "types": "./dist/schema-adapter/index.d.ts",
+      "import": "./dist/schema-adapter/index.js",
+      "require": "./dist/schema-adapter/index.cjs"
+    },
+    "./chat-models": {
+      "types": "./dist/chat-models/index.d.ts",
+      "import": "./dist/chat-models/index.js",
+      "require": "./dist/chat-models/index.cjs"
     }
   },
   "files": [
@@ -42,9 +52,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
-    "build:watch": "tsup src/index.ts --format cjs,esm --dts --watch",
-    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "build": "tsup src/index.ts src/schema-adapter/index.ts src/chat-models/index.ts --format cjs,esm --dts --clean",
+    "build:watch": "tsup src/index.ts src/schema-adapter/index.ts src/chat-models/index.ts --format cjs,esm --dts --watch",
+    "dev": "tsup src/index.ts src/schema-adapter/index.ts src/chat-models/index.ts --format cjs,esm --dts --watch",
     "test": "node --test dist/test/*.js",
     "test:simple": "tsx src/test/simple.test.ts",
     "test:integration": "tsx src/test/integration.test.ts",

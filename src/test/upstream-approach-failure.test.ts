@@ -1,7 +1,7 @@
 import "dotenv/config";
-import { transformMcpToolForGemini } from "../schema-adapter-gemini.js";
+import { transformMcpToolForGemini } from "../schema-adapter/index.js";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { ChatGoogleGenerativeAIEx } from "../ChatGoogleGenerativeAIEx.js";
+import { ChatGoogleGenerativeAIEx } from "../chat-models/ChatGoogleGenerativeAIEx.js";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 import { HumanMessage } from "@langchain/core/messages";
@@ -22,22 +22,19 @@ import { HumanMessage } from "@langchain/core/messages";
  * The obvious approach everyone tries first:
  * Transform MCP tools to Gemini-compatible schemas before passing to LangChain
  */
-function transformLCMcpToolsForGemini(mcpTools: any[]) {
-  console.log(`   📝 Transforming ${mcpTools.length} tools with transformMcpToolForGemini()...`);
+function transformMcpToolsForGemini(mcpTools: any[]) {
+  console.log(`   📝 Transforming ${mcpTools.length} tools with transformMcpToolsForGemini()...`);
   
   return mcpTools.map(tool => {
-    // Transform the schema property that LangChain actually uses
     const { functionDeclaration } = transformMcpToolForGemini({
       name: tool.name,
       description: tool.description,
-      // inputSchema: tool.inputSchema || {}
       inputSchema: tool.schema || {}  // ← Use .schema, not .inputSchema
     });
     
     // Update the correct property
     return {
       ...tool,
-      // inputSchema: functionDeclaration.parameters
       schema: functionDeclaration.parameters  // ← Transform the right property
     };
   });
@@ -108,7 +105,7 @@ async function testUpstreamApproachFailure() {
 
     // Apply the "obvious" upstream transformation 
     console.log("\n2. Applying upstream schema transformation...");
-    const transformedTools = transformLCMcpToolsForGemini(mcpTools);
+    const transformedTools = transformMcpToolsForGemini(mcpTools);
     console.log("   ✅ Schema transformation completed using transformMcpToolForGemini()");
 
     // Test with original ChatGoogleGenerativeAI (should fail due to double conversion)
@@ -331,7 +328,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 
 export {
-  transformLCMcpToolsForGemini,
+  transformMcpToolsForGemini,
   testUpstreamApproachFailure,
   testExtendedClassSuccess,
   runUpstreamFailureTests
