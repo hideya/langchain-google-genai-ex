@@ -1,19 +1,26 @@
-# LangChain.js Tool Conversion Pipeline: The Evidence for Automatic Schema Transformation
+# LangChain.js Tool Conversion Pipeline: The Evidence for Downstream Schema Transformation
 
 > **📅 Research Date**: This analysis is based on research conducted on September 2, 2025, examining LangChain.js v0.2.16, @langchain/core utilities, and comprehensive testing against 10 MCP servers. Given the active development of LangChain.js, please verify current implementation details.
 
-## TL;DR: Why Manual Fixes Fail
+## TL;DR: Why Upstream Fixes Fail
 
-**The Problem**: Manual upstream schema transformations can work in simple cases, but are **unreliably fragile** and can break working schemas.
+**The Problem**: Upstream schema transformations can work in simple cases, but are **unreliably fragile** and can break working schemas.
 
-**The Evidence**: [Comprehensive testing against 10 MCP servers](../src/test/individual-servers.test.ts) proves that manual fixes:
-- **Break working schemas** (Notion: ✅ Original → ❌ Manual)  
-- **Can't handle complex edge cases** (Airtable: ❌ Original → ❌ Manual → ✅ Automatic)
+**The Evidence**: [Comprehensive testing against 10 MCP servers](../src/test/individual-servers.test.ts) proves that upstream fixes:
+- **Break working schemas** (Notion: ✅ Original → ❌ Upstream)  
+- **Can't handle complex edge cases** (Airtable: ❌ Original → ❌ Upstream → ✅ Downstream)
 - **Are unpredictably fragile** across different schema complexity levels
 
-**The Solution**: `ChatGoogleGenerativeAIEx` provides surgical interception at the exact right moment, fixing schemas **after** all LangChain processing is complete.
+**The Solution**: `ChatGoogleGenerativeAIEx` provides surgical downstream interception at the exact right moment, fixing schemas **after** all LangChain processing is complete.
 
 ---
+
+## Two Approaches to Schema Transformation
+
+**Upstream Approach**: Transform MCP tool schemas *before* they enter LangChain's processing pipeline  
+**Downstream Approach**: Transform tool schemas *after* LangChain's internal processing, right before the Gemini API call
+
+Our testing proves the downstream approach is more reliable because it sees the final payload and applies exactly the transformations needed.
 
 ## The Hidden Double Conversion Problem
 
@@ -21,19 +28,19 @@
 
 **Expected Flow (What Doesn't Work Reliably)**:
 ```
-MCP Tools → Manual Schema Fix → Gemini-Compatible Tools → ChatGoogleGenerativeAI → API
+MCP Tools → Upstream Schema Fix → Gemini-Compatible Tools → ChatGoogleGenerativeAI → API
 ```
 
-**Actual Flow (Why Manual Fixes Are Fragile)**:
+**Actual Flow (Why Upstream Fixes Are Fragile)**:
 ```
-MCP Tools → Manual Fix → "Fixed" Tools → invocationParams() → convertToOpenAIFunction() → Unpredictable Results → API
+MCP Tools → Upstream Fix → "Fixed" Tools → invocationParams() → convertToOpenAIFunction() → Unpredictable Results → API
 ```
 
 ### The Root Cause: LangChain's Internal Tool Processing
 
 LangChain.js performs tool conversion internally within `ChatGoogleGenerativeAI`, specifically:
 
-1. **Your manual fix**: Creates what appears to be Gemini-compatible schemas ✅
+1. **Your upstream fix**: Creates what appears to be Gemini-compatible schemas ✅
 2. **LangChain's hidden conversion**: Runs `convertToOpenAIFunction()` on ALL tools 🔄
 3. **Result**: **Unpredictable output** that can break working schemas or miss edge cases ❌
 
@@ -43,16 +50,16 @@ LangChain.js performs tool conversion internally within `ChatGoogleGenerativeAI`
 
 Our [comprehensive testing](../src/test/individual-servers.test.ts) validates the architectural analysis:
 
-| **MCP Server** | **Original** | **Manual Fix** | **ChatGoogleGenerativeAIEx** | **Issue with Manual** |
-|----------------|--------------|----------------|------------------------------|------------------------|
+| **MCP Server** | **Original** | **Upstream Fix** | **ChatGoogleGenerativeAIEx** | **Issue with Upstream** |
+|----------------|--------------|------------------|------------------------------|-------------------------|
 | **Notion** | ✅ PASS | ❌ **REGRESSION** | ✅ PASS | Breaks working schema |
 | **Airtable** | ❌ FAIL | ❌ **INSUFFICIENT** | ✅ PASS | Can't handle edge cases |
 | **Fetch** | ❌ FAIL | ✅ PASS | ✅ PASS | Works for simple cases |
 
 **Key Findings**:
-1. **Regressions**: Manual fixes can break schemas that already work with Gemini
-2. **Incomplete Coverage**: Manual fixes can't anticipate all edge cases after LangChain processing
-3. **Reliable Solution**: Automatic approach works consistently across all complexity levels
+1. **Regressions**: Upstream fixes can break schemas that already work with Gemini
+2. **Incomplete Coverage**: Upstream fixes can't anticipate all edge cases after LangChain processing
+3. **Reliable Solution**: Downstream approach works consistently across all complexity levels
 
 ### The Notion Regression Case
 
@@ -61,14 +68,14 @@ Our [comprehensive testing](../src/test/individual-servers.test.ts) validates th
 // Notion's original schema: Already Gemini-compatible ✅
 Original Schema → Works with Gemini → ✅ SUCCESS
 
-// Manual transformation: "Fixes" what doesn't need fixing
+// Upstream transformation: "Fixes" what doesn't need fixing
 Original Schema → transformMcpToolsForGemini() → "Fixed" Schema → convertToOpenAIFunction() → Broken Schema → ❌ FAIL
 
-// Automatic approach: Fixes only what's needed
+// Downstream approach: Fixes only what's needed
 Original Schema → convertToOpenAIFunction() → Predictable Issues → normalizeGeminiToolsPayload() → ✅ SUCCESS
 ```
 
-This proves that manual transformations can be **harmful** when applied to already-compatible schemas.
+This proves that upstream transformations can be **harmful** when applied to already-compatible schemas.
 
 ### The Airtable Edge Case
 
@@ -77,14 +84,14 @@ This proves that manual transformations can be **harmful** when applied to alrea
 // Airtable: Complex schema issues ❌
 Original Schema → Fails with Gemini → ❌ FAIL
 
-// Manual transformation: Partial fix
+// Upstream transformation: Partial fix
 Original Schema → transformMcpToolsForGemini() → Partially Fixed → convertToOpenAIFunction() → Still Broken → ❌ FAIL
 
-// Automatic approach: Comprehensive fix
+// Downstream approach: Comprehensive fix
 Original Schema → convertToOpenAIFunction() → Predictable Complex Issues → normalizeGeminiToolsPayload() → ✅ SUCCESS
 ```
 
-This proves that manual transformations **can't anticipate** all the complex issues that arise after LangChain's processing.
+This proves that upstream transformations **can't anticipate** all the complex issues that arise after LangChain's processing.
 
 ## Evidence from Source Code Analysis
 
@@ -123,7 +130,7 @@ async _generate(messages, options) {
 }
 ```
 
-The `invocationParams()` method is where LangChain applies its universal tool conversion, **after** any manual transformations.
+The `invocationParams()` method is where LangChain applies its universal tool conversion, **after** any upstream transformations.
 
 ### 3. zodToJsonSchema Output Variability
 
@@ -140,15 +147,15 @@ zodToJsonSchema(transformedSchema) // → { anyOf: [...], $defs: {...} }
 zodToJsonSchema(complexSchema) // → { allOf: [...], $ref: [...], $defs: {...} }
 ```
 
-Manual transformations can't predict what `zodToJsonSchema` will do with pre-transformed schemas.
+Upstream transformations can't predict what `zodToJsonSchema` will do with pre-transformed schemas.
 
-## Why Manual Schema Transformation is Architecturally Problematic
+## Why Upstream Schema Transformation is Architecturally Problematic
 
 ### Challenge 1: Unpredictable Schema Interactions
 
 ```typescript
-// ❌ Manual approach - can't predict LangChain's processing
-function transformMcpToolsManually(mcpTools) {
+// ❌ Upstream approach - can't predict LangChain's processing
+function transformMcpToolsUpstream(mcpTools) {
   return mcpTools.map(tool => {
     const { functionDeclaration } = transformMcpToolForGemini({
       name: tool.name,
@@ -168,7 +175,7 @@ function transformMcpToolsManually(mcpTools) {
 
 ### Challenge 2: The Schema State Problem
 
-Manual transformations must work on **unknown schema states**:
+Upstream transformations must work on **unknown schema states**:
 
 - **Already compatible schemas**: Risk of breaking them (Notion case)
 - **Partially compatible schemas**: May not fix all issues (Fetch case)  
@@ -177,7 +184,7 @@ Manual transformations must work on **unknown schema states**:
 ### Challenge 3: Maintenance Burden
 
 ```typescript
-// Developer burden with manual approach:
+// Developer burden with upstream approach:
 // ❌ Must understand which schemas need transformation
 // ❌ Must predict what LangChain will do to transformed schemas
 // ❌ Must handle regressions when working schemas break
@@ -215,7 +222,7 @@ User Code → LangChain Processing → invocationParams() → [OUR INTERCEPTION]
 ```
 
 **Why this timing is critical**:
-- **Too early**: Can't see what LangChain's processing will do (manual approach problem)
+- **Too early**: Can't see what LangChain's processing will do (upstream approach problem)
 - **Too late**: Can't modify the payload before API submission
 - **Just right**: See the exact payload Gemini will receive and fix exactly what's needed
 
@@ -231,18 +238,18 @@ When LangChain runs `convertToOpenAIFunction()` → `zodToJsonSchema()`, it crea
 4. **Advanced properties**: `additionalProperties`, `patternProperties`
 5. **Validation requirements**: Invalid `required` fields
 
-### Example: How Manual vs Automatic Differ
+### Example: How Upstream vs Downstream Differ
 
-**Manual Transformation (Fragile)**:
+**Upstream Transformation (Fragile)**:
 ```typescript
 // Input: Unknown schema state
-const manualResult = transformMcpToolForGemini(unknownSchema);
+const upstreamResult = transformMcpToolForGemini(unknownSchema);
 // ↓ LangChain processes this
-const langchainResult = convertToOpenAIFunction(manualResult);
+const langchainResult = convertToOpenAIFunction(upstreamResult);
 // ↓ Result: Unpredictable - may be broken in new ways
 ```
 
-**Automatic Transformation (Reliable)**:
+**Downstream Transformation (Reliable)**:
 ```typescript
 // Input: Predictable - always the output of convertToOpenAIFunction()  
 const langchainResult = convertToOpenAIFunction(originalSchema);
@@ -274,7 +281,7 @@ const fixedResult = normalizeGeminiToolsPayload(langchainResult);
 }
 ```
 
-**After our transformation (What Gemini receives)**:
+**After our downstream transformation (What Gemini receives)**:
 ```json
 {
   "name": "search_repos",
@@ -297,7 +304,7 @@ The transformation is **always the same pattern** because we always receive the 
 
 ```typescript
 // ❌ Fighting LangChain's architecture
-MCP Tools → Manual Transform → LangChain → More Processing → Unpredictable Result
+MCP Tools → Upstream Transform → LangChain → More Processing → Unpredictable Result
 
 // Developer must debug:
 // - Which schemas need transformation?
@@ -309,7 +316,7 @@ MCP Tools → Manual Transform → LangChain → More Processing → Unpredictab
 
 ```typescript
 // ✅ Working with LangChain's architecture  
-MCP Tools → LangChain → Predictable Processing → Surgical Fix → Reliable Result
+MCP Tools → LangChain → Predictable Processing → Downstream Fix → Reliable Result
 
 // Developer experience:
 // - Just swap the class import
@@ -323,13 +330,13 @@ MCP Tools → LangChain → Predictable Processing → Surgical Fix → Reliable
 
 Our testing methodology:
 1. **10 different MCP servers** with varying schema complexity
-2. **Same query tested** with 3 approaches: Original, Manual, Automatic
+2. **Same query tested** with 3 approaches: Original, Upstream, Downstream
 3. **Success/failure recorded** for each combination
 4. **Error patterns analyzed** to understand failure modes
 
 **Results validate the architectural analysis**:
-- Manual fixes **are fragile** and can break working systems
-- Automatic approach **is reliable** across all complexity levels
+- Upstream fixes **are fragile** and can break working systems
+- Downstream approach **is reliable** across all complexity levels
 - The double conversion problem **is real** and affects production code
 
 ### Test Code Reference
@@ -366,12 +373,12 @@ This explains why individual servers work fine, but mixed configurations fail en
 
 Our comprehensive analysis and testing proves that:
 
-1. **Manual schema transformation is architecturally fragile** due to LangChain's double conversion
-2. **Automatic transformation is architecturally sound** due to surgical interception timing
+1. **Upstream schema transformation is architecturally fragile** due to LangChain's double conversion
+2. **Downstream transformation is architecturally sound** due to surgical interception timing
 3. **Real-world testing validates** the theoretical analysis
-4. **Developer experience is superior** with the automatic approach
+4. **Developer experience is superior** with the downstream approach
 
-The evidence is clear: **surgical interception at `invocationParams()` level is the optimal architecture** for schema compatibility in the LangChain.js ecosystem.
+The evidence is clear: **surgical downstream interception at `invocationParams()` level is the optimal architecture** for schema compatibility in the LangChain.js ecosystem.
 
 This isn't just a technical preference - it's an **evidence-based architectural decision** that provides reliable value to developers building production applications.
 

@@ -2,6 +2,13 @@
 
 **The definitive fix for MCP tools + Google Gemini schema compatibility in LangChain.js**
 
+## Two Approaches to Schema Transformation
+
+**Upstream Approach**: Transform MCP tool schemas *before* they enter LangChain's processing pipeline  
+**Downstream Approach**: Transform tool schemas *after* LangChain's internal processing, right before the Gemini API call
+
+Our comprehensive testing proves the downstream approach is more reliable because it sees the final payload and applies exactly the transformations needed.
+
 ## Quick Start
 
 ```typescript
@@ -19,7 +26,7 @@ const llm = new ChatGoogleGenerativeAIEx({
   apiKey: process.env.GOOGLE_API_KEY 
 });
 
-// Use original tools directly - schemas fixed automatically
+// Use original tools directly - schemas fixed via downstream transformation
 const agent = createReactAgent({ llm, tools: mcpTools });
 const result = await agent.invoke({ messages: [...] });
 ```
@@ -31,44 +38,44 @@ const result = await agent.invoke({ messages: [...] });
 - ✅ **No transformation code to maintain**
 - ✅ **Proven reliable** with 10 different MCP servers
 
-## Why Not Manual (Upstream) Fixes?
+## Why Not Upstream Schema Fixes?
 
-You might be tempted to fix schemas before they reach LangChain, but our testing proves this approach is problematic:
+You might be tempted to fix schemas before they reach LangChain, but our testing proves this upstream approach is problematic:
 
-### The Evidence: Manual Fixes Are Unreliable
+### The Evidence: Upstream Fixes Are Unreliable
 
-Our comprehensive testing against 10 MCP servers shows manual upstream transformations:
+Our comprehensive testing against 10 MCP servers shows upstream transformations:
 
 - **Break working schemas** (Notion: ✅ → ❌)
 - **Can't handle complex edge cases** (Airtable: ❌ → ❌) 
 - **Require deep LangChain internals knowledge**
 - **Are unpredictably fragile**
 
-> 📊 **See the full test results**: [Individual server validation](../src/test/individual-servers.test.ts) proving automatic approach superiority.
+> 📊 **See the full test results**: [Individual server validation](../src/test/individual-servers.test.ts) proving downstream approach superiority.
 
 ### The Technical Reason: Double Conversion Problem
 
-Manual upstream fixes fail due to LangChain's internal processing pipeline:
+Upstream fixes fail due to LangChain's internal processing pipeline:
 
 ```
-❌ Manual Attempt:
+❌ Upstream Attempt:
 MCP Tools → transformMcpToolsForGemini() → "Fixed" Tools → LangChain → convertToOpenAIFunction() → Broken Again
 
-✅ Our Solution:  
+✅ Our Downstream Solution:  
 MCP Tools → LangChain → convertToOpenAIFunction() → normalizeGeminiToolsPayload() → Actually Fixed
 ```
 
-LangChain's `convertToOpenAIFunction()` uses `zodToJsonSchema()` which **reintroduces problematic schema features** regardless of upstream transformations. Manual fixes can't predict what this conversion will produce.
+LangChain's `convertToOpenAIFunction()` uses `zodToJsonSchema()` which **reintroduces problematic schema features** regardless of upstream transformations. Upstream fixes can't predict what this conversion will produce.
 
 > 📋 **Technical Details**: See [Tool Conversion Pipeline Analysis](../LANGCHAIN_TOOL_CONVERSION_PIPELINE.md) for the complete explanation.
 
 ### The Architectural Insight
 
-The key insight: Our automatic approach sees the **final payload** after all of LangChain's processing and applies **exactly the fixes needed**, nothing more, nothing less.
+The key insight: Our downstream approach sees the **final payload** after all of LangChain's processing and applies **exactly the fixes needed**, nothing more, nothing less.
 
-Manual approaches must **guess** what transformations are needed, but our surgical interception **knows** exactly what the final schema looks like.
+Upstream approaches must **guess** what transformations are needed, but our surgical downstream interception **knows** exactly what the final schema looks like.
 
-## Why This Works: Surgical Interception
+## Why This Works: Surgical Downstream Interception
 
 ```typescript
 export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
@@ -100,15 +107,15 @@ console.log('Changes made:', changesSummary);
 console.log('Validation errors:', validateGeminiSchema(functionDeclaration.parameters));
 ```
 
-**Important**: These functions are provided for debugging and transparency, not as recommended user-facing solutions. The automatic approach via `ChatGoogleGenerativeAIEx` is the reliable production solution.
+**Important**: These functions are provided for debugging and transparency, not as recommended user-facing solutions. The downstream approach via `ChatGoogleGenerativeAIEx` is the reliable production solution.
 
 ## The Bottom Line
 
-Manual schema fixes seem logical but are **architecturally problematic** in the LangChain.js ecosystem. Our automatic approach provides:
+Upstream schema fixes seem logical but are **architecturally problematic** in the LangChain.js ecosystem. Our downstream approach provides:
 
 - **Guaranteed reliability**: Works regardless of schema complexity
 - **Zero maintenance**: No transformation code to debug or update
-- **Future compatibility**: Adapts to LangChain internal changes automatically
+- **Future compatibility**: Adapts to LangChain internal changes
 - **Simple migration**: Just swap the import
 
 **The definitive solution**: Use `ChatGoogleGenerativeAIEx` and focus on building your application, not debugging schema transformations.

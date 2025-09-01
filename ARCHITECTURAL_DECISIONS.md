@@ -1,16 +1,23 @@
-# Architectural Decisions: Why We Fix at invocationParams() Level
+# Architectural Decisions: Why We Fix at Downstream Level
 
 > **📅 Research Date**: This architectural analysis is based on research conducted on September 2, 2025, including comprehensive testing against 10 MCP servers and analysis of LangChain.js ecosystem design patterns. Technology stacks evolve rapidly, so please verify current best practices.
 
 ## Overview
 
-This document explains the architectural decisions behind `@hideya/langchain-google-genai-ex`, specifically why we chose to fix schema compatibility at the `invocationParams()` level rather than at the root cause or other upstream levels.
+This document explains the architectural decisions behind `@hideya/langchain-google-genai-ex`, specifically why we chose to fix schema compatibility at the downstream level (after LangChain processing) rather than at the root cause or upstream levels.
+
+## Two Approaches to Schema Transformation
+
+**Upstream Approach**: Transform MCP tool schemas *before* they enter LangChain's processing pipeline  
+**Downstream Approach**: Transform tool schemas *after* LangChain's internal processing, right before the Gemini API call
+
+Our comprehensive testing proves the downstream approach is more reliable and avoids the architectural problems that make upstream fixes fragile.
 
 ## The Core Question
 
 After discovering that `zodToJsonSchema` is the root cause of Gemini schema incompatibility, a natural question arises:
 
-> **"Why not fix the issue by updating `zodToJsonSchema` directly or applying transformations upstream?"**
+> **"Why not fix the issue by updating `zodToJsonSchema` directly or applying transformations upstream in the pipeline?"**
 
 This document analyzes these approaches and explains our architectural choices based on **evidence from real-world testing**.
 
@@ -23,10 +30,10 @@ Our [comprehensive testing against 10 MCP servers](../src/test/individual-server
 | **Approach** | **Notion** | **Airtable** | **Fetch** | **Overall Reliability** |
 |--------------|------------|--------------|-----------|-------------------------|
 | **Original** | ✅ PASS | ❌ FAIL | ❌ FAIL | Baseline issues |
-| **Manual (Upstream)** | ❌ **BREAKS** | ❌ **INSUFFICIENT** | ✅ PASS | **Unreliable** |
-| **Automatic (Our approach)** | ✅ PASS | ✅ PASS | ✅ PASS | **Reliable** |
+| **Upstream Fix** | ❌ **BREAKS** | ❌ **INSUFFICIENT** | ✅ PASS | **Unreliable** |
+| **Downstream Fix (Our approach)** | ✅ PASS | ✅ PASS | ✅ PASS | **Reliable** |
 
-**Key Finding**: Manual upstream fixes are **unreliably fragile** - they can break working schemas and miss complex edge cases.
+**Key Finding**: Upstream schema fixes are **unreliably fragile** - they can break working schemas and miss complex edge cases.
 
 ### The Notion Regression: Evidence of Fragility
 
@@ -34,7 +41,7 @@ Our [comprehensive testing against 10 MCP servers](../src/test/individual-server
 ```typescript
 // Notion server behavior:
 Original ChatGoogleGenerativeAI: ✅ WORKS (schema already compatible)
-Manual transformation: ❌ BREAKS (transforms already-compatible schema)  
+Upstream transformation: ❌ BREAKS (transforms already-compatible schema)  
 ChatGoogleGenerativeAIEx: ✅ WORKS (applies only needed fixes)
 ```
 
@@ -46,7 +53,7 @@ This proves that upstream transformations can **harm working systems** - a criti
 ```typescript
 // Airtable server behavior:
 Original ChatGoogleGenerativeAI: ❌ FAILS (complex schema issues)
-Manual transformation: ❌ STILL FAILS (can't handle post-processing complexity)
+Upstream transformation: ❌ STILL FAILS (can't handle post-processing complexity)
 ChatGoogleGenerativeAIEx: ✅ WORKS (handles final payload complexity)
 ```
 
@@ -168,7 +175,7 @@ function convertToGeminiFunction(tool) {
 - Easier to get accepted than core changes
 
 **Cons**:
-- **Testing shows this is fragile** (manual transformation issues)
+- **Testing shows this is fragile** (upstream transformation issues)
 - Requires LangChain maintainer buy-in
 - Still need our library until implemented and released
 - May take months/years to get accepted
@@ -193,17 +200,17 @@ function makeZodGeminiCompatible(zodSchema) {
 - Very complex to implement reliably
 - May break tool functionality 
 - Hard to maintain as Zod evolves
-- **Testing suggests this would have the same fragility issues** as manual transformation
+- **Testing suggests this would have the same fragility issues** as upstream transformation
 
-## Our Chosen Architecture: Surgical Interception (Proven by Testing)
+## Our Chosen Architecture: Surgical Downstream Interception (Proven by Testing)
 
-### Why `invocationParams()` Level is Optimal
+### Why Downstream Level is Optimal
 
 ```typescript
 export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   override invocationParams(options?: any): any {
     const req = super.invocationParams(options);  // ← Let everyone do their job
-    return normalizeGeminiToolsPayload({ ...req }); // ← Fix the final result
+    return normalizeGeminiToolsPayload({ ...req }); // ← Fix the final result downstream
   }
 }
 ```
@@ -230,10 +237,10 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
 |----------|---------------|-------------------|------------------|-------------------|-------------|
 | **Fix zodToJsonSchema** | ❌ | ❌ | ❓ (Untested) | ✅ | ❌ |
 | **Fix LangChain Core** | ❌ | ❌ | ❓ (Untested) | ✅ | ❓ |
-| **Manual Transformation** | ✅ | ❌ | ❌ **DISPROVEN** | ✅ | ✅ |
-| **Our invocationParams()** | ✅ | ✅ | ✅ **PROVEN** | ✅ | ✅ |
+| **Upstream Transformation** | ✅ | ❌ | ❌ **DISPROVEN** | ✅ | ✅ |
+| **Our Downstream Approach** | ✅ | ✅ | ✅ **PROVEN** | ✅ | ✅ |
 
-**Key Update**: Testing **disproves** the reliability of manual (upstream) transformation approaches.
+**Key Update**: Testing **disproves** the reliability of upstream transformation approaches.
 
 ## The Critical Timing Insight
 
@@ -242,20 +249,20 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
 ```
 Pre-LangChain Processing: [Unknown schema states - may be compatible, broken, or complex]
                     ↓
-                Manual fixes must guess what to transform
+                Upstream fixes must guess what to transform
                     ↓
               LangChain Processing: convertToOpenAIFunction() 
                     ↓  
 Post-LangChain Processing: [Predictable schema patterns - always same issues]
                     ↓
-              Our fix knows exactly what to transform
+              Our downstream fix knows exactly what to transform
                     ↓
                  Gemini API: [Reliable success]
 ```
 
 **The evidence**: 
-- **Pre-processing**: Manual fixes **failed** in our testing due to unpredictable input states
-- **Post-processing**: Automatic fixes **succeeded** due to predictable input patterns
+- **Pre-processing**: Upstream fixes **failed** in our testing due to unpredictable input states
+- **Post-processing**: Downstream fixes **succeeded** due to predictable input patterns
 
 ### Technical Foundation: What We Always See
 
@@ -282,7 +289,7 @@ Since we **always** see the same input patterns, we can apply **reliable transfo
 Our architectural decision is **validated by evidence** and keeps options open:
 
 ### Phase 1 (Current): Evidence-Based Solution
-- ✅ Maintain `invocationParams()` interception approach **proven by testing**
+- ✅ Maintain downstream interception approach **proven by testing**
 - ✅ Serve users who need Gemini + MCP tools working **reliably now**
 - ✅ Continue gathering real-world usage data and edge cases
 
@@ -301,7 +308,7 @@ Our architectural decision is **validated by evidence** and keeps options open:
 Our architectural decisions are based on systematic testing:
 
 1. **10 MCP servers** with different schema complexity levels
-2. **3 approaches tested** for each server: Original, Manual, Automatic  
+2. **3 approaches tested** for each server: Original, Upstream, Downstream  
 3. **Real queries executed** to validate actual functionality
 4. **Success/failure patterns analyzed** to understand architectural implications
 
@@ -309,7 +316,7 @@ See [individual-servers.test.ts](../src/test/individual-servers.test.ts) for com
 
 ## Conclusion: Evidence-Driven Architecture
 
-While fixing `zodToJsonSchema` or applying upstream transformations would be architecturally elegant, our **evidence-based analysis** proves that the `invocationParams()` interception approach is the **pragmatic optimum**:
+While fixing `zodToJsonSchema` or applying upstream transformations would be architecturally elegant, our **evidence-based analysis** proves that the downstream interception approach is the **pragmatic optimum**:
 
 - **Proven reliable** through comprehensive testing
 - **Doesn't break anything** in the existing ecosystem  
@@ -317,7 +324,7 @@ While fixing `zodToJsonSchema` or applying upstream transformations would be arc
 - **Provides immediate value** for developers building production applications
 - **Maintains flexibility** for future architectural evolution
 
-The key insight: **Evidence trumps theoretical elegance**. Our testing proves that upstream fixes are fragile, while surgical interception is reliable.
+The key insight: **Evidence trumps theoretical elegance**. Our testing proves that upstream fixes are fragile, while surgical downstream interception is reliable.
 
 Our approach demonstrates that sometimes the "right" architectural decision is the one that **delivers proven value now** while keeping options open for the future.
 
