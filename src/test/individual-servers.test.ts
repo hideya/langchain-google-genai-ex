@@ -11,13 +11,13 @@ import { MultiServerMCPClient } from "@langchain/mcp-adapters";
  * This test suite tests each of the 6 MCP servers individually:
  * 1. us-weather: Weather information for US locations
  * 2. fetch: Web page fetching
- * 3. filesystem: File system operations
- * 4. notion: Notion workspace integration
- * 5. github: GitHub API integration  
- * 6. slack: Slack operations
- * 7. Airtable: Airtable operations
- * 8. sqlite: SQLite database operations
- * 9. brave-search: Brave web and local search
+ * 3. brave-search: Brave web and local search
+ * 4. filesystem: File system operations
+ * 5. sqlite: SQLite database operations
+ * 6. notion: Notion workspace integration
+ * 7. github: GitHub API integration  
+ * 8. slack: Slack operations
+ * 9. Airtable: Airtable operations
  * 10. playwright: Browser automation
  * 
  * Each server is tested independently to isolate success/failure cases
@@ -57,6 +57,17 @@ const MCP_SERVERS: ServerTestConfig[] = [
     expectedToolNames: ["fetch"]
   },
   {
+    name: "brave-search",
+    displayName: "Brave Serch Server",
+    config: {
+      command: "npx",
+      args: [ "-y", "@modelcontextprotocol/server-brave-search"],
+      env: { "BRAVE_API_KEY": `${process.env.BRAVE_API_KEY}` }
+    },
+    testQuery: "Use Brace search to find out today's top story in Japan",
+    expectedToolNames: ["brave_web_search", "brave_local_search"]
+  },
+  {
     name: "filesystem",
     displayName: "Filesystem Server",
     config: {
@@ -69,6 +80,20 @@ const MCP_SERVERS: ServerTestConfig[] = [
     },
     testQuery: "Tell me how many directories are in the current directory",
     expectedToolNames: ["read_file", "list_directory"]
+  },
+  {
+    name: "sqlite",
+    displayName: "SQLite Server",
+    config: {
+      command: "uvx",
+      args: [
+        "mcp-server-sqlite",
+        "--db-path",
+        "test-mcp-server-sqlite.sqlite3"
+      ]
+    },
+    testQuery: "Make a new table called 'fruits' with columns 'name' and 'count', insert apple with count 123 and orange with count 345, then show all items",
+    expectedToolNames: ["execute-query", "list-tables"]
   },
   {
     name: "notion",
@@ -126,31 +151,6 @@ const MCP_SERVERS: ServerTestConfig[] = [
     },
     testQuery: "Tell me about my Airtable account",
     expectedToolNames: ["list_records", "list_tables"]
-  },
-  {
-    name: "sqlite",
-    displayName: "SQLite Server",
-    config: {
-      command: "uvx",
-      args: [
-        "mcp-server-sqlite",
-        "--db-path",
-        "test-mcp-server-sqlite.sqlite3"
-      ]
-    },
-    testQuery: "Make a new table called 'fruits' with columns 'name' and 'count', insert apple with count 123 and orange with count 345, then show all items",
-    expectedToolNames: ["execute-query", "list-tables"]
-  },
-  {
-    name: "brave-search",
-    displayName: "Brave Serch Server",
-    config: {
-      command: "npx",
-      args: [ "-y", "@modelcontextprotocol/server-brave-search"],
-      env: { "BRAVE_API_KEY": `${process.env.BRAVE_API_KEY}` }
-    },
-    testQuery: "Use Brace search to find out today's top story in Japan",
-    expectedToolNames: ["brave_web_search", "brave_local_search"]
   },
   {
     name: "playwright",
