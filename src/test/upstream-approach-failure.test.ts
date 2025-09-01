@@ -30,15 +30,15 @@ function transformLCMcpToolsForGemini(mcpTools: any[]) {
     const { functionDeclaration } = transformMcpToolForGemini({
       name: tool.name,
       description: tool.description,
-      // inputSchema: tool.inputSchema || {}
-      inputSchema: tool.schema || {}  // ← Use .schema, not .inputSchema
+      inputSchema: tool.inputSchema || {}
+      // inputSchema: tool.schema || {}  // ← Use .schema, not .inputSchema
     });
     
     // Update the correct property
     return {
       ...tool,
-      // inputSchema: functionDeclaration.parameters
-      schema: functionDeclaration.parameters  // ← Transform the right property
+      inputSchema: functionDeclaration.parameters
+      // schema: functionDeclaration.parameters  // ← Transform the right property
     };
   });
 }
