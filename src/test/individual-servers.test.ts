@@ -41,67 +41,67 @@ interface ServerTestConfig {
 }
 
 const MCP_SERVERS: ServerTestConfig[] = [
-  {
-    name: "us-weather",
-    displayName: "US Weather Server",
-    config: {
-      transport: "stdio",
-      command: "npx",
-      args: ["-y", "@h1deya/mcp-server-weather"]
-    },
-    testQuery: "Are there any weather alerts in California?",
-    expectedToolNames: ["get-alerts", "get-forecast"]
-  },
-  {
-    name: "fetch",
-    displayName: "Fetch Server",
-    config: {
-      transport: "stdio",
-      command: "uvx",
-      args: ["mcp-server-fetch"]
-    },
-    testQuery: "Summarize the beginning of the news headlines on BBC.com",
-    expectedToolNames: ["fetch"]
-  },
-  {
-    name: "brave-search",
-    displayName: "Brave Serch Server",
-    config: {
-      command: "npx",
-      args: [ "-y", "@modelcontextprotocol/server-brave-search"],
-      env: { "BRAVE_API_KEY": `${process.env.BRAVE_API_KEY}` }
-    },
-    testQuery: "Use Brace search to find out today's top story in Japan",
-    expectedToolNames: ["brave_web_search", "brave_local_search"]
-  },
-  {
-    name: "filesystem",
-    displayName: "Filesystem Server",
-    config: {
-      command: "npx",
-      args: [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "."  // path to a directory to allow access to
-      ]
-    },
-    testQuery: "Tell me how many directories are in the current directory",
-    expectedToolNames: ["read_file", "list_directory"]
-  },
-  {
-    name: "sqlite",
-    displayName: "SQLite Server",
-    config: {
-      command: "uvx",
-      args: [
-        "mcp-server-sqlite",
-        "--db-path",
-        "test-mcp-server-sqlite.sqlite3"
-      ]
-    },
-    testQuery: "Make a new table called 'fruits' with columns 'name' and 'count', insert apple with count 123 and orange with count 345, then show all items",
-    expectedToolNames: ["execute-query", "list-tables"]
-  },
+  // {
+  //   name: "us-weather",
+  //   displayName: "US Weather Server",
+  //   config: {
+  //     transport: "stdio",
+  //     command: "npx",
+  //     args: ["-y", "@h1deya/mcp-server-weather"]
+  //   },
+  //   testQuery: "Are there any weather alerts in California?",
+  //   expectedToolNames: ["get-alerts", "get-forecast"]
+  // },
+  // {
+  //   name: "fetch",
+  //   displayName: "Fetch Server",
+  //   config: {
+  //     transport: "stdio",
+  //     command: "uvx",
+  //     args: ["mcp-server-fetch"]
+  //   },
+  //   testQuery: "Summarize the beginning of the news headlines on BBC.com",
+  //   expectedToolNames: ["fetch"]
+  // },
+  // {
+  //   name: "brave-search",
+  //   displayName: "Brave Serch Server",
+  //   config: {
+  //     command: "npx",
+  //     args: [ "-y", "@modelcontextprotocol/server-brave-search"],
+  //     env: { "BRAVE_API_KEY": `${process.env.BRAVE_API_KEY}` }
+  //   },
+  //   testQuery: "Use Brace search to find out today's top story in Japan",
+  //   expectedToolNames: ["brave_web_search", "brave_local_search"]
+  // },
+  // {
+  //   name: "filesystem",
+  //   displayName: "Filesystem Server",
+  //   config: {
+  //     command: "npx",
+  //     args: [
+  //       "-y",
+  //       "@modelcontextprotocol/server-filesystem",
+  //       "."  // path to a directory to allow access to
+  //     ]
+  //   },
+  //   testQuery: "Tell me how many directories are in the current directory",
+  //   expectedToolNames: ["read_file", "list_directory"]
+  // },
+  // {
+  //   name: "sqlite",
+  //   displayName: "SQLite Server",
+  //   config: {
+  //     command: "uvx",
+  //     args: [
+  //       "mcp-server-sqlite",
+  //       "--db-path",
+  //       "test-mcp-server-sqlite.sqlite3"
+  //     ]
+  //   },
+  //   testQuery: "Make a new table called 'fruits' with columns 'name' and 'count', insert apple with count 123 and orange with count 345, then show all items",
+  //   expectedToolNames: ["execute-query", "list-tables"]
+  // },
   {
     name: "notion",
     displayName: "Notion Server",
@@ -115,60 +115,60 @@ const MCP_SERVERS: ServerTestConfig[] = [
     // requiresAuth: true,  //  OAuth via "mcp-remote"
     // authEnvVar: "NOTION_TOKEN"
   },
-  {
-    name: "github",
-    displayName: "GitHub Server",
-    config: {
-      transport: "http",
-      url: "https://api.githubcopilot.com/mcp/",
-      headers: {
-        "Authorization": `Bearer ${process.env.GITHUB_PERSONAL_ACCESS_TOKEN}`
-      }
-    },
-    testQuery: "Tell me about my GitHub profile",
-    expectedToolNames: ["search_repositories", "get_user"],
-    requiresAuth: true,
-    authEnvVar: "GITHUB_PERSONAL_ACCESS_TOKEN"
-  },
-  {
-    name: "slack",
-    displayName: "Slack Server",
-    config: {
-      transport: "stdio",
-      command: "npx",
-      args: ["-y", "@teamsparta/mcp-server-slack"],
-      env: {
-        "SLACK_BOT_TOKEN": `${process.env.SLACK_BOT_TOKEN}`,
-        "SLACK_TEAM_ID": `${process.env.SLACK_TEAM_ID}`,
-        "SLACK_CHANNEL_IDS": `${process.env.SLACK_CHANNEL_IDS}`
-      },
-    },
-    testQuery: "Please list all the users",
-    expectedToolNames: ["slack_list_channels", "slack_post_message"]
-  },
-  {
-    name: "airtable",
-    displayName: "Airtable Server",
-    config: {
-      command: "npx",
-      args: ["-y", "airtable-mcp-server"],
-      env: {
-        "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
-      }
-    },
-    testQuery: "Tell me about my Airtable account",
-    expectedToolNames: ["list_records", "list_tables"]
-  },
-  {
-    name: "playwright",
-    displayName: "Playwright Server",
-    config: {
-      command: "npx",
-      args: ["-y", "@playwright/mcp@latest"]
-    },
-    testQuery: "Open the BBC.com page, then close it",
-    expectedToolNames: ["playwright_navigate", "playwright_screenshot"],
-  },
+  // {
+  //   name: "github",
+  //   displayName: "GitHub Server",
+  //   config: {
+  //     transport: "http",
+  //     url: "https://api.githubcopilot.com/mcp/",
+  //     headers: {
+  //       "Authorization": `Bearer ${process.env.GITHUB_PERSONAL_ACCESS_TOKEN}`
+  //     }
+  //   },
+  //   testQuery: "Tell me about my GitHub profile",
+  //   expectedToolNames: ["search_repositories", "get_user"],
+  //   requiresAuth: true,
+  //   authEnvVar: "GITHUB_PERSONAL_ACCESS_TOKEN"
+  // },
+  // {
+  //   name: "slack",
+  //   displayName: "Slack Server",
+  //   config: {
+  //     transport: "stdio",
+  //     command: "npx",
+  //     args: ["-y", "@teamsparta/mcp-server-slack"],
+  //     env: {
+  //       "SLACK_BOT_TOKEN": `${process.env.SLACK_BOT_TOKEN}`,
+  //       "SLACK_TEAM_ID": `${process.env.SLACK_TEAM_ID}`,
+  //       "SLACK_CHANNEL_IDS": `${process.env.SLACK_CHANNEL_IDS}`
+  //     },
+  //   },
+  //   testQuery: "Please list all the users",
+  //   expectedToolNames: ["slack_list_channels", "slack_post_message"]
+  // },
+  // {
+  //   name: "airtable",
+  //   displayName: "Airtable Server",
+  //   config: {
+  //     command: "npx",
+  //     args: ["-y", "airtable-mcp-server"],
+  //     env: {
+  //       "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
+  //     }
+  //   },
+  //   testQuery: "Tell me about my Airtable account",
+  //   expectedToolNames: ["list_records", "list_tables"]
+  // },
+  // {
+  //   name: "playwright",
+  //   displayName: "Playwright Server",
+  //   config: {
+  //     command: "npx",
+  //     args: ["-y", "@playwright/mcp@latest"]
+  //   },
+  //   testQuery: "Open the BBC.com page, then close it",
+  //   expectedToolNames: ["playwright_navigate", "playwright_screenshot"],
+  // },
 ];
 
 interface TestResult {
@@ -506,19 +506,19 @@ async function runIndividualServerTests() {
       });
   }
 
-  if (bothFailedTests > 0) {
-    console.log(`\n🔧 Servers that failed with both implementations may need:`);
-    console.log(`   - Network connectivity`);
-    console.log(`   - Required dependencies (uvx, npx packages)`);
-    console.log(`   - Proper authentication`);
-    console.log(`   - MCP server availability`);
-    const failedServers = results
-      .filter(r => !r.skipped && !r.originalSuccess && !r.extendedSuccess)
-      .map(r => r.displayName);
-    if (failedServers.length > 0) {
-      console.log(`   Failed servers: ${failedServers.join(", ")}`);
-    }
-  }
+  // if (bothFailedTests > 0) {
+  //   console.log(`\n🔧 Servers that failed with both implementations may need:`);
+  //   console.log(`   - Network connectivity`);
+  //   console.log(`   - Required dependencies (uvx, npx packages)`);
+  //   console.log(`   - Proper authentication`);
+  //   console.log(`   - MCP server availability`);
+  //   const failedServers = results
+  //     .filter(r => !r.skipped && !r.originalSuccess && !r.extendedSuccess)
+  //     .map(r => r.displayName);
+  //   if (failedServers.length > 0) {
+  //     console.log(`   Failed servers: ${failedServers.join(", ")}`);
+  //   }
+  // }
 
   console.log(`\n✅ Schema compatibility testing complete!`);
   

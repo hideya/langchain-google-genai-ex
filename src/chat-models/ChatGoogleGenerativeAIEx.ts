@@ -31,11 +31,20 @@ function normalizeGeminiToolsPayload(req: any): any {
     if (!Array.isArray(fds)) return tool;
 
     const normalized = fds.map((fd: any) => {
+      // In transformMcpToolsForGemini():
+      // console.log(`\n🔍 BEFORE transformMcpToolForGemini - ${fd.name}:`);
+      // console.log('Original schema:', JSON.stringify(fd.parameters, null, 2));
+
       const { functionDeclaration } = transformMcpToolForGemini({
         name: fd.name,
         description: fd.description,
         inputSchema: fd.parameters ?? {},
       });
+
+      // console.log(`\n✅ AFTER transformMcpToolForGemini - ${fd.name}:`);
+      // console.log('Transformed schema:', JSON.stringify(functionDeclaration.parameters, null, 2));
+      // console.log('Still has anyOf:', JSON.stringify(functionDeclaration.parameters).includes('anyOf'));
+
       
       // Ensure parameters has a type if not set
       functionDeclaration.parameters ||= { type: "object" };
