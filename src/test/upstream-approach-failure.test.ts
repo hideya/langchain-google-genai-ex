@@ -30,15 +30,15 @@ function transformLCMcpToolsForGemini(mcpTools: any[]) {
     const { functionDeclaration } = transformMcpToolForGemini({
       name: tool.name,
       description: tool.description,
-      inputSchema: tool.inputSchema || {}
-      // inputSchema: tool.schema || {}  // ← Use .schema, not .inputSchema
+      // inputSchema: tool.inputSchema || {}
+      inputSchema: tool.schema || {}  // ← Use .schema, not .inputSchema
     });
     
     // Update the correct property
     return {
       ...tool,
-      inputSchema: functionDeclaration.parameters
-      // schema: functionDeclaration.parameters  // ← Transform the right property
+      // inputSchema: functionDeclaration.parameters
+      schema: functionDeclaration.parameters  // ← Transform the right property
     };
   });
 }
@@ -129,7 +129,7 @@ async function testUpstreamApproachFailure() {
       const result = await originalAgent.invoke({
         messages: [new HumanMessage("Fetch the content from https://example.com")]
       });
-      console.log("   ❌ UNEXPECTED: Original approach succeeded! (This should have failed)");
+      console.log("   ❌ UNEXPECTED: Original approach succeeded! (This should have failed) <-- ***fixing `tool.schema` worked!***");
       return false; // Test expectation failed
     } catch (error: any) {
       if (error.message.includes('Invalid JSON payload received') && 
