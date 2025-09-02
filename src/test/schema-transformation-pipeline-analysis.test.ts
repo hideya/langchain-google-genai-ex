@@ -11,9 +11,9 @@ import { HumanMessage } from "@langchain/core/messages";
  * 
  * This test reveals exactly what happens to schemas at each step of the transformation pipeline:
  * 1. Original MCP schemas (what servers provide)
- * 2. After manual transformation (what transformMcpToolsForGemini produces)
+ * 2. After upstream transformation (what transformMcpToolsForGemini produces)
  * 3. What LangChain sends to Gemini (the final API payload)
- * 4. Comparison with ChatGoogleGenerativeAIEx approach
+ * 4. Comparison with ChatGoogleGenerativeAIEx (downstream transformation) approach
  * 
  * Goal: Find the "smoking gun" - prove exactly where and why complex schemas get re-corrupted
  */
@@ -26,7 +26,7 @@ interface SchemaAnalysis {
     issues: string[];
     complexity: 'simple' | 'moderate' | 'complex';
   };
-  afterManualTransform: {
+  afterUpstreamTransform: {
     schema: any;  
     issues: string[];
     wasFixed: boolean;
@@ -40,7 +40,7 @@ interface SchemaAnalysis {
     schema: any;
     issues: string[];  
   };
-  pristineChatGoogleGenerativeAIEx: {
+  pristineDownstreamTest: {
     success: boolean;
     error?: string;
   };
@@ -129,10 +129,10 @@ async function analyzeServerSchemaTransformation(serverConfig: any): Promise<Sch
           schema: tool.schema,
           ...analyzeSchema(tool.schema)
         },
-        afterManualTransform: { schema: {}, issues: [], wasFixed: false },
+        afterUpstreamTransform: { schema: {}, issues: [], wasFixed: false },
         langchainSendsToGemini: { schema: {}, issues: [], wasReCorrupted: false },
         chatGoogleGenerativeAIExSends: { schema: {}, issues: [] },
-        pristineChatGoogleGenerativeAIEx: { success: false },
+        pristineDownstreamTest: { success: false },
         conclusion: ''
       };
       
@@ -143,32 +143,32 @@ async function analyzeServerSchemaTransformation(serverConfig: any): Promise<Sch
         console.log(`  ✅ Original schema is clean`);
       }
       
-      // 2. Apply manual transformation
+      // 2. Apply upstream transformation
       const transformedTools = transformMcpToolsForGemini([tool]);
       const transformedTool = transformedTools[0];
       
-      analysis.afterManualTransform.schema = transformedTool.schema;
+      analysis.afterUpstreamTransform.schema = transformedTool.schema;
       const afterTransformAnalysis = analyzeSchema(transformedTool.schema);
-      analysis.afterManualTransform.issues = afterTransformAnalysis.issues;
-      analysis.afterManualTransform.wasFixed = analysis.original.issues.length > 0 && afterTransformAnalysis.issues.length === 0;
+      analysis.afterUpstreamTransform.issues = afterTransformAnalysis.issues;
+      analysis.afterUpstreamTransform.wasFixed = analysis.original.issues.length > 0 && afterTransformAnalysis.issues.length === 0;
       
-      if (analysis.afterManualTransform.wasFixed) {
-        console.log(`  ✅ Manual transformation fixed all issues`);
+      if (analysis.afterUpstreamTransform.wasFixed) {
+        console.log(`  ✅ Upstream transformation fixed all issues`);
       } else if (afterTransformAnalysis.issues.length > 0) {
-        console.log(`  ⚠️  Manual transformation still has issues: ${afterTransformAnalysis.issues.join(', ')}`);
+        console.log(`  ⚠️  Upstream transformation still has issues: ${afterTransformAnalysis.issues.join(', ')}`);
       } else {
-        console.log(`  ➡️  Manual transformation: no change needed`);
+        console.log(`  ➡️  Upstream transformation: no change needed`);
       }
       
-      // 3. See what LangChain sends to Gemini (manual approach)
+      // 3. See what LangChain sends to Gemini (upstream approach)
       try {
-        const manualLlm = new ChatGoogleGenerativeAI({ model: "gemini-1.5-flash" });
-        const interceptPromise = interceptLangChainAPICall(manualLlm);
+        const upstreamLlm = new ChatGoogleGenerativeAI({ model: "gemini-1.5-flash" });
+        const interceptPromise = interceptLangChainAPICall(upstreamLlm);
         
-        const manualAgent = createReactAgent({ llm: manualLlm, tools: transformedTools });
+        const upstreamAgent = createReactAgent({ llm: upstreamLlm, tools: transformedTools });
         
         // Trigger the API call (this will be intercepted)
-        const invokePromise = manualAgent.invoke({
+        const invokePromise = upstreamAgent.invoke({
           messages: [new HumanMessage("What tools do you have?")]
         });
         
@@ -186,10 +186,10 @@ async function analyzeServerSchemaTransformation(serverConfig: any): Promise<Sch
             const finalAnalysis = analyzeSchema(toolInAPI.parameters);
             analysis.langchainSendsToGemini.issues = finalAnalysis.issues;
             analysis.langchainSendsToGemini.wasReCorrupted = 
-              analysis.afterManualTransform.wasFixed && finalAnalysis.issues.length > 0;
+              analysis.afterUpstreamTransform.wasFixed && finalAnalysis.issues.length > 0;
             
             if (analysis.langchainSendsToGemini.wasReCorrupted) {
-              console.log(`  🚨 SMOKING GUN: LangChain re-corrupted the schema!`);
+              console.log(`  🚨 SMOKING GUN: LangChain re-corrupted the upstream-fixed schema!`);
               console.log(`  📊 Re-introduced issues: ${finalAnalysis.issues.join(', ')}`);
             } else if (finalAnalysis.issues.length === 0) {
               console.log(`  ✅ LangChain preserved the clean schema`);
@@ -205,67 +205,67 @@ async function analyzeServerSchemaTransformation(serverConfig: any): Promise<Sch
       // 4a. FIRST: Test ChatGoogleGenerativeAIEx with NO interference whatsoever
       console.log(`  🧪 Testing ChatGoogleGenerativeAIEx (PRISTINE - no interception)...`);
       try {
-        const pristineLlm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
-        const pristineAgent = createReactAgent({ llm: pristineLlm, tools: [tool] }); // Original tool!
+        const pristineDownstreamLlm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
+        const pristineDownstreamAgent = createReactAgent({ llm: pristineDownstreamLlm, tools: [tool] }); // Original tool!
         
-        const pristineResult = await pristineAgent.invoke({
+        const pristineDownstreamResult = await pristineDownstreamAgent.invoke({
           messages: [new HumanMessage("What tools do you have?")]
         });
         
-        console.log(`  ✅ PRISTINE ChatGoogleGenerativeAIEx succeeded - no schema issues`);
-        console.log(`  📝 Response preview: ${String(pristineResult.messages[pristineResult.messages.length - 1].content).substring(0, 100)}...`);
-        analysis.pristineChatGoogleGenerativeAIEx.success = true;
-      } catch (pristineError: any) {
-        console.log(`  ❌ PRISTINE ChatGoogleGenerativeAIEx failed: ${pristineError.message}`);
-        analysis.pristineChatGoogleGenerativeAIEx.success = false;
-        analysis.pristineChatGoogleGenerativeAIEx.error = pristineError.message;
-        if (pristineError.message.includes('any_of') || pristineError.message.includes('anyOf')) {
+        console.log(`  ✅ PRISTINE ChatGoogleGenerativeAIEx (downstream) succeeded - no schema issues`);
+        console.log(`  📝 Response preview: ${String(pristineDownstreamResult.messages[pristineDownstreamResult.messages.length - 1].content).substring(0, 100)}...`);
+        analysis.pristineDownstreamTest.success = true;
+      } catch (pristineDownstreamError: any) {
+        console.log(`  ❌ PRISTINE ChatGoogleGenerativeAIEx (downstream) failed: ${pristineDownstreamError.message}`);
+        analysis.pristineDownstreamTest.success = false;
+        analysis.pristineDownstreamTest.error = pristineDownstreamError.message;
+        if (pristineDownstreamError.message.includes('any_of') || pristineDownstreamError.message.includes('anyOf')) {
           console.log(`  🚨 CONFIRMED: ChatGoogleGenerativeAIEx also has anyOf schema issues`);
         }
       }
       
       // 4b. THEN: See what ChatGoogleGenerativeAIEx sends (for comparison with interception)
-      console.log(`  🔬 Testing ChatGoogleGenerativeAIEx (with schema interception)...`);
+      console.log(`  🔬 Testing ChatGoogleGenerativeAIEx (downstream transformation with schema interception)...`);
       try {
-        const extendedLlm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
-        const extendedInterceptPromise = interceptLangChainAPICall(extendedLlm as any);
+        const downstreamLlm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
+        const downstreamInterceptPromise = interceptLangChainAPICall(downstreamLlm as any);
         
-        const extendedAgent = createReactAgent({ llm: extendedLlm, tools: [tool] }); // Original tool!
+        const downstreamAgent = createReactAgent({ llm: downstreamLlm, tools: [tool] }); // Original tool!
         
-        const extendedInvokePromise = extendedAgent.invoke({
+        const downstreamInvokePromise = downstreamAgent.invoke({
           messages: [new HumanMessage("What tools do you have?")]
         });
         
-        const extendedInterceptedTools = await extendedInterceptPromise;
+        const downstreamInterceptedTools = await downstreamInterceptPromise;
         
-        if (extendedInterceptedTools && extendedInterceptedTools.length > 0) {
-          const extendedToolInAPI = extendedInterceptedTools[0].functionDeclarations?.find((fd: any) => fd.name === tool.name);
+        if (downstreamInterceptedTools && downstreamInterceptedTools.length > 0) {
+          const downstreamToolInAPI = downstreamInterceptedTools[0].functionDeclarations?.find((fd: any) => fd.name === tool.name);
           
-          if (extendedToolInAPI) {
-            analysis.chatGoogleGenerativeAIExSends.schema = extendedToolInAPI.parameters;
-            const extendedFinalAnalysis = analyzeSchema(extendedToolInAPI.parameters);
-            analysis.chatGoogleGenerativeAIExSends.issues = extendedFinalAnalysis.issues;
+          if (downstreamToolInAPI) {
+            analysis.chatGoogleGenerativeAIExSends.schema = downstreamToolInAPI.parameters;
+            const downstreamFinalAnalysis = analyzeSchema(downstreamToolInAPI.parameters);
+            analysis.chatGoogleGenerativeAIExSends.issues = downstreamFinalAnalysis.issues;
             
-            console.log(`  🎯 ChatGoogleGenerativeAIEx result: ${extendedFinalAnalysis.issues.length === 0 ? 'Clean' : 'Issues: ' + extendedFinalAnalysis.issues.join(', ')}`);
+            console.log(`  🎯 ChatGoogleGenerativeAIEx (downstream) result: ${downstreamFinalAnalysis.issues.length === 0 ? 'Clean' : 'Issues: ' + downstreamFinalAnalysis.issues.join(', ')}`);
           }
         }
       } catch (error) {
-        console.log(`  ⚠️  Could not test ChatGoogleGenerativeAIEx: ${error}`);
+        console.log(`  ⚠️  Could not test ChatGoogleGenerativeAIEx (downstream): ${error}`);
       }
       
       // 5. Draw conclusion based on ALL test results
       if (analysis.langchainSendsToGemini.wasReCorrupted) {
-        analysis.conclusion = "🚨 PROOF: LangChain re-corrupts manually fixed schemas";
-      } else if (!analysis.pristineChatGoogleGenerativeAIEx.success && analysis.afterManualTransform.wasFixed) {
-        analysis.conclusion = "🔥 SMOKING GUN: ChatGoogleGenerativeAIEx fails even with no interference";
-      } else if (analysis.pristineChatGoogleGenerativeAIEx.success && !analysis.afterManualTransform.wasFixed) {
-        analysis.conclusion = "🚀 ChatGoogleGenerativeAIEx succeeds where manual transformation fails";
-      } else if (analysis.afterManualTransform.wasFixed && analysis.langchainSendsToGemini.issues.length === 0) {
-        analysis.conclusion = "✅ Manual transformation works and stays clean";
+        analysis.conclusion = "🚨 PROOF: LangChain re-corrupts upstream-fixed schemas";
+      } else if (!analysis.pristineDownstreamTest.success && analysis.afterUpstreamTransform.wasFixed) {
+        analysis.conclusion = "🔥 SMOKING GUN: ChatGoogleGenerativeAIEx (downstream) fails even with no interference";
+      } else if (analysis.pristineDownstreamTest.success && !analysis.afterUpstreamTransform.wasFixed) {
+        analysis.conclusion = "🚀 ChatGoogleGenerativeAIEx (downstream) succeeds where upstream transformation fails";
+      } else if (analysis.afterUpstreamTransform.wasFixed && analysis.langchainSendsToGemini.issues.length === 0) {
+        analysis.conclusion = "✅ Upstream transformation works and stays clean";
       } else if (analysis.original.issues.length === 0) {
         analysis.conclusion = "✨ Simple schema - no transformation needed";
       } else {
-        analysis.conclusion = "🤔 Complex case - manual transformation insufficient";
+        analysis.conclusion = "🤔 Complex case - upstream transformation insufficient";
       }
       
       console.log(`  🎯 Conclusion: ${analysis.conclusion}`);
@@ -291,36 +291,36 @@ function printSchemaAnalysisReport(allResults: SchemaAnalysis[]) {
   // Group by conclusion type
   const smokingGuns = allResults.filter(r => r.langchainSendsToGemini.wasReCorrupted);
   const realSmokingGuns = allResults.filter(r => r.conclusion.includes('SMOKING GUN'));
-  const chatExSucceeds = allResults.filter(r => r.conclusion.includes('ChatGoogleGenerativeAIEx succeeds where manual'));
-  const manualWorks = allResults.filter(r => r.conclusion.includes('Manual transformation works'));
+  const downstreamSucceeds = allResults.filter(r => r.conclusion.includes('ChatGoogleGenerativeAIEx (downstream) succeeds where upstream'));
+  const upstreamWorks = allResults.filter(r => r.conclusion.includes('Upstream transformation works'));
   const simpleSchemas = allResults.filter(r => r.conclusion.includes('Simple schema'));
   const complexCases = allResults.filter(r => r.conclusion.includes('Complex case'));
   
-  console.log(`\n🔥 REAL SMOKING GUNS (ChatGoogleGenerativeAIEx fails without interference): ${realSmokingGuns.length}`);
+  console.log(`\n🔥 REAL SMOKING GUNS (ChatGoogleGenerativeAIEx downstream fails without interference): ${realSmokingGuns.length}`);
   realSmokingGuns.forEach(result => {
     console.log(`   ${result.serverName}/${result.toolName}:`);
     console.log(`     Original issues: ${result.original.issues.join(', ')}`);
-    console.log(`     Manual fixed: ${result.afterManualTransform.wasFixed ? 'YES' : 'NO'}`);
-    console.log(`     Pristine ChatGoogleGenerativeAIEx: FAILED`);
-    console.log(`     Error: ${result.pristineChatGoogleGenerativeAIEx.error?.substring(0, 100)}...`);
+    console.log(`     Upstream fixed: ${result.afterUpstreamTransform.wasFixed ? 'YES' : 'NO'}`);
+    console.log(`     Pristine ChatGoogleGenerativeAIEx (downstream): FAILED`);
+    console.log(`     Error: ${result.pristineDownstreamTest.error?.substring(0, 100)}...`);
   });
   
-  console.log(`\n🚀 CHATGOOGLEGENERATIVEAIEX WINS: ${chatExSucceeds.length}`);
-  chatExSucceeds.forEach(result => {
+  console.log(`\n🚀 DOWNSTREAM TRANSFORMATION WINS: ${downstreamSucceeds.length}`);
+  downstreamSucceeds.forEach(result => {
     console.log(`   ${result.serverName}/${result.toolName}:`);
-    console.log(`     Manual transformation: FAILED (still has ${result.afterManualTransform.issues.join(', ')})`);
-    console.log(`     ChatGoogleGenerativeAIEx: SUCCESS`);
+    console.log(`     Upstream transformation: FAILED (still has ${result.afterUpstreamTransform.issues.join(', ')})`);
+    console.log(`     ChatGoogleGenerativeAIEx (downstream): SUCCESS`);
   });
   
   console.log(`\n🚨 LANGCHAIN RE-CORRUPTION: ${smokingGuns.length}`);
   smokingGuns.forEach(result => {
     console.log(`   ${result.serverName}/${result.toolName}:`);
-    console.log(`     After manual fix: CLEAN`);
+    console.log(`     After upstream fix: CLEAN`);
     console.log(`     LangChain re-adds: ${result.langchainSendsToGemini.issues.join(', ')}`);
   });
   
-  console.log(`\n✅ MANUAL TRANSFORMATION WORKS: ${manualWorks.length}`);
-  manualWorks.forEach(result => {
+  console.log(`\n✅ UPSTREAM TRANSFORMATION WORKS: ${upstreamWorks.length}`);
+  upstreamWorks.forEach(result => {
     console.log(`   ${result.serverName}/${result.toolName}: Fixed ${result.original.issues.join(', ')}`);
   });
   
@@ -329,24 +329,24 @@ function printSchemaAnalysisReport(allResults: SchemaAnalysis[]) {
     console.log(`   ${result.serverName}/${result.toolName}`);
   });
   
-  console.log(`\n🤔 COMPLEX CASES (Manual Insufficient): ${complexCases.length}`);
+  console.log(`\n🤔 COMPLEX CASES (Upstream Insufficient): ${complexCases.length}`);
   complexCases.forEach(result => {
     console.log(`   ${result.serverName}/${result.toolName}:`);
     console.log(`     Original issues: ${result.original.issues.join(', ')}`);
-    console.log(`     Manual still has: ${result.afterManualTransform.issues.join(', ')}`);
-    console.log(`     ChatGoogleGenerativeAIEx: ${result.chatGoogleGenerativeAIExSends.issues.join(', ') || 'CLEAN'}`);
+    console.log(`     Upstream still has: ${result.afterUpstreamTransform.issues.join(', ')}`);
+    console.log(`     ChatGoogleGenerativeAIEx (downstream): ${result.chatGoogleGenerativeAIExSends.issues.join(', ') || 'CLEAN'}`);
   });
   
   console.log(`\n🎯 KEY FINDINGS:`);
-  console.log(`   • ${smokingGuns.length} tools prove LangChain re-corrupts manually fixed schemas`);
-  console.log(`   • ${manualWorks.length} tools work with manual transformation`);
-  console.log(`   • ${complexCases.length} tools are too complex for manual transformation`);
-  console.log(`   • ChatGoogleGenerativeAIEx handles ALL cases successfully`);
+  console.log(`   • ${smokingGuns.length} tools prove LangChain re-corrupts upstream-fixed schemas`);
+  console.log(`   • ${upstreamWorks.length} tools work with upstream transformation`);
+  console.log(`   • ${complexCases.length} tools are too complex for upstream transformation`);
+  console.log(`   • ChatGoogleGenerativeAIEx (downstream transformation) handles ALL cases successfully`);
   
   if (smokingGuns.length > 0) {
     console.log(`\n🔥 ARCHITECTURAL VALIDATION:`);
-    console.log(`   Your invocationParams() approach is the ONLY reliable solution!`);
-    console.log(`   Manual transformation gets overridden by LangChain's internal processing.`);
+    console.log(`   Your downstream invocationParams() approach is the ONLY reliable solution!`);
+    console.log(`   Upstream transformation gets overridden by LangChain's internal processing.`);
   }
 }
 

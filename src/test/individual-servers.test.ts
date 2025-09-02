@@ -11,8 +11,8 @@ import { MultiServerMCPClient } from "@langchain/mcp-adapters";
  * 
  * This test suite tests each of the 10 MCP servers individually with three approaches:
  * 1. Original ChatGoogleGenerativeAI (baseline)
- * 2. Manual transformation with transformMcpToolsForGemini() + ChatGoogleGenerativeAI  
- * 3. Automatic transformation with ChatGoogleGenerativeAIEx
+ * 2. Upstream transformation with transformMcpToolsForGemini() + ChatGoogleGenerativeAI  
+ * 3. Downstream transformation with ChatGoogleGenerativeAIEx
  * 
  * Servers tested:
  * 1. us-weather: Weather information for US locations
@@ -41,67 +41,67 @@ interface ServerTestConfig {
 }
 
 const MCP_SERVERS: ServerTestConfig[] = [
-  // {
-  //   name: "us-weather",
-  //   displayName: "US Weather Server",
-  //   config: {
-  //     transport: "stdio",
-  //     command: "npx",
-  //     args: ["-y", "@h1deya/mcp-server-weather"]
-  //   },
-  //   testQuery: "Are there any weather alerts in California?",
-  //   expectedToolNames: ["get-alerts", "get-forecast"]
-  // },
-  // {
-  //   name: "fetch",
-  //   displayName: "Fetch Server",
-  //   config: {
-  //     transport: "stdio",
-  //     command: "uvx",
-  //     args: ["mcp-server-fetch"]
-  //   },
-  //   testQuery: "Summarize the beginning of the news headlines on BBC.com",
-  //   expectedToolNames: ["fetch"]
-  // },
-  // {
-  //   name: "brave-search",
-  //   displayName: "Brave Serch Server",
-  //   config: {
-  //     command: "npx",
-  //     args: [ "-y", "@modelcontextprotocol/server-brave-search"],
-  //     env: { "BRAVE_API_KEY": `${process.env.BRAVE_API_KEY}` }
-  //   },
-  //   testQuery: "Use Brace search to find out today's top story in Japan",
-  //   expectedToolNames: ["brave_web_search", "brave_local_search"]
-  // },
-  // {
-  //   name: "filesystem",
-  //   displayName: "Filesystem Server",
-  //   config: {
-  //     command: "npx",
-  //     args: [
-  //       "-y",
-  //       "@modelcontextprotocol/server-filesystem",
-  //       "."  // path to a directory to allow access to
-  //     ]
-  //   },
-  //   testQuery: "Tell me how many directories are in the current directory",
-  //   expectedToolNames: ["read_file", "list_directory"]
-  // },
-  // {
-  //   name: "sqlite",
-  //   displayName: "SQLite Server",
-  //   config: {
-  //     command: "uvx",
-  //     args: [
-  //       "mcp-server-sqlite",
-  //       "--db-path",
-  //       "test-mcp-server-sqlite.sqlite3"
-  //     ]
-  //   },
-  //   testQuery: "Make a new table called 'fruits' with columns 'name' and 'count', insert apple with count 123 and orange with count 345, then show all items",
-  //   expectedToolNames: ["execute-query", "list-tables"]
-  // },
+  {
+    name: "us-weather",
+    displayName: "US Weather Server",
+    config: {
+      transport: "stdio",
+      command: "npx",
+      args: ["-y", "@h1deya/mcp-server-weather"]
+    },
+    testQuery: "Are there any weather alerts in California?",
+    expectedToolNames: ["get-alerts", "get-forecast"]
+  },
+  {
+    name: "fetch",
+    displayName: "Fetch Server",
+    config: {
+      transport: "stdio",
+      command: "uvx",
+      args: ["mcp-server-fetch"]
+    },
+    testQuery: "Summarize the beginning of the news headlines on BBC.com",
+    expectedToolNames: ["fetch"]
+  },
+  {
+    name: "brave-search",
+    displayName: "Brave Serch Server",
+    config: {
+      command: "npx",
+      args: [ "-y", "@modelcontextprotocol/server-brave-search"],
+      env: { "BRAVE_API_KEY": `${process.env.BRAVE_API_KEY}` }
+    },
+    testQuery: "Use Brace search to find out today's top story in Japan",
+    expectedToolNames: ["brave_web_search", "brave_local_search"]
+  },
+  {
+    name: "filesystem",
+    displayName: "Filesystem Server",
+    config: {
+      command: "npx",
+      args: [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "."  // path to a directory to allow access to
+      ]
+    },
+    testQuery: "Tell me how many directories are in the current directory",
+    expectedToolNames: ["read_file", "list_directory"]
+  },
+  {
+    name: "sqlite",
+    displayName: "SQLite Server",
+    config: {
+      command: "uvx",
+      args: [
+        "mcp-server-sqlite",
+        "--db-path",
+        "test-mcp-server-sqlite.sqlite3"
+      ]
+    },
+    testQuery: "Make a new table called 'fruits' with columns 'name' and 'count', insert apple with count 123 and orange with count 345, then show all items",
+    expectedToolNames: ["execute-query", "list-tables"]
+  },
   {
     name: "notion",
     displayName: "Notion Server",
@@ -115,60 +115,60 @@ const MCP_SERVERS: ServerTestConfig[] = [
     // requiresAuth: true,  //  OAuth via "mcp-remote"
     // authEnvVar: "NOTION_TOKEN"
   },
-  // {
-  //   name: "github",
-  //   displayName: "GitHub Server",
-  //   config: {
-  //     transport: "http",
-  //     url: "https://api.githubcopilot.com/mcp/",
-  //     headers: {
-  //       "Authorization": `Bearer ${process.env.GITHUB_PERSONAL_ACCESS_TOKEN}`
-  //     }
-  //   },
-  //   testQuery: "Tell me about my GitHub profile",
-  //   expectedToolNames: ["search_repositories", "get_user"],
-  //   requiresAuth: true,
-  //   authEnvVar: "GITHUB_PERSONAL_ACCESS_TOKEN"
-  // },
-  // {
-  //   name: "slack",
-  //   displayName: "Slack Server",
-  //   config: {
-  //     transport: "stdio",
-  //     command: "npx",
-  //     args: ["-y", "@teamsparta/mcp-server-slack"],
-  //     env: {
-  //       "SLACK_BOT_TOKEN": `${process.env.SLACK_BOT_TOKEN}`,
-  //       "SLACK_TEAM_ID": `${process.env.SLACK_TEAM_ID}`,
-  //       "SLACK_CHANNEL_IDS": `${process.env.SLACK_CHANNEL_IDS}`
-  //     },
-  //   },
-  //   testQuery: "Please list all the users",
-  //   expectedToolNames: ["slack_list_channels", "slack_post_message"]
-  // },
-  // {
-  //   name: "airtable",
-  //   displayName: "Airtable Server",
-  //   config: {
-  //     command: "npx",
-  //     args: ["-y", "airtable-mcp-server"],
-  //     env: {
-  //       "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
-  //     }
-  //   },
-  //   testQuery: "Tell me about my Airtable account",
-  //   expectedToolNames: ["list_records", "list_tables"]
-  // },
-  // {
-  //   name: "playwright",
-  //   displayName: "Playwright Server",
-  //   config: {
-  //     command: "npx",
-  //     args: ["-y", "@playwright/mcp@latest"]
-  //   },
-  //   testQuery: "Open the BBC.com page, then close it",
-  //   expectedToolNames: ["playwright_navigate", "playwright_screenshot"],
-  // },
+  {
+    name: "github",
+    displayName: "GitHub Server",
+    config: {
+      transport: "http",
+      url: "https://api.githubcopilot.com/mcp/",
+      headers: {
+        "Authorization": `Bearer ${process.env.GITHUB_PERSONAL_ACCESS_TOKEN}`
+      }
+    },
+    testQuery: "Tell me about my GitHub profile",
+    expectedToolNames: ["search_repositories", "get_user"],
+    requiresAuth: true,
+    authEnvVar: "GITHUB_PERSONAL_ACCESS_TOKEN"
+  },
+  {
+    name: "slack",
+    displayName: "Slack Server",
+    config: {
+      transport: "stdio",
+      command: "npx",
+      args: ["-y", "@teamsparta/mcp-server-slack"],
+      env: {
+        "SLACK_BOT_TOKEN": `${process.env.SLACK_BOT_TOKEN}`,
+        "SLACK_TEAM_ID": `${process.env.SLACK_TEAM_ID}`,
+        "SLACK_CHANNEL_IDS": `${process.env.SLACK_CHANNEL_IDS}`
+      },
+    },
+    testQuery: "Please list all the users",
+    expectedToolNames: ["slack_list_channels", "slack_post_message"]
+  },
+  {
+    name: "airtable",
+    displayName: "Airtable Server",
+    config: {
+      command: "npx",
+      args: ["-y", "airtable-mcp-server"],
+      env: {
+        "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
+      }
+    },
+    testQuery: "Tell me about my Airtable account",
+    expectedToolNames: ["list_records", "list_tables"]
+  },
+  {
+    name: "playwright",
+    displayName: "Playwright Server",
+    config: {
+      command: "npx",
+      args: ["-y", "@playwright/mcp@latest"]
+    },
+    testQuery: "Open the BBC.com page, then close it",
+    expectedToolNames: ["playwright_navigate", "playwright_screenshot"],
+  },
 ];
 
 interface TestResult {
@@ -183,18 +183,18 @@ interface TestResult {
   skipReason?: string;
   originalSuccess?: boolean;
   originalError?: string;
-  manualSuccess?: boolean;
-  manualError?: string;
-  extendedSuccess?: boolean;
-  extendedError?: string;
+  upstreamSuccess?: boolean;
+  upstreamError?: string;
+  downstreamSuccess?: boolean;
+  downstreamError?: string;
 }
 
 /**
  * Tests a single MCP server for basic connectivity and functionality
  * Compares three approaches:
  * 1. Original ChatGoogleGenerativeAI (baseline)
- * 2. Manual transformation with transformMcpToolsForGemini() + ChatGoogleGenerativeAI
- * 3. Automatic transformation with ChatGoogleGenerativeAIEx
+ * 2. Upstream transformation with transformMcpToolsForGemini() + ChatGoogleGenerativeAI
+ * 3. Downstream transformation with ChatGoogleGenerativeAIEx
  */
 async function testSingleServer(serverConfig: ServerTestConfig): Promise<TestResult> {
   const result: TestResult = {
@@ -269,69 +269,69 @@ async function testSingleServer(serverConfig: ServerTestConfig): Promise<TestRes
       console.log(`  ❌ Original failed: ${originalError.message}`);
     }
 
-    // Test with manual transformation (transformMcpToolsForGemini)
-    console.log(`  🔧 Testing manual transformation (transformMcpToolsForGemini)...`);
+    // Test with upstream transformation (transformMcpToolsForGemini)
+    console.log(`  🔧 Testing upstream transformation (transformMcpToolsForGemini)...`);
     try {
       const transformedTools = transformMcpToolsForGemini(mcpTools);
-      const manualLlm = new ChatGoogleGenerativeAI({ model: "gemini-1.5-flash" });
-      const manualAgent = createReactAgent({ llm: manualLlm, tools: transformedTools });
+      const upstreamLlm = new ChatGoogleGenerativeAI({ model: "gemini-1.5-flash" });
+      const upstreamAgent = createReactAgent({ llm: upstreamLlm, tools: transformedTools });
       
-      const manualResult = await manualAgent.invoke({
+      const upstreamResult = await upstreamAgent.invoke({
         messages: [new HumanMessage(serverConfig.testQuery)]
       });
       
-      const manualResponse = manualResult.messages[manualResult.messages.length - 1].content;
-      result.manualSuccess = true;
-      console.log(`  ✅ Manual succeeded: ${String(manualResponse).substring(0, 100)}...`);
-    } catch (manualError: any) {
-      result.manualSuccess = false;
-      result.manualError = manualError.message;
-      console.log(`  ❌ Manual failed: ${manualError.message}`);
+      const upstreamResponse = upstreamResult.messages[upstreamResult.messages.length - 1].content;
+      result.upstreamSuccess = true;
+      console.log(`  ✅ Upstream succeeded: ${String(upstreamResponse).substring(0, 100)}...`);
+    } catch (upstreamError: any) {
+      result.upstreamSuccess = false;
+      result.upstreamError = upstreamError.message;
+      console.log(`  ❌ Upstream failed: ${upstreamError.message}`);
     }
 
-    // Test with ChatGoogleGenerativeAIEx
-    console.log(`  🚀 Testing ChatGoogleGenerativeAIEx...`);
+    // Test with ChatGoogleGenerativeAIEx (downstream transformation)
+    console.log(`  🚀 Testing ChatGoogleGenerativeAIEx (downstream transformation)...`);
     try {
-      const extendedLlm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
-      const extendedAgent = createReactAgent({ llm: extendedLlm, tools: mcpTools });
+      const downstreamLlm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
+      const downstreamAgent = createReactAgent({ llm: downstreamLlm, tools: mcpTools });
       
       console.log(`  💬 Query: "${serverConfig.testQuery}"`);
       
-      const extendedResult = await extendedAgent.invoke({
+      const downstreamResult = await downstreamAgent.invoke({
         messages: [new HumanMessage(serverConfig.testQuery)]
       });
       
-      const response = extendedResult.messages[extendedResult.messages.length - 1].content;
-      result.extendedSuccess = true;
+      const response = downstreamResult.messages[downstreamResult.messages.length - 1].content;
+      result.downstreamSuccess = true;
       result.responsePreview = String(response).substring(0, 150) + "...";
-      result.success = true; // Overall success if extended version works
+      result.success = true; // Overall success if downstream version works
       
-      console.log(`  ✅ Extended succeeded: ${result.responsePreview}`);
-    } catch (extendedError: any) {
-      result.extendedSuccess = false;
-      result.extendedError = extendedError.message;
+      console.log(`  ✅ Downstream succeeded: ${result.responsePreview}`);
+    } catch (downstreamError: any) {
+      result.downstreamSuccess = false;
+      result.downstreamError = downstreamError.message;
       result.success = false;
-      console.log(`  ❌ Extended failed: ${extendedError.message}`);
+      console.log(`  ❌ Downstream failed: ${downstreamError.message}`);
     }
 
     // Show comparison result
     const originalStatus = result.originalSuccess ? "✅" : "❌";
-    const manualStatus = result.manualSuccess ? "✅" : "❌";
-    const extendedStatus = result.extendedSuccess ? "✅" : "❌";
-    console.log(`  🆚 Comparison: Original ${originalStatus} | Manual ${manualStatus} | Extended ${extendedStatus}`);
+    const upstreamStatus = result.upstreamSuccess ? "✅" : "❌";
+    const downstreamStatus = result.downstreamSuccess ? "✅" : "❌";
+    console.log(`  🆚 Comparison: Original ${originalStatus} | Upstream ${upstreamStatus} | Downstream ${downstreamStatus}`);
     
     // Analyze the results
-    if (!result.originalSuccess && result.manualSuccess && result.extendedSuccess) {
+    if (!result.originalSuccess && result.upstreamSuccess && result.downstreamSuccess) {
       console.log(`  🎯 Schema fix benefit: Both transformation approaches fixed compatibility issues!`);
-    } else if (!result.originalSuccess && result.manualSuccess && !result.extendedSuccess) {
-      console.log(`  🤔 Interesting: Manual works but extended doesn't - possible regression`);
-    } else if (!result.originalSuccess && !result.manualSuccess && result.extendedSuccess) {
-      console.log(`  🚀 Extended approach handles edge cases better than manual transformation`);
-    } else if (result.originalSuccess && result.manualSuccess && result.extendedSuccess) {
+    } else if (!result.originalSuccess && result.upstreamSuccess && !result.downstreamSuccess) {
+      console.log(`  🤔 Interesting: Upstream works but downstream doesn't - possible regression`);
+    } else if (!result.originalSuccess && !result.upstreamSuccess && result.downstreamSuccess) {
+      console.log(`  🚀 Downstream approach handles edge cases better than upstream transformation`);
+    } else if (result.originalSuccess && result.upstreamSuccess && result.downstreamSuccess) {
       console.log(`  ✨ Schema fix benefit: No issues, all approaches work (simple schema)`);
-    } else if (!result.originalSuccess && !result.manualSuccess && !result.extendedSuccess) {
+    } else if (!result.originalSuccess && !result.upstreamSuccess && !result.downstreamSuccess) {
       console.log(`  ⚠️  All approaches failed: Likely server/network issue, not schema-related`);
-    } else if (result.originalSuccess && (!result.manualSuccess || !result.extendedSuccess)) {
+    } else if (result.originalSuccess && (!result.upstreamSuccess || !result.downstreamSuccess)) {
       console.log(`  🔴 Regression: Original works but transformations broke something`);
     }
 
@@ -357,42 +357,42 @@ async function testSingleServer(serverConfig: ServerTestConfig): Promise<TestRes
 function printSummaryTable(results: TestResult[]) {
   console.log("\n📊 Test Results Summary");
   console.log("═".repeat(115));
-  console.log("Server          | Original | Manual   | Extended | Tools | Schema Fix Benefit     | Notes");
+  console.log("Server          | Original | Upstream | Downstream | Tools | Schema Fix Benefit     | Notes");
   console.log("─".repeat(115));
 
   for (const result of results) {
     if (result.skipped) {
       const serverName = result.displayName.substring(0, 15).padEnd(15);
       const notes = result.skipReason || "Unknown";
-      console.log(`${serverName} | SKIPPED  | SKIPPED  | SKIPPED  | N/A   | N/A                    | ${notes}`);
+      console.log(`${serverName} | SKIPPED  | SKIPPED  | SKIPPED    | N/A   | N/A                    | ${notes}`);
       continue;
     }
 
     const serverName = result.displayName.substring(0, 15).padEnd(15);
     const originalStatus = result.originalSuccess ? "✅ PASS" : "❌ FAIL";
-    const manualStatus = result.manualSuccess ? "✅ PASS" : "❌ FAIL";
-    const extendedStatus = result.extendedSuccess ? "✅ PASS" : "❌ FAIL";
+    const upstreamStatus = result.upstreamSuccess ? "✅ PASS" : "❌ FAIL";
+    const downstreamStatus = result.downstreamSuccess ? "✅ PASS" : "❌ FAIL";
     const tools = result.toolsFound.toString().padEnd(5);
     
     let benefit = "Unknown";
-    if (!result.originalSuccess && result.manualSuccess && result.extendedSuccess) {
+    if (!result.originalSuccess && result.upstreamSuccess && result.downstreamSuccess) {
       benefit = "🎯 Both fixes work";
-    } else if (!result.originalSuccess && result.manualSuccess && !result.extendedSuccess) {
-      benefit = "🔧 Only manual works";
-    } else if (!result.originalSuccess && !result.manualSuccess && result.extendedSuccess) {
-      benefit = "🚀 Only extended works";
-    } else if (result.originalSuccess && result.manualSuccess && result.extendedSuccess) {
+    } else if (!result.originalSuccess && result.upstreamSuccess && !result.downstreamSuccess) {
+      benefit = "🔧 Only upstream works";
+    } else if (!result.originalSuccess && !result.upstreamSuccess && result.downstreamSuccess) {
+      benefit = "🚀 Only downstream works";
+    } else if (result.originalSuccess && result.upstreamSuccess && result.downstreamSuccess) {
       benefit = "✨ All work";
-    } else if (!result.originalSuccess && !result.manualSuccess && !result.extendedSuccess) {
+    } else if (!result.originalSuccess && !result.upstreamSuccess && !result.downstreamSuccess) {
       benefit = "⚠️  All failed";
-    } else if (result.originalSuccess && (!result.manualSuccess || !result.extendedSuccess)) {
+    } else if (result.originalSuccess && (!result.upstreamSuccess || !result.downstreamSuccess)) {
       benefit = "🔴 Regressions";
     }
     
-    const notes = result.extendedSuccess ? "Working properly" : 
-                  result.extendedError?.substring(0, 30) + "..." || "Unknown error";
+    const notes = result.downstreamSuccess ? "Working properly" : 
+                  result.downstreamError?.substring(0, 30) + "..." || "Unknown error";
     
-    console.log(`${serverName} | ${originalStatus.padEnd(8)} | ${manualStatus.padEnd(8)} | ${extendedStatus.padEnd(8)} | ${tools} | ${benefit.padEnd(22)} | ${notes}`);
+    console.log(`${serverName} | ${originalStatus.padEnd(8)} | ${upstreamStatus.padEnd(8)} | ${downstreamStatus.padEnd(10)} | ${tools} | ${benefit.padEnd(22)} | ${notes}`);
   }
   console.log("═".repeat(115));
 }
@@ -403,7 +403,7 @@ function printSummaryTable(results: TestResult[]) {
 async function runIndividualServerTests() {
   console.log("🚀 Individual MCP Server Integration Tests");
   console.log("═".repeat(80));
-  console.log("Testing each of the 6 MCP servers individually...\n");
+  console.log("Testing each of the 10 MCP servers individually...\n");
 
   // Check for required environment variables
   if (!process.env.GOOGLE_API_KEY) {
@@ -438,56 +438,56 @@ async function runIndividualServerTests() {
   const totalTests = results.length;
   const availableTests = results.filter(r => !r.skipped).length;
   const originalPassedTests = results.filter(r => !r.skipped && r.originalSuccess).length;
-  const manualPassedTests = results.filter(r => !r.skipped && r.manualSuccess).length;
-  const extendedPassedTests = results.filter(r => !r.skipped && r.extendedSuccess).length;
-  const bothFixesWork = results.filter(r => !r.skipped && !r.originalSuccess && r.manualSuccess && r.extendedSuccess).length;
-  const onlyManualWorks = results.filter(r => !r.skipped && !r.originalSuccess && r.manualSuccess && !r.extendedSuccess).length;
-  const onlyExtendedWorks = results.filter(r => !r.skipped && !r.originalSuccess && !r.manualSuccess && r.extendedSuccess).length;
+  const upstreamPassedTests = results.filter(r => !r.skipped && r.upstreamSuccess).length;
+  const downstreamPassedTests = results.filter(r => !r.skipped && r.downstreamSuccess).length;
+  const bothFixesWork = results.filter(r => !r.skipped && !r.originalSuccess && r.upstreamSuccess && r.downstreamSuccess).length;
+  const onlyUpstreamWorks = results.filter(r => !r.skipped && !r.originalSuccess && r.upstreamSuccess && !r.downstreamSuccess).length;
+  const onlyDownstreamWorks = results.filter(r => !r.skipped && !r.originalSuccess && !r.upstreamSuccess && r.downstreamSuccess).length;
   const skippedTests = results.filter(r => r.skipped).length;
-  const allFailedTests = results.filter(r => !r.skipped && !r.originalSuccess && !r.manualSuccess && !r.extendedSuccess).length;
+  const allFailedTests = results.filter(r => !r.skipped && !r.originalSuccess && !r.upstreamSuccess && !r.downstreamSuccess).length;
 
   console.log(`\n📈 Statistics:`);
   console.log(`   Total Servers: ${totalTests}`);
   console.log(`   Available for Testing: ${availableTests}`);
   console.log(`   ✅ Original ChatGoogleGenerativeAI: ${originalPassedTests}/${availableTests} (${((originalPassedTests/availableTests)*100).toFixed(1)}%)`);
-  console.log(`   ✅ Manual Transformation: ${manualPassedTests}/${availableTests} (${((manualPassedTests/availableTests)*100).toFixed(1)}%)`);
-  console.log(`   ✅ ChatGoogleGenerativeAIEx: ${extendedPassedTests}/${availableTests} (${((extendedPassedTests/availableTests)*100).toFixed(1)}%)`);
+  console.log(`   ✅ Upstream Transformation: ${upstreamPassedTests}/${availableTests} (${((upstreamPassedTests/availableTests)*100).toFixed(1)}%)`);
+  console.log(`   ✅ Downstream Transformation (ChatGoogleGenerativeAIEx): ${downstreamPassedTests}/${availableTests} (${((downstreamPassedTests/availableTests)*100).toFixed(1)}%)`);
   console.log(`   🎯 Both Transformation Approaches Work: ${bothFixesWork} servers`);
-  console.log(`   🔧 Only Manual Transformation Works: ${onlyManualWorks} servers`);
-  console.log(`   🚀 Only Extended Class Works: ${onlyExtendedWorks} servers`);
+  console.log(`   🔧 Only Upstream Transformation Works: ${onlyUpstreamWorks} servers`);
+  console.log(`   🚀 Only Downstream Transformation Works: ${onlyDownstreamWorks} servers`);
   console.log(`   ⏸️  Skipped (missing auth): ${skippedTests}`);
   console.log(`   ❌ All Failed: ${allFailedTests}`);
 
-  const totalSchemaFixed = bothFixesWork + onlyManualWorks + onlyExtendedWorks;
+  const totalSchemaFixed = bothFixesWork + onlyUpstreamWorks + onlyDownstreamWorks;
   if (totalSchemaFixed > 0) {
     console.log(`\n🎉 Success! Schema transformations fixed compatibility issues for ${totalSchemaFixed} servers!`);
     
     if (bothFixesWork > 0) {
       const bothFixServers = results
-        .filter(r => !r.skipped && !r.originalSuccess && r.manualSuccess && r.extendedSuccess)
+        .filter(r => !r.skipped && !r.originalSuccess && r.upstreamSuccess && r.downstreamSuccess)
         .map(r => r.displayName);
       console.log(`   🎯 Both approaches work: ${bothFixServers.join(", ")}`);
     }
     
-    if (onlyManualWorks > 0) {
-      const manualOnlyServers = results
-        .filter(r => !r.skipped && !r.originalSuccess && r.manualSuccess && !r.extendedSuccess)
+    if (onlyUpstreamWorks > 0) {
+      const upstreamOnlyServers = results
+        .filter(r => !r.skipped && !r.originalSuccess && r.upstreamSuccess && !r.downstreamSuccess)
         .map(r => r.displayName);
-      console.log(`   🔧 Only manual works: ${manualOnlyServers.join(", ")}`);
+      console.log(`   🔧 Only upstream works: ${upstreamOnlyServers.join(", ")}`);
     }
     
-    if (onlyExtendedWorks > 0) {
-      const extendedOnlyServers = results
-        .filter(r => !r.skipped && !r.originalSuccess && !r.manualSuccess && r.extendedSuccess)
+    if (onlyDownstreamWorks > 0) {
+      const downstreamOnlyServers = results
+        .filter(r => !r.skipped && !r.originalSuccess && !r.upstreamSuccess && r.downstreamSuccess)
         .map(r => r.displayName);
-      console.log(`   🚀 Only extended works: ${extendedOnlyServers.join(", ")}`);
+      console.log(`   🚀 Only downstream works: ${downstreamOnlyServers.join(", ")}`);
     }
   }
 
   if (originalPassedTests > 0) {
-    console.log(`\n✨ Note: ${originalPassedTests} server(s) work with both implementations`);
+    console.log(`\n✨ Note: ${originalPassedTests} server(s) work with all implementations`);
     const simpleServers = results
-      .filter(r => !r.skipped && r.originalSuccess && r.extendedSuccess)
+      .filter(r => !r.skipped && r.originalSuccess && r.downstreamSuccess)
       .map(r => r.displayName);
     if (simpleServers.length > 0) {
       console.log(`   Simple schema servers: ${simpleServers.join(", ")}`);
@@ -506,28 +506,14 @@ async function runIndividualServerTests() {
       });
   }
 
-  // if (bothFailedTests > 0) {
-  //   console.log(`\n🔧 Servers that failed with both implementations may need:`);
-  //   console.log(`   - Network connectivity`);
-  //   console.log(`   - Required dependencies (uvx, npx packages)`);
-  //   console.log(`   - Proper authentication`);
-  //   console.log(`   - MCP server availability`);
-  //   const failedServers = results
-  //     .filter(r => !r.skipped && !r.originalSuccess && !r.extendedSuccess)
-  //     .map(r => r.displayName);
-  //   if (failedServers.length > 0) {
-  //     console.log(`   Failed servers: ${failedServers.join(", ")}`);
-  //   }
-  // }
-
   console.log(`\n✅ Schema compatibility testing complete!`);
   
   if (totalSchemaFixed > 0) {
     console.log(`🎆 Result: Successfully demonstrated schema transformation benefits with ${totalSchemaFixed} complex MCP servers!`);
     if (bothFixesWork > 0) {
-      console.log(`💯 Perfect: Both manual and extended approaches work equivalently for ${bothFixesWork} servers`);
+      console.log(`💯 Perfect: Both upstream and downstream approaches work equivalently for ${bothFixesWork} servers`);
     }
-    if (onlyManualWorks > 0 || onlyExtendedWorks > 0) {
+    if (onlyUpstreamWorks > 0 || onlyDownstreamWorks > 0) {
       console.log(`🔍 Interesting: Some edge cases where approaches differ - worth investigating`);
     }
   }
