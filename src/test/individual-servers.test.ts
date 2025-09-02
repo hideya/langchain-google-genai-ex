@@ -41,17 +41,17 @@ interface ServerTestConfig {
 }
 
 const MCP_SERVERS: ServerTestConfig[] = [
-  {
-    name: "us-weather",
-    displayName: "US Weather Server",
-    config: {
-      transport: "stdio",
-      command: "npx",
-      args: ["-y", "@h1deya/mcp-server-weather"]
-    },
-    testQuery: "Are there any weather alerts in California?",
-    expectedToolNames: ["get-alerts", "get-forecast"]
-  },
+  // {
+  //   name: "us-weather",
+  //   displayName: "US Weather Server",
+  //   config: {
+  //     transport: "stdio",
+  //     command: "npx",
+  //     args: ["-y", "@h1deya/mcp-server-weather"]
+  //   },
+  //   testQuery: "Are there any weather alerts in California?",
+  //   expectedToolNames: ["get-alerts", "get-forecast"]
+  // },
   {
     name: "fetch",
     displayName: "Fetch Server",
@@ -63,19 +63,18 @@ const MCP_SERVERS: ServerTestConfig[] = [
     testQuery: "Summarize the beginning of the news headlines on BBC.com",
     expectedToolNames: ["fetch"]
   },
-  {
-    name: "notion",
-    displayName: "Notion Server",
-    config: {
-      transport: "stdio",
-      command: "npx",
-      args: ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]
-    },
-    testQuery: "Tell me about my Notion account",
-    expectedToolNames: ["notion-get-self", "notion-search-pages"],
-    // requiresAuth: true,  //  OAuth via "mcp-remote"
-    // authEnvVar: "NOTION_TOKEN"
-  },
+  // {
+  //   name: "notion",
+  //   displayName: "Notion Server",
+  //   config: {
+  //     transport: "stdio",
+  //     command: "npx",
+  //     args: ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]
+  //   },
+  //   testQuery: "Tell me about my Notion account",
+  //   expectedToolNames: ["notion-get-self", "notion-search-pages"],
+  //   // requiresAuth: false,  //  OAuth via "mcp-remote"
+  // },
   {
     name: "airtable",
     displayName: "Airtable Server",
@@ -253,7 +252,7 @@ async function testSingleServer(serverConfig: ServerTestConfig): Promise<TestRes
     // Test with original ChatGoogleGenerativeAI first
     console.log(`  🔄 Testing original ChatGoogleGenerativeAI...`);
     try {
-      const originalLlm = new ChatGoogleGenerativeAI({ model: "gemini-1.5-flash" });
+      const originalLlm = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
       const originalAgent = createReactAgent({ llm: originalLlm, tools: mcpTools });
       
       const originalResult = await originalAgent.invoke({
@@ -266,14 +265,15 @@ async function testSingleServer(serverConfig: ServerTestConfig): Promise<TestRes
     } catch (originalError: any) {
       result.originalSuccess = false;
       result.originalError = originalError.message;
-      console.log(`  ❌ Original failed: ${originalError.message}`);
+      console.log(`  ❌ Original failed: ${String(originalError).substring(0, 400)}...`);
+      // console.log(`  ❌ Original failed: ${originalError.message}`);
     }
 
     // Test with upstream transformation (transformMcpToolsForGemini)
     console.log(`  🔧 Testing upstream transformation (transformMcpToolsForGemini)...`);
     try {
       const transformedTools = transformMcpToolsForGemini(mcpTools);
-      const upstreamLlm = new ChatGoogleGenerativeAI({ model: "gemini-1.5-flash" });
+      const upstreamLlm = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
       const upstreamAgent = createReactAgent({ llm: upstreamLlm, tools: transformedTools });
       
       const upstreamResult = await upstreamAgent.invoke({

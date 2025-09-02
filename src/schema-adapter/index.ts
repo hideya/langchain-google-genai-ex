@@ -16,7 +16,7 @@ import { transformMcpToolForGemini } from "./gemini.js";
  * const mcpTools = await client.getTools();
  * const geminiTools = transformMcpToolsForGemini(mcpTools);
  * 
- * const llm = new ChatGoogleGenerativeAI({ model: "gemini-1.5-flash" });
+ * const llm = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
  * const agent = createReactAgent({ llm, tools: geminiTools });
  * ```
  */

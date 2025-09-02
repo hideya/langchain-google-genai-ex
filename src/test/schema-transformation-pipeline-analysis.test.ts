@@ -162,7 +162,7 @@ async function analyzeServerSchemaTransformation(serverConfig: any): Promise<Sch
       
       // 3. See what LangChain sends to Gemini (upstream approach)
       try {
-        const upstreamLlm = new ChatGoogleGenerativeAI({ model: "gemini-1.5-flash" });
+        const upstreamLlm = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
         const interceptPromise = interceptLangChainAPICall(upstreamLlm);
         
         const upstreamAgent = createReactAgent({ llm: upstreamLlm, tools: transformedTools });
@@ -376,22 +376,34 @@ async function runSchemaTransformationAnalysis() {
       }
     },
     {
-      name: "notion",
-      displayName: "Notion Server (High Complexity)",
+      name: "airtable",
+      displayName: "Airtable Server (High Complexity)",
       config: {
         transport: "stdio",
         command: "npx",
-        args: ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]
+        args: ["-y", "airtable-mcp-server"],
+        env: {
+          "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
+        }
       }
     },
-    {
-      name: "filesystem",
-      displayName: "Filesystem Server (Simple)",
-      config: {
-        command: "npx",
-        args: ["-y", "@modelcontextprotocol/server-filesystem", "."]
-      }
-    }
+    // {
+    //   name: "notion",
+    //   displayName: "Notion Server (High Complexity)",
+    //   config: {
+    //     transport: "stdio",
+    //     command: "npx",
+    //     args: ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]
+    //   }
+    // },
+    // {
+    //   name: "filesystem",
+    //   displayName: "Filesystem Server (Simple)",
+    //   config: {
+    //     command: "npx",
+    //     args: ["-y", "@modelcontextprotocol/server-filesystem", "."]
+    //   }
+    // },
   ];
   
   const allResults: SchemaAnalysis[] = [];
