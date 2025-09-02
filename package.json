@@ -68,7 +68,7 @@
     "lint:fix": "eslint src/**/*.ts --fix",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist",
-    "clean:all": "git clean -fdxn -e .env && echo 'Files to be deleted ^. Continue? (Ctrl+C to cancel)' && read -p 'Press Enter to continue...' && git clean -fdx -e .env",
+    "clean:all": "git clean -fdxn -e .env && read -p '\nOK?' && git clean -fdx -e .env",
     "publish:test": "npm run clean:all && npm install && npm run build && npm publish --access=public --dry-run",
     "publish:do": "npm run clean:all && npm install && npm run build && npm publish --access=public",
     "docs:build": "npx typedoc --options typedoc.json",
@@ -76,8 +76,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@google/generative-ai": "~0.21.0",
-    "@langchain/google-genai": "~0.2.16"
+    "@langchain/google-genai": "^0.2.16"
   },
   "peerDependencies": {
     "@langchain/core": ">=0.3.0"

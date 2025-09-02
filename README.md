@@ -145,55 +145,6 @@ await client.close();
 - **Format compatibility** - removes unsupported JSON Schema formats and keywords
 - **Nested structure handling** - recursively processes complex object hierarchies
 
-## Why Not Upstream Schema Fixes?
-
-You might wonder: *"Why not fix the schemas before they reach LangChain?"* Our testing reveals why this upstream approach is problematic:
-
-### The Double Conversion Problem
-
-Upstream fixes fail because of LangChain's internal processing:
-
-```
-Upstream Fix Attempt:
-MCP Tools → transformMcpToolsForGemini() → "Fixed" Tools → LangChain → convertToOpenAIFunction() → Broken Again ❌
-
-This Downstream Solution:  
-MCP Tools → LangChain → convertToOpenAIFunction() → normalizeGeminiToolsPayload() → Actually Fixed ✅
-```
-
-### Real Evidence from Testing
-
-Comprehensive testing proves upstream fixes are unreliable:
-
-- **Notion Case**: Upstream transformation **breaks working schemas** (✅ → ❌)
-- **Airtable Case**: Upstream transformation **can't handle complex edge cases** (❌ → ❌)
-- **Fetch Case**: Upstream works for simple issues, but downstream is more reliable
-
-> 📋 **Technical Details**: See our [**Tool Conversion Pipeline Analysis**](./LANGCHAIN_TOOL_CONVERSION_PIPELINE.md) for the complete explanation of why upstream fixes fail.
-
-### The Architectural Insight
-
-The key insight: LangChain's `convertToOpenAIFunction()` uses `zodToJsonSchema()` which seem to **reintroduce problematic schema features** regardless of upstream transformations. Upstream fixes can't predict what this conversion will produce, but our downstream approach sees the final payload and fixes exactly what's needed.
-
-## Google's Official Fix vs. This Library
-
-### Google's New SDK Solution
-Google has officially addressed this schema compatibility issue in their new **Google GenAI SDK** (`@google/genai`):
-
-- ✅ **Fixed**: `@google/genai` + `mcpToTool()` handles MCP schema transformation
-- ✅ **Official**: Built-in MCP support with proper schema conversion
-- ✅ **Active**: Actively maintained and includes latest Gemini 2.0+ features
-
-### Why This Library is Still Essential
-
-**LangChain.js Integration Gap**: The new Google SDK doesn't integrate with LangChain.js ecosystem:
-
-- ❌ **LangChain.js** still uses the legacy `@google/generative-ai` (EOL Aug 2025)
-- ❌ **@langchain/mcp-adapters** doesn't work with Google's new `mcpToTool()`
-- ❌ **Schema issues persist** in the LangChain.js → legacy SDK → Gemini API pathway
-- ❌ **Double conversion problem**: LangChain's `convertToOpenAIFunction()` would re-break fixed schemas
-
-> 🔬 **Technical Details**: See our comprehensive [**Google Official Fix Compatibility Analysis**](./GOOGLE_OFFICIAL_FIX_COMPATIBILITY.md) explaining why LangChain.js can't directly use Google's official fix.
 
 ### Migration Path
 
@@ -251,27 +202,6 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   }
 }
 ```
-
-**Why this downstream approach works:**
-
-1. **Precise Timing**: Intercepts tool definitions right before API submission
-2. **Non-Destructive**: Original tool functionality remains completely intact  
-3. **Full Compatibility**: Extends rather than replacing the original class
-4. **Transparent**: Your application logic doesn't need to change
-
-**Architectural Context**: This works within LangChain.js's existing tool conversion pipeline, transforming schemas **after** LangChain's universal tool processing but **before** Google's API validation—the only viable interception point.
-
-### Performance Considerations
-
-The schema transformation runs on every API call (`.invoke()`, `.stream()`, agent iterations, etc.) since `invocationParams()` is called for each request without caching. However, the performance impact is negligible in practice:
-
-- **Transformation overhead**: 1-20ms depending on tool complexity
-- **Typical request latency**: 100-500ms (network) + 1-10s (LLM processing)
-- **Relative impact**: <2% of total request time
-
-We prioritized simplicity and reliability over micro-optimizations, as the schema transformation cost is insignificant compared to network and LLM processing latency.
-
-> **Stability Note**: The implementation uses specific versions of `@langchain/google-genai` (~0.2.16) and `@google/generative-ai` (~0.21.0) to ensure reliable interception of the conversion process.
 
 ### Technical Foundation
 
