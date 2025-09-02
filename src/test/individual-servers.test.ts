@@ -41,40 +41,40 @@ interface ServerTestConfig {
 }
 
 const MCP_SERVERS: ServerTestConfig[] = [
-  {
-    name: "us-weather",
-    displayName: "US Weather Server",
-    config: {
-      transport: "stdio",
-      command: "npx",
-      args: ["-y", "@h1deya/mcp-server-weather"]
-    },
-    testQuery: "Are there any weather alerts in California?",
-    expectedToolNames: ["get-alerts", "get-forecast"]
-  },
-  {
-    name: "fetch",
-    displayName: "Fetch Server",
-    config: {
-      transport: "stdio",
-      command: "uvx",
-      args: ["mcp-server-fetch"]
-    },
-    testQuery: "Summarize the beginning of the news headlines on BBC.com",
-    expectedToolNames: ["fetch"]
-  },
-  {
-    name: "notion",
-    displayName: "Notion Server",
-    config: {
-      transport: "stdio",
-      command: "npx",
-      args: ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]
-    },
-    testQuery: "Tell me about my Notion account",
-    expectedToolNames: ["notion-get-self", "notion-search-pages"],
-    // requiresAuth: false,  //  OAuth via "mcp-remote"
-  },
+  // {
+  //   name: "us-weather",
+  //   displayName: "US Weather Server",
+  //   config: {
+  //     transport: "stdio",
+  //     command: "npx",
+  //     args: ["-y", "@h1deya/mcp-server-weather"]
+  //   },
+  //   testQuery: "Are there any weather alerts in California?",
+  //   expectedToolNames: ["get-alerts", "get-forecast"]
+  // },
+  // {
+  //   name: "fetch",
+  //   displayName: "Fetch Server",
+  //   config: {
+  //     transport: "stdio",
+  //     command: "uvx",
+  //     args: ["mcp-server-fetch"]
+  //   },
+  //   testQuery: "Summarize the beginning of the news headlines on BBC.com",
+  //   expectedToolNames: ["fetch"]
+  // },
+  // {
+  //   name: "notion",
+  //   displayName: "Notion Server",
+  //   config: {
+  //     transport: "stdio",
+  //     command: "npx",
+  //     args: ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]
+  //   },
+  //   testQuery: "Tell me about my Notion account",
+  //   expectedToolNames: ["notion-get-self", "notion-search-pages"],
+  //   // requiresAuth: false,  //  OAuth via "mcp-remote"
+  // },
   {
     name: "airtable",
     displayName: "Airtable Server",

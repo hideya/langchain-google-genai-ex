@@ -187,30 +187,8 @@ const mcpTools = await client.getTools();
 const agent = createReactAgent({ llm, tools: mcpTools });
 ```
 
-**Bottom Line**: This library serves as the **comprehensive solution** for LangChain.js users while the ecosystem transitions to Google's new official SDK.
+This library serves as a good solution for LangChain.js users while the issue is fixed in ChatGoogleGenerativeAI.
 
-## How It Works
-
-`ChatGoogleGenerativeAIEx` solves the schema compatibility problem through **surgical downstream interception** at the critical conversion point:
-
-```typescript
-// The transformation occurs in the invocationParams() override
-export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
-  override invocationParams(options?: any): any {
-    const req = super.invocationParams(options);
-    return normalizeGeminiToolsPayload({ ...req }); // ← Downstream schema transformation here
-  }
-}
-```
-
-### Technical Foundation
-
-This solution is built on extensive research and validation:
-
-- **Comprehensive Testing**: [Validated against 10 MCP servers](./src/test/individual-servers.test.ts) with different schema complexity levels
-- **Pipeline Analysis**: Deep research into [LangChain's tool conversion pipeline](./LANGCHAIN_TOOL_CONVERSION_PIPELINE.md)
-- **Architectural Analysis**: [Why upstream fixes don't work](./ARCHITECTURAL_DECISIONS.md) and why downstream interception is optimal
-- **Ecosystem Understanding**: [Google's official fix compatibility challenges](./GOOGLE_OFFICIAL_FIX_COMPATIBILITY.md) 
 
 ## API Reference
 
@@ -233,10 +211,6 @@ Issues and PRs welcome! This package specifically targets the intersection of:
 ## Links
 
 - [📖 **Full API Documentation**](https://hideya.github.io/langchain-google-genai-ex/)
-- [🔬 **Google Official Fix Compatibility Analysis**](./GOOGLE_OFFICIAL_FIX_COMPATIBILITY.md) - Why LangChain.js can't use Google's official MCP schema fix
-- [📋 **Tool Conversion Pipeline Analysis**](./LANGCHAIN_TOOL_CONVERSION_PIPELINE.md) - Why upstream schema fixes fail in LangChain.js  
-- [🏗️ **Architectural Decisions**](./ARCHITECTURAL_DECISIONS.md) - Why we fix at downstream level
-- [🧪 **Test Suite**](./src/test/individual-servers.test.ts) - Comprehensive validation against 10 MCP servers
 - [📦 **NPM Package**](https://www.npmjs.com/package/@hideya/langchain-google-genai-ex)
 - [🐛 **Issues & Bug Reports**](https://github.com/hideya/langchain-google-genai-ex/issues)
 - [🔧 **Source Code**](https://github.com/hideya/langchain-google-genai-ex)
