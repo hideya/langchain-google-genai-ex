@@ -66,7 +66,7 @@ npm install @langchain/langgraph
 
 ## The Problem You're Probably Having
 
-If you've ever tried using **Google Gemini** together with **LangChain.js** and **MCP servers with complex schemas**, you may have run into this terrible error:
+If you've ever tried using **Google Gemini** together with **LangChain.js** and **MCP servers with complex schemas**, you may have run into this error:
 
 ```
 [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent: [400 Bad Request] Invalid JSON payload received. Unknown name "anyOf" at 'tools[0].function_declarations[8].parameters.properties[2]...': Proto field is not repeating, cannot start list.
@@ -221,7 +221,7 @@ const response = await ai.models.generateContent({
 ```
 
 #### Option B: Using LangChain.js (Current Ecosystem)
-If you need LangChain.js integration, use this library as the definitive solution:
+If you need LangChain.js integration, use this library as the comprehensive solution:
 
 ```typescript
 // If you use LangChain.js:
@@ -236,14 +236,14 @@ const mcpTools = await client.getTools();
 const agent = createReactAgent({ llm, tools: mcpTools });
 ```
 
-**Bottom Line**: This library serves as the **definitive solution** for LangChain.js users while the ecosystem transitions to Google's new official SDK.
+**Bottom Line**: This library serves as the **comprehensive solution** for LangChain.js users while the ecosystem transitions to Google's new official SDK.
 
 ## How It Works
 
 `ChatGoogleGenerativeAIEx` solves the schema compatibility problem through **surgical downstream interception** at the critical conversion point:
 
 ```typescript
-// The magic happens in the invocationParams() override
+// The transformation occurs in the invocationParams() override
 export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   override invocationParams(options?: any): any {
     const req = super.invocationParams(options);
@@ -306,11 +306,7 @@ Issues and PRs welcome! This package specifically targets the intersection of:
 - [🔬 **Google Official Fix Compatibility Analysis**](./GOOGLE_OFFICIAL_FIX_COMPATIBILITY.md) - Why LangChain.js can't use Google's official MCP schema fix
 - [📋 **Tool Conversion Pipeline Analysis**](./LANGCHAIN_TOOL_CONVERSION_PIPELINE.md) - Why upstream schema fixes fail in LangChain.js  
 - [🏗️ **Architectural Decisions**](./ARCHITECTURAL_DECISIONS.md) - Why we fix at downstream level
-- [🧪 **Test Results**](./src/test/individual-servers.test.ts) - Comprehensive validation against 10 MCP servers
+- [🧪 **Test Suite**](./src/test/individual-servers.test.ts) - Comprehensive validation against 10 MCP servers
 - [📦 **NPM Package**](https://www.npmjs.com/package/@hideya/langchain-google-genai-ex)
 - [🐛 **Issues & Bug Reports**](https://github.com/hideya/langchain-google-genai-ex/issues)
 - [🔧 **Source Code**](https://github.com/hideya/langchain-google-genai-ex)
-
----
-
-**Made with ❤️ for developers frustrated by Gemini schema validation errors.**
