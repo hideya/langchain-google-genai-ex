@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { ChatGoogleGenerativeAIEx } from "../ChatGoogleGenerativeAIEx.js";
+import { ChatGoogleGenerativeAIEx } from "../chat-models/ChatGoogleGenerativeAIEx.js";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 import { HumanMessage } from "@langchain/core/messages";
