@@ -29,7 +29,7 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   /**
    * Override the _generate method to intercept and transform tools before sending to Gemini
    */
-  async _generate(
+  override async _generate(
     messages: BaseMessage[],
     options?: CallOptions,
     runManager?: any

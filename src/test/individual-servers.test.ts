@@ -11,8 +11,8 @@ import { MultiServerMCPClient } from "@langchain/mcp-adapters";
  * 
  * This test suite tests each of the 10 MCP servers individually with three approaches:
  * 1. Original ChatGoogleGenerativeAI (baseline)
- * 2. Upstream transformation with transformMcpToolsForGemini() + ChatGoogleGenerativeAI  
- * 3. Downstream transformation with ChatGoogleGenerativeAIEx
+ * 2. Manual transformation with transformMcpToolsForGemini() + ChatGoogleGenerativeAI  
+ * 3. Automatic transformation with ChatGoogleGenerativeAIEx
  * 
  * Servers tested:
  * 1. us-weather: Weather information for US locations
@@ -43,7 +43,7 @@ interface ServerTestConfig {
 const MCP_SERVERS: ServerTestConfig[] = [
   {
     name: "us-weather",
-    displayName: "US Weather Server",
+    displayName: "US Weather Serv",
     config: {
       transport: "stdio",
       command: "npx",
@@ -182,18 +182,18 @@ interface TestResult {
   skipReason?: string;
   originalSuccess?: boolean;
   originalError?: string;
-  upstreamSuccess?: boolean;
-  upstreamError?: string;
-  downstreamSuccess?: boolean;
-  downstreamError?: string;
+  manualSuccess?: boolean;
+  manualError?: string;
+  automaticSuccess?: boolean;
+  automaticError?: string;
 }
 
 /**
  * Tests a single MCP server for basic connectivity and functionality
  * Compares three approaches:
  * 1. Original ChatGoogleGenerativeAI (baseline)
- * 2. Upstream transformation with transformMcpToolsForGemini() + ChatGoogleGenerativeAI
- * 3. Downstream transformation with ChatGoogleGenerativeAIEx
+ * 2. Manual transformation with transformMcpToolsForGemini() + ChatGoogleGenerativeAI
+ * 3. Automatic transformation with ChatGoogleGenerativeAIEx
  */
 async function testSingleServer(serverConfig: ServerTestConfig): Promise<TestResult> {
   const result: TestResult = {
@@ -269,69 +269,69 @@ async function testSingleServer(serverConfig: ServerTestConfig): Promise<TestRes
       // console.log(`  ❌ Original failed: ${originalError.message}`);
     }
 
-    // Test with upstream transformation (transformMcpToolsForGemini)
-    console.log(`  🔧 Testing upstream transformation (transformMcpToolsForGemini)...`);
+    // Test with manual transformation (transformMcpToolsForGemini)
+    console.log(`  🔧 Testing manual transformation (+transformMcpToolsForGemini)...`);
     try {
       const transformedTools = transformMcpToolsForGemini(mcpTools);
-      const upstreamLlm = new ChatGoogleGenerativeAI({ model: process.env.LLM_MODEL_TO_TEST });
-      const upstreamAgent = createReactAgent({ llm: upstreamLlm, tools: transformedTools });
+      const manualLlm = new ChatGoogleGenerativeAI({ model: process.env.LLM_MODEL_TO_TEST });
+      const manualAgent = createReactAgent({ llm: manualLlm, tools: transformedTools });
       
-      const upstreamResult = await upstreamAgent.invoke({
+      const manualResult = await manualAgent.invoke({
         messages: [new HumanMessage(serverConfig.testQuery)]
       });
       
-      const upstreamResponse = upstreamResult.messages[upstreamResult.messages.length - 1].content;
-      result.upstreamSuccess = true;
-      console.log(`  ✅ Upstream succeeded: ${String(upstreamResponse).substring(0, 100)}...`);
-    } catch (upstreamError: any) {
-      result.upstreamSuccess = false;
-      result.upstreamError = upstreamError.message;
-      console.log(`  ❌ Upstream failed: ${upstreamError.message}`);
+      const manualResponse = manualResult.messages[manualResult.messages.length - 1].content;
+      result.manualSuccess = true;
+      console.log(`  ✅ Manual succeeded: ${String(manualResponse).substring(0, 100)}...`);
+    } catch (manualError: any) {
+      result.manualSuccess = false;
+      result.manualError = manualError.message;
+      console.log(`  ❌ Manual failed: ${manualError.message}`);
     }
 
-    // Test with ChatGoogleGenerativeAIEx (downstream transformation)
-    console.log(`  🚀 Testing ChatGoogleGenerativeAIEx (downstream transformation)...`);
+    // Test with ChatGoogleGenerativeAIEx (automatic transformation)
+    console.log(`  🚀 Testing automatic transformation (ChatGoogleGenerativeAIEx)...`);
     try {
-      const downstreamLlm = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
-      const downstreamAgent = createReactAgent({ llm: downstreamLlm, tools: mcpTools });
+      const automaticLlm = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
+      const automaticAgent = createReactAgent({ llm: automaticLlm, tools: mcpTools });
       
       console.log(`  💬 Query: "${serverConfig.testQuery}"`);
       
-      const downstreamResult = await downstreamAgent.invoke({
+      const automaticResult = await automaticAgent.invoke({
         messages: [new HumanMessage(serverConfig.testQuery)]
       });
       
-      const response = downstreamResult.messages[downstreamResult.messages.length - 1].content;
-      result.downstreamSuccess = true;
+      const response = automaticResult.messages[automaticResult.messages.length - 1].content;
+      result.automaticSuccess = true;
       result.responsePreview = String(response).substring(0, 150) + "...";
-      result.success = true; // Overall success if downstream version works
+      result.success = true; // Overall success if automatic version works
       
-      console.log(`  ✅ Downstream succeeded: ${result.responsePreview}`);
-    } catch (downstreamError: any) {
-      result.downstreamSuccess = false;
-      result.downstreamError = downstreamError.message;
+      console.log(`  ✅ Automatic succeeded: ${result.responsePreview}`);
+    } catch (automaticError: any) {
+      result.automaticSuccess = false;
+      result.automaticError = automaticError.message;
       result.success = false;
-      console.log(`  ❌ Downstream failed: ${downstreamError.message}`);
+      console.log(`  ❌ Automatic failed: ${automaticError.message}`);
     }
 
     // Show comparison result
     const originalStatus = result.originalSuccess ? "✅" : "❌";
-    const upstreamStatus = result.upstreamSuccess ? "✅" : "❌";
-    const downstreamStatus = result.downstreamSuccess ? "✅" : "❌";
-    console.log(`  🆚 Comparison: Original ${originalStatus} | Upstream ${upstreamStatus} | Downstream ${downstreamStatus}`);
+    const manualStatus = result.manualSuccess ? "✅" : "❌";
+    const automaticStatus = result.automaticSuccess ? "✅" : "❌";
+    console.log(`  🆚 Comparison: Original ${originalStatus} | Manual ${manualStatus} | Automatic ${automaticStatus}`);
     
     // Analyze the results
-    if (!result.originalSuccess && result.upstreamSuccess && result.downstreamSuccess) {
+    if (!result.originalSuccess && result.manualSuccess && result.automaticSuccess) {
       console.log(`  🎯 Schema fix benefit: Both transformation approaches fixed compatibility issues!`);
-    } else if (!result.originalSuccess && result.upstreamSuccess && !result.downstreamSuccess) {
-      console.log(`  🤔 Interesting: Upstream works but downstream doesn't - possible regression`);
-    } else if (!result.originalSuccess && !result.upstreamSuccess && result.downstreamSuccess) {
-      console.log(`  🚀 Downstream approach handles edge cases better than upstream transformation`);
-    } else if (result.originalSuccess && result.upstreamSuccess && result.downstreamSuccess) {
+    } else if (!result.originalSuccess && result.manualSuccess && !result.automaticSuccess) {
+      console.log(`  🤔 Interesting: Manual works but automatic doesn't - possible regression`);
+    } else if (!result.originalSuccess && !result.manualSuccess && result.automaticSuccess) {
+      console.log(`  🚀 Automatic approach handles edge cases better than manual transformation`);
+    } else if (result.originalSuccess && result.manualSuccess && result.automaticSuccess) {
       console.log(`  ✨ Schema fix benefit: No issues, all approaches work (simple schema)`);
-    } else if (!result.originalSuccess && !result.upstreamSuccess && !result.downstreamSuccess) {
+    } else if (!result.originalSuccess && !result.manualSuccess && !result.automaticSuccess) {
       console.log(`  ⚠️  All approaches failed: Likely server/network issue, not schema-related`);
-    } else if (result.originalSuccess && (!result.upstreamSuccess || !result.downstreamSuccess)) {
+    } else if (result.originalSuccess && (!result.manualSuccess || !result.automaticSuccess)) {
       console.log(`  🔴 Regression: Original works but transformations broke something`);
     }
 
@@ -356,45 +356,45 @@ async function testSingleServer(serverConfig: ServerTestConfig): Promise<TestRes
  */
 function printSummaryTable(results: TestResult[]) {
   console.log("\n📊 Test Results Summary");
-  console.log("═".repeat(115));
-  console.log("Server          | Original | Upstream | Downstream | Tools | Schema Fix Benefit     | Notes");
-  console.log("─".repeat(115));
+  console.log("═".repeat(130));
+  console.log("Server          | Original | +transformMcp... | ChatGoogleGen..Ex | Tools | Schema Fix Benefit     | Notes");
+  console.log("─".repeat(130));
 
   for (const result of results) {
     if (result.skipped) {
       const serverName = result.displayName.substring(0, 15).padEnd(15);
       const notes = result.skipReason || "Unknown";
-      console.log(`${serverName} | SKIPPED  | SKIPPED  | SKIPPED    | N/A   | N/A                    | ${notes}`);
+      console.log(`${serverName} | SKIPPED  | SKIPPED          | SKIPPED           | N/A   | N/A                    | ${notes}`);
       continue;
     }
 
     const serverName = result.displayName.substring(0, 15).padEnd(15);
     const originalStatus = result.originalSuccess ? "✅ PASS" : "❌ FAIL";
-    const upstreamStatus = result.upstreamSuccess ? "✅ PASS" : "❌ FAIL";
-    const downstreamStatus = result.downstreamSuccess ? "✅ PASS" : "❌ FAIL";
+    const manualStatus = result.manualSuccess ? "✅ PASS" : "❌ FAIL";
+    const automaticStatus = result.automaticSuccess ? "✅ PASS" : "❌ FAIL";
     const tools = result.toolsFound.toString().padEnd(5);
     
     let benefit = "Unknown";
-    if (!result.originalSuccess && result.upstreamSuccess && result.downstreamSuccess) {
+    if (!result.originalSuccess && result.manualSuccess && result.automaticSuccess) {
       benefit = "🎯 Both fixes work";
-    } else if (!result.originalSuccess && result.upstreamSuccess && !result.downstreamSuccess) {
-      benefit = "🔧 Only upstream works";
-    } else if (!result.originalSuccess && !result.upstreamSuccess && result.downstreamSuccess) {
-      benefit = "🚀 Only downstream works";
-    } else if (result.originalSuccess && result.upstreamSuccess && result.downstreamSuccess) {
+    } else if (!result.originalSuccess && result.manualSuccess && !result.automaticSuccess) {
+      benefit = "🔧 Only manual works";
+    } else if (!result.originalSuccess && !result.manualSuccess && result.automaticSuccess) {
+      benefit = "🚀 Only automatic works";
+    } else if (result.originalSuccess && result.manualSuccess && result.automaticSuccess) {
       benefit = "✨ All work";
-    } else if (!result.originalSuccess && !result.upstreamSuccess && !result.downstreamSuccess) {
+    } else if (!result.originalSuccess && !result.manualSuccess && !result.automaticSuccess) {
       benefit = "⚠️  All failed";
-    } else if (result.originalSuccess && (!result.upstreamSuccess || !result.downstreamSuccess)) {
+    } else if (result.originalSuccess && (!result.manualSuccess || !result.automaticSuccess)) {
       benefit = "🔴 Regressions";
     }
     
-    const notes = result.downstreamSuccess ? "Working properly" : 
-                  result.downstreamError?.substring(0, 30) + "..." || "Unknown error";
+    const notes = result.automaticSuccess ? "Working properly" : 
+                  result.automaticError?.substring(0, 30) + "..." || "Unknown error";
     
-    console.log(`${serverName} | ${originalStatus.padEnd(8)} | ${upstreamStatus.padEnd(8)} | ${downstreamStatus.padEnd(10)} | ${tools} | ${benefit.padEnd(22)} | ${notes}`);
+    console.log(`${serverName} | ${originalStatus.padEnd(8)} | ${manualStatus.padEnd(16)} | ${automaticStatus.padEnd(17)} | ${tools} | ${benefit.padEnd(22)} | ${notes}`);
   }
-  console.log("═".repeat(115));
+  console.log("═".repeat(130));
 }
 
 /**
@@ -438,56 +438,56 @@ async function runIndividualServerTests() {
   const totalTests = results.length;
   const availableTests = results.filter(r => !r.skipped).length;
   const originalPassedTests = results.filter(r => !r.skipped && r.originalSuccess).length;
-  const upstreamPassedTests = results.filter(r => !r.skipped && r.upstreamSuccess).length;
-  const downstreamPassedTests = results.filter(r => !r.skipped && r.downstreamSuccess).length;
-  const bothFixesWork = results.filter(r => !r.skipped && !r.originalSuccess && r.upstreamSuccess && r.downstreamSuccess).length;
-  const onlyUpstreamWorks = results.filter(r => !r.skipped && !r.originalSuccess && r.upstreamSuccess && !r.downstreamSuccess).length;
-  const onlyDownstreamWorks = results.filter(r => !r.skipped && !r.originalSuccess && !r.upstreamSuccess && r.downstreamSuccess).length;
+  const manualPassedTests = results.filter(r => !r.skipped && r.manualSuccess).length;
+  const automaticPassedTests = results.filter(r => !r.skipped && r.automaticSuccess).length;
+  const bothFixesWork = results.filter(r => !r.skipped && !r.originalSuccess && r.manualSuccess && r.automaticSuccess).length;
+  const onlyManualWorks = results.filter(r => !r.skipped && !r.originalSuccess && r.manualSuccess && !r.automaticSuccess).length;
+  const onlyAutomaticWorks = results.filter(r => !r.skipped && !r.originalSuccess && !r.manualSuccess && r.automaticSuccess).length;
   const skippedTests = results.filter(r => r.skipped).length;
-  const allFailedTests = results.filter(r => !r.skipped && !r.originalSuccess && !r.upstreamSuccess && !r.downstreamSuccess).length;
+  const allFailedTests = results.filter(r => !r.skipped && !r.originalSuccess && !r.manualSuccess && !r.automaticSuccess).length;
 
   console.log(`\n📈 Statistics:`);
   console.log(`   Total Servers: ${totalTests}`);
   console.log(`   Available for Testing: ${availableTests}`);
   console.log(`   ✅ Original ChatGoogleGenerativeAI: ${originalPassedTests}/${availableTests} (${((originalPassedTests/availableTests)*100).toFixed(1)}%)`);
-  console.log(`   ✅ Upstream Transformation: ${upstreamPassedTests}/${availableTests} (${((upstreamPassedTests/availableTests)*100).toFixed(1)}%)`);
-  console.log(`   ✅ Downstream Transformation (ChatGoogleGenerativeAIEx): ${downstreamPassedTests}/${availableTests} (${((downstreamPassedTests/availableTests)*100).toFixed(1)}%)`);
+  console.log(`   ✅ Manual Transformation (+transformMcpToolsForGemini): ${manualPassedTests}/${availableTests} (${((manualPassedTests/availableTests)*100).toFixed(1)}%)`);
+  console.log(`   ✅ Automatic Transformation (ChatGoogleGenerativeAIEx): ${automaticPassedTests}/${availableTests} (${((automaticPassedTests/availableTests)*100).toFixed(1)}%)`);
   console.log(`   🎯 Both Transformation Approaches Work: ${bothFixesWork} servers`);
-  console.log(`   🔧 Only Upstream Transformation Works: ${onlyUpstreamWorks} servers`);
-  console.log(`   🚀 Only Downstream Transformation Works: ${onlyDownstreamWorks} servers`);
+  console.log(`   🔧 Only Manual Transformation Works: ${onlyManualWorks} servers`);
+  console.log(`   🚀 Only Automatic Transformation Works: ${onlyAutomaticWorks} servers`);
   console.log(`   ⏸️  Skipped (missing auth): ${skippedTests}`);
   console.log(`   ❌ All Failed: ${allFailedTests}`);
 
-  const totalSchemaFixed = bothFixesWork + onlyUpstreamWorks + onlyDownstreamWorks;
+  const totalSchemaFixed = bothFixesWork + onlyManualWorks + onlyAutomaticWorks;
   if (totalSchemaFixed > 0) {
     console.log(`\n🎉 Success! Schema transformations fixed compatibility issues for ${totalSchemaFixed} servers!`);
     
     if (bothFixesWork > 0) {
       const bothFixServers = results
-        .filter(r => !r.skipped && !r.originalSuccess && r.upstreamSuccess && r.downstreamSuccess)
+        .filter(r => !r.skipped && !r.originalSuccess && r.manualSuccess && r.automaticSuccess)
         .map(r => r.displayName);
       console.log(`   🎯 Both approaches work: ${bothFixServers.join(", ")}`);
     }
     
-    if (onlyUpstreamWorks > 0) {
-      const upstreamOnlyServers = results
-        .filter(r => !r.skipped && !r.originalSuccess && r.upstreamSuccess && !r.downstreamSuccess)
+    if (onlyManualWorks > 0) {
+      const manualOnlyServers = results
+        .filter(r => !r.skipped && !r.originalSuccess && r.manualSuccess && !r.automaticSuccess)
         .map(r => r.displayName);
-      console.log(`   🔧 Only upstream works: ${upstreamOnlyServers.join(", ")}`);
+      console.log(`   🔧 Only manual works: ${manualOnlyServers.join(", ")}`);
     }
     
-    if (onlyDownstreamWorks > 0) {
-      const downstreamOnlyServers = results
-        .filter(r => !r.skipped && !r.originalSuccess && !r.upstreamSuccess && r.downstreamSuccess)
+    if (onlyAutomaticWorks > 0) {
+      const automaticOnlyServers = results
+        .filter(r => !r.skipped && !r.originalSuccess && !r.manualSuccess && r.automaticSuccess)
         .map(r => r.displayName);
-      console.log(`   🚀 Only downstream works: ${downstreamOnlyServers.join(", ")}`);
+      console.log(`   🚀 Only automatic works: ${automaticOnlyServers.join(", ")}`);
     }
   }
 
   if (originalPassedTests > 0) {
     console.log(`\n✨ Note: ${originalPassedTests} server(s) work with all implementations`);
     const simpleServers = results
-      .filter(r => !r.skipped && r.originalSuccess && r.downstreamSuccess)
+      .filter(r => !r.skipped && r.originalSuccess && r.automaticSuccess)
       .map(r => r.displayName);
     if (simpleServers.length > 0) {
       console.log(`   Simple schema servers: ${simpleServers.join(", ")}`);
@@ -511,9 +511,9 @@ async function runIndividualServerTests() {
   if (totalSchemaFixed > 0) {
     console.log(`🎆 Result: Successfully demonstrated schema transformation benefits with ${totalSchemaFixed} complex MCP servers!`);
     if (bothFixesWork > 0) {
-      console.log(`💯 Perfect: Both upstream and downstream approaches work equivalently for ${bothFixesWork} servers`);
+      console.log(`💯 Perfect: Both manual and automatic approaches work equivalently for ${bothFixesWork} servers`);
     }
-    if (onlyUpstreamWorks > 0 || onlyDownstreamWorks > 0) {
+    if (onlyManualWorks > 0 || onlyAutomaticWorks > 0) {
       console.log(`🔍 Interesting: Some edge cases where approaches differ - worth investigating`);
     }
   }
