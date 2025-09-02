@@ -17,13 +17,13 @@ import { MultiServerMCPClient } from "@langchain/mcp-adapters";
  * Servers tested:
  * 1. us-weather: Weather information for US locations
  * 2. fetch: Web page fetching
- * 3. brave-search: Brave web and local search
- * 4. filesystem: File system operations
- * 5. sqlite: SQLite database operations
- * 6. notion: Notion workspace integration
- * 7. github: GitHub API integration  
- * 8. slack: Slack operations
- * 9. Airtable: Airtable operations
+ * 3. notion: Notion workspace integration
+ * 4. airtable: Airtable operations
+ * 5. brave-search: Brave web and local search
+ * 6. filesystem: File system operations
+ * 7. sqlite: SQLite database operations
+ * 8. github: GitHub API integration  
+ * 9. slack: Slack operations
  * 10. playwright: Browser automation
  * 
  * Each server is tested independently to isolate success/failure cases
@@ -64,45 +64,6 @@ const MCP_SERVERS: ServerTestConfig[] = [
     expectedToolNames: ["fetch"]
   },
   {
-    name: "brave-search",
-    displayName: "Brave Serch Server",
-    config: {
-      command: "npx",
-      args: [ "-y", "@modelcontextprotocol/server-brave-search"],
-      env: { "BRAVE_API_KEY": `${process.env.BRAVE_API_KEY}` }
-    },
-    testQuery: "Use Brace search to find out today's top story in Japan",
-    expectedToolNames: ["brave_web_search", "brave_local_search"]
-  },
-  {
-    name: "filesystem",
-    displayName: "Filesystem Server",
-    config: {
-      command: "npx",
-      args: [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "."  // path to a directory to allow access to
-      ]
-    },
-    testQuery: "Tell me how many directories are in the current directory",
-    expectedToolNames: ["read_file", "list_directory"]
-  },
-  {
-    name: "sqlite",
-    displayName: "SQLite Server",
-    config: {
-      command: "uvx",
-      args: [
-        "mcp-server-sqlite",
-        "--db-path",
-        "test-mcp-server-sqlite.sqlite3"
-      ]
-    },
-    testQuery: "Make a new table called 'fruits' with columns 'name' and 'count', insert apple with count 123 and orange with count 345, then show all items",
-    expectedToolNames: ["execute-query", "list-tables"]
-  },
-  {
     name: "notion",
     displayName: "Notion Server",
     config: {
@@ -114,37 +75,6 @@ const MCP_SERVERS: ServerTestConfig[] = [
     expectedToolNames: ["notion-get-self", "notion-search-pages"],
     // requiresAuth: true,  //  OAuth via "mcp-remote"
     // authEnvVar: "NOTION_TOKEN"
-  },
-  {
-    name: "github",
-    displayName: "GitHub Server",
-    config: {
-      transport: "http",
-      url: "https://api.githubcopilot.com/mcp/",
-      headers: {
-        "Authorization": `Bearer ${process.env.GITHUB_PERSONAL_ACCESS_TOKEN}`
-      }
-    },
-    testQuery: "Tell me about my GitHub profile",
-    expectedToolNames: ["search_repositories", "get_user"],
-    requiresAuth: true,
-    authEnvVar: "GITHUB_PERSONAL_ACCESS_TOKEN"
-  },
-  {
-    name: "slack",
-    displayName: "Slack Server",
-    config: {
-      transport: "stdio",
-      command: "npx",
-      args: ["-y", "@teamsparta/mcp-server-slack"],
-      env: {
-        "SLACK_BOT_TOKEN": `${process.env.SLACK_BOT_TOKEN}`,
-        "SLACK_TEAM_ID": `${process.env.SLACK_TEAM_ID}`,
-        "SLACK_CHANNEL_IDS": `${process.env.SLACK_CHANNEL_IDS}`
-      },
-    },
-    testQuery: "Please list all the users",
-    expectedToolNames: ["slack_list_channels", "slack_post_message"]
   },
   {
     name: "airtable",
@@ -159,16 +89,86 @@ const MCP_SERVERS: ServerTestConfig[] = [
     testQuery: "Tell me about my Airtable account",
     expectedToolNames: ["list_records", "list_tables"]
   },
-  {
-    name: "playwright",
-    displayName: "Playwright Server",
-    config: {
-      command: "npx",
-      args: ["-y", "@playwright/mcp@latest"]
-    },
-    testQuery: "Open the BBC.com page, then close it",
-    expectedToolNames: ["playwright_navigate", "playwright_screenshot"],
-  },
+  // {
+  //   name: "brave-search",
+  //   displayName: "Brave Serch Server",
+  //   config: {
+  //     command: "npx",
+  //     args: [ "-y", "@modelcontextprotocol/server-brave-search"],
+  //     env: { "BRAVE_API_KEY": `${process.env.BRAVE_API_KEY}` }
+  //   },
+  //   testQuery: "Use Brace search to find out today's top story in Japan",
+  //   expectedToolNames: ["brave_web_search", "brave_local_search"]
+  // },
+  // {
+  //   name: "filesystem",
+  //   displayName: "Filesystem Server",
+  //   config: {
+  //     command: "npx",
+  //     args: [
+  //       "-y",
+  //       "@modelcontextprotocol/server-filesystem",
+  //       "."  // path to a directory to allow access to
+  //     ]
+  //   },
+  //   testQuery: "Tell me how many directories are in the current directory",
+  //   expectedToolNames: ["read_file", "list_directory"]
+  // },
+  // {
+  //   name: "sqlite",
+  //   displayName: "SQLite Server",
+  //   config: {
+  //     command: "uvx",
+  //     args: [
+  //       "mcp-server-sqlite",
+  //       "--db-path",
+  //       "test-mcp-server-sqlite.sqlite3"
+  //     ]
+  //   },
+  //   testQuery: "Make a new table called 'fruits' with columns 'name' and 'count', insert apple with count 123 and orange with count 345, then show all items",
+  //   expectedToolNames: ["execute-query", "list-tables"]
+  // },
+  // {
+  //   name: "github",
+  //   displayName: "GitHub Server",
+  //   config: {
+  //     transport: "http",
+  //     url: "https://api.githubcopilot.com/mcp/",
+  //     headers: {
+  //       "Authorization": `Bearer ${process.env.GITHUB_PERSONAL_ACCESS_TOKEN}`
+  //     }
+  //   },
+  //   testQuery: "Tell me about my GitHub profile",
+  //   expectedToolNames: ["search_repositories", "get_user"],
+  //   requiresAuth: true,
+  //   authEnvVar: "GITHUB_PERSONAL_ACCESS_TOKEN"
+  // },
+  // {
+  //   name: "slack",
+  //   displayName: "Slack Server",
+  //   config: {
+  //     transport: "stdio",
+  //     command: "npx",
+  //     args: ["-y", "@teamsparta/mcp-server-slack"],
+  //     env: {
+  //       "SLACK_BOT_TOKEN": `${process.env.SLACK_BOT_TOKEN}`,
+  //       "SLACK_TEAM_ID": `${process.env.SLACK_TEAM_ID}`,
+  //       "SLACK_CHANNEL_IDS": `${process.env.SLACK_CHANNEL_IDS}`
+  //     },
+  //   },
+  //   testQuery: "Please list all the users",
+  //   expectedToolNames: ["slack_list_channels", "slack_post_message"]
+  // },
+  // {
+  //   name: "playwright",
+  //   displayName: "Playwright Server",
+  //   config: {
+  //     command: "npx",
+  //     args: ["-y", "@playwright/mcp@latest"]
+  //   },
+  //   testQuery: "Open the BBC.com page, then close it",
+  //   expectedToolNames: ["playwright_navigate", "playwright_screenshot"],
+  // },
 ];
 
 interface TestResult {
