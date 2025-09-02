@@ -23,6 +23,20 @@ const llm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
 
 **That's it!** Your MCP tool schema errors are gone, and simple servers remain functional even when complex ones are present. 🎉
 
+## 📋 Table of Contents
+
+Below we'll explain what and how this library works in detail:
+
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)  
+- [The Problem You're Probably Having](#the-problem-youre-probably-having)
+- [Complete Usage Example](#complete-usage-example)
+- [Features](#features)
+- [Why Not Upstream Schema Fixes?](#why-not-upstream-schema-fixes)
+- [Google's Official Fix vs. This Library](#googles-official-fix-vs-this-library)
+- [How It Works](#how-it-works)
+- [API Reference](#api-reference)
+- [Contributing](#contributing)
 
 ## Prerequisites
 
@@ -85,11 +99,11 @@ import { HumanMessage } from '@langchain/core/messages';
 // Set up MCP client with complex tools (like Airtable) that generates "400 error"
 const client = new MultiServerMCPClient({
   mcpServers: {
-    notion: {
+    airtable: {
       transport: "stdio",
       command: "npx",
       args: ["-y", "airtable-mcp-server"],
-      env: { "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}` }}
+      env: { "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}` }
     }
   }
 });
@@ -123,8 +137,8 @@ await client.close();
 - All model parameters and configurations
 - Full LangChain.js integration
 
-### ✅ **Intelligent Schema Transformation**
-- **Smart conversion** of `allOf`/`anyOf`/`oneOf` to equivalent object structures
+### ✅ **Comprehensive Schema Transformation**
+- **Systematic conversion** of `allOf`/`anyOf`/`oneOf` to equivalent object structures
 - **Reference resolution** - handles `$ref` and `$defs` by flattening definitions
 - **Type normalization** - converts type arrays `["string", "null"]` to `nullable` properties
 - **Property validation** - filters `required` fields that don't exist in `properties`
@@ -149,7 +163,7 @@ MCP Tools → LangChain → convertToOpenAIFunction() → normalizeGeminiToolsPa
 
 ### Real Evidence from Testing
 
-A comprehensive testing proves upstream fixes are unreliable:
+Comprehensive testing proves upstream fixes are unreliable:
 
 - **Notion Case**: Upstream transformation **breaks working schemas** (✅ → ❌)
 - **Airtable Case**: Upstream transformation **can't handle complex edge cases** (❌ → ❌)
@@ -182,6 +196,12 @@ Google has officially addressed this schema compatibility issue in their new **G
 > 🔬 **Technical Details**: See our comprehensive [**Google Official Fix Compatibility Analysis**](./GOOGLE_OFFICIAL_FIX_COMPATIBILITY.md) explaining why LangChain.js can't directly use Google's official fix.
 
 ### Migration Path
+
+**Choose your integration approach:**
+
+#### Option A: Using Google's New SDK Directly
+If you're starting fresh or can migrate away from LangChain.js, use Google's official solution:
+
 ```typescript
 // If you use Google's SDK directly:
 import { GoogleGenAI, mcpToTool } from "@google/genai";
@@ -199,6 +219,9 @@ const response = await ai.models.generateContent({
   },
 });
 ```
+
+#### Option B: Using LangChain.js (Current Ecosystem)
+If you need LangChain.js integration, use this library as the definitive solution:
 
 ```typescript
 // If you use LangChain.js:
