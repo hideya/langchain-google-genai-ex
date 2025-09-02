@@ -1,6 +1,5 @@
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatGoogleGenerativeAI, GoogleGenerativeAIChatCallOptions } from "@langchain/google-genai";
 import { transformMcpToolForGemini } from "../schema-adapter/gemini.js";
-import { RunnableConfig } from "@langchain/core/runnables";
 import { BaseMessage } from "@langchain/core/messages";
 import { ChatResult } from "@langchain/core/outputs";
 import { StructuredTool } from "@langchain/core/tools";
@@ -29,14 +28,14 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   /**
    * Override the _generate method to intercept and transform tools before sending to Gemini
    */
-  override async _generate(
+  async _generate(
     messages: BaseMessage[],
-    options?: CallOptions,
+    options?: GoogleGenerativeAIChatCallOptions,
     runManager?: any
   ): Promise<ChatResult> {
     // If no tools are provided, use the parent implementation as-is
     if (!options?.tools || !Array.isArray(options.tools) || options.tools.length === 0) {
-      return super._generate(messages, options, runManager);
+      return super._generate(messages, options as any, runManager);
     }
 
     // Transform the tools to be Gemini-compatible
@@ -208,9 +207,21 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   }
 
   /**
-   * Override bindTools specifically for tool binding
+   * Public method override: Binds tools with automatic transformation.
+   * 
+   * This is a convenience method specifically for binding tools to the model.
+   * All tools are automatically transformed to be Gemini-compatible.
+   * 
+   * @param tools - Array of tools to bind (MCP tools, StructuredTools, etc.)
+   * @param kwargs - Additional configuration options
+   * @returns New ChatGoogleGenerativeAIEx instance with transformed tools
+   * 
+   * @example
+   * ```typescript
+   * const llmWithTools = llm.bindTools(mcpTools, { temperature: 0 });
+   * ```
    */
-  bindTools(tools: any[], kwargs?: Partial<RunnableConfig>): ChatGoogleGenerativeAIEx {
+  override bindTools(tools: any[], kwargs?: Partial<GoogleGenerativeAIChatCallOptions>): ChatGoogleGenerativeAIEx {
     const transformedTools = this.transformTools(tools);
     return super.bindTools(transformedTools, kwargs) as ChatGoogleGenerativeAIEx;
   }
