@@ -2,7 +2,7 @@
 
 ### Simple library to fix Gemini API schema issues with MCP tools / LangChain.js
 
-This library provides an extended version of `ChatGoogleGenerativeAI` that **fixes Gemini schema compatibility issues** when using MCP servers with complex schemas (like Notion, Airtable, etc.). It prevents cascading failures where one complex server breaks the entire MCP integration when using `MultiServerMCPClient()`.
+This library provides an extended version of `ChatGoogleGenerativeAI` that **fixes Gemini schema compatibility issues** when using MCP servers with complex schemas (like Airtable). It prevents cascading failures where one complex server breaks the entire MCP integration when using `MultiServerMCPClient()`.
 
 The schema error usually looks like:  
 `[GoogleGenerativeAI Error]: ... [400 Bad Request] Invalid JSON payload received.`
@@ -14,7 +14,7 @@ The schema error usually looks like:
 ```typescript
 import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
 
-// ❌ This fails when Notion (or other complex schema servers) are included
+// ❌ This fails when Airtable (or other complex schema servers) are included
 const llm = new ChatGoogleGenerativeAI({ model: "google-2.5-flash" });
 
 // ✅ This works with complex MCP servers and prevents cascading failures 
@@ -23,33 +23,6 @@ const llm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
 
 **That's it!** Your MCP tool schema errors are gone, and simple servers remain functional even when complex ones are present. 🎉
 
-## Validated Solution: Tested Against 10 MCP Servers
-
-Our comprehensive testing against **10 different MCP servers** proves that the downstream transformation approach works reliably where upstream fixes fail:
-
-| **MCP Server** | **Original** | **Upstream Fix** | **ChatGoogleGenerativeAIEx** | **Benefit** |
-|----------------|--------------|------------------|------------------------------|-------------|
-| **Fetch Server** | ❌ FAIL | ✅ PASS | ✅ PASS | Both fixes work |
-| **Notion Server** | ✅ PASS | ❌ FAIL | ✅ PASS | 🔴 Upstream breaks working schemas |
-| **Airtable Server** | ❌ FAIL | ❌ FAIL | ✅ PASS | 🚀 Only downstream works |
-| **Filesystem Server** | ✅ PASS | ✅ PASS | ✅ PASS | All work (simple schema) |
-| **SQLite Server** | ✅ PASS | ✅ PASS | ✅ PASS | All work (simple schema) |
-| **US Weather Server** | ✅ PASS | ✅ PASS | ✅ PASS | All work (simple schema) |
-| **Brave Search Server** | ✅ PASS | ✅ PASS | ✅ PASS | All work (simple schema) |
-| **GitHub Server** | ✅ PASS | ✅ PASS | ✅ PASS | All work (simple schema) |
-| **Slack Server** | ✅ PASS | ✅ PASS | ✅ PASS | All work (simple schema) |
-| **Playwright Server** | ✅ PASS | ✅ PASS | ✅ PASS | All work (simple schema) |
-
-**Key Finding**: Upstream schema fixes are **unreliable and can break working schemas**. Our downstream approach works consistently across all complexity levels.
-
-> 📊 **Test Evidence**: See our [individual server test results](./src/test/individual-servers.test.ts) for complete validation details.
-
-## Two Approaches to Schema Transformation
-
-**Upstream Approach**: Transform MCP tool schemas *before* they enter LangChain's processing pipeline  
-**Downstream Approach**: Transform tool schemas *after* LangChain's internal processing, right before the Gemini API call
-
-Our testing proves the downstream approach is more reliable because it sees the final payload and applies exactly the transformations needed.
 
 ## Prerequisites
 
@@ -59,7 +32,7 @@ Before installing, make sure you have:
 - **Google API Key** - Get yours at [Google AI Studio](https://ai.google.dev/gemini-api/docs/api-key)
 - **LangChain.js** - This package works with [`@langchain/core`](https://www.npmjs.com/package/@langchain/core)
   and [`@langchain/mcp-adapters`](https://www.npmjs.com/package/@langchain/mcp-adapters)
-- **MCP Servers** - Access to the MCP servers you want to use, such as Notion and GitHub.
+- **MCP Servers** - Access to the MCP servers you want to use
 
 **Note on Dependencies:** This package uses specific versions of `@langchain/google-genai` (~0.2.16) and `@google/generative-ai` (~0.21.0) to ensure schema transformation reliability.
 
@@ -79,16 +52,17 @@ npm install @langchain/langgraph
 
 ## The Problem You're Probably Having
 
-When using MCP servers with complex schemas (like Notion, Airtable, etc.) alongside Google Gemini via LangChain.js, you encounter a **cascading failure** where one complex server breaks the entire MCP integration:
+When using MCP servers with complex schemas alongside Google Gemini via LangChain.js, you sometimes encounter a "400 Bad Request" error.
 
 ```
 [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent: [400 Bad Request] Invalid JSON payload received. Unknown name "anyOf" at 'tools[0].function_declarations[8].parameters.properties[2]...': Proto field is not repeating, cannot start list.
 ```
 
-**The Real Problem**: This isn't just about individual server compatibility - it's about **ecosystem contamination**. When you configure multiple MCP servers through `MultiServerMCPClient`, servers with complex schemas (like Notion) break the **entire tool collection**, making even simple servers (like filesystem or weather) unusable.
+This typically happens when you configure multiple MCP servers through `MultiServerMCPClient`. 
+Even one server with complex schemas can break the **entire tool collection** with the "400 error", making all the other servers unusable.  This is because of Gemini's tighter JSON schema requirements for function calling.
 
-**What breaks Gemini's validation:**
-- **Complex schema servers**: Notion, Airtable generate `anyOf`, `$ref`, `allOf` constructs that violate Gemini's requirements
+[**What breaks Gemini's validation:**](https://ai.google.dev/api/caching#Schema)
+- **Complex schema servers**: Servers  `anyOf`, `$ref`, `allOf` constructs that violate Gemini's requirements
 - **Schema composition**: `allOf`, `anyOf`, `oneOf` keywords in tool definitions
 - **Reference systems**: `$ref` pointers and `$defs` definitions  
 - **Type flexibility**: Arrays of types like `["string", "null"]`
@@ -99,12 +73,12 @@ When using MCP servers with complex schemas (like Notion, Airtable, etc.) alongs
 // This configuration will fail entirely:
 const client = new MultiServerMCPClient({
   mcpServers: {
-    filesystem: { /* works individually */ },
-    github: { /* works individually */ },
-    notion: { /* complex schema - breaks everything */ }  // ← This breaks ALL servers
+    simple1: { /* works individually */ },
+    simple2: { /* works individually */ },
+    complex: { /* complex schema - breaks everything */ }  // ← This breaks ALL servers
   }
 });
-// Result: Even weather and filesystem calls fail!
+// Result: Even simple1 and simple2 calls fail!
 ```
 
 **This library handles all these schema incompatibilities through downstream transformation, converting complex MCP tool schemas into Gemini-friendly formats so you can focus on building instead of debugging schema errors.**
@@ -117,13 +91,14 @@ import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { MultiServerMCPClient } from '@langchain/mcp-adapters';
 import { HumanMessage } from '@langchain/core/messages';
 
-// Set up MCP client with complex tools (like Notion)
+// Set up MCP client with complex tools (like Airtable) that generates "400 error"
 const client = new MultiServerMCPClient({
   mcpServers: {
     notion: {
       transport: "stdio",
       command: "npx",
-      args: ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]
+      args: ["-y", "airtable-mcp-server"],
+      env: { "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}` }}
     }
   }
 });
@@ -141,7 +116,7 @@ const agent = createReactAgent({ llm, tools: mcpTools });
 
 // This works! No more schema errors
 const result = await agent.invoke({
-  messages: [new HumanMessage("Search my Notion workspace for project updates")]
+  messages: [new HumanMessage("Tell me about my Airtable account")]
 });
 
 console.log(result.messages[result.messages.length - 1].content);
@@ -177,13 +152,13 @@ Upstream fixes fail because of LangChain's internal processing:
 Upstream Fix Attempt:
 MCP Tools → transformMcpToolsForGemini() → "Fixed" Tools → LangChain → convertToOpenAIFunction() → Broken Again ❌
 
-Our Downstream Solution:  
+This Downstream Solution:  
 MCP Tools → LangChain → convertToOpenAIFunction() → normalizeGeminiToolsPayload() → Actually Fixed ✅
 ```
 
 ### Real Evidence from Testing
 
-Our comprehensive testing proves upstream fixes are unreliable:
+A comprehensive testing proves upstream fixes are unreliable:
 
 - **Notion Case**: Upstream transformation **breaks working schemas** (✅ → ❌)
 - **Airtable Case**: Upstream transformation **can't handle complex edge cases** (❌ → ❌)
@@ -193,7 +168,7 @@ Our comprehensive testing proves upstream fixes are unreliable:
 
 ### The Architectural Insight
 
-The key insight: LangChain's `convertToOpenAIFunction()` uses `zodToJsonSchema()` which **reintroduces problematic schema features** regardless of upstream transformations. Upstream fixes can't predict what this conversion will produce, but our downstream approach sees the final payload and fixes exactly what's needed.
+The key insight: LangChain's `convertToOpenAIFunction()` uses `zodToJsonSchema()` which seem to **reintroduce problematic schema features** regardless of upstream transformations. Upstream fixes can't predict what this conversion will produce, but our downstream approach sees the final payload and fixes exactly what's needed.
 
 ## Google's Official Fix vs. This Library
 
