@@ -95,7 +95,7 @@ async function testIndividualServerSuccess() {
 
     console.log("\n2. Testing with original ChatGoogleGenerativeAI...");
     const originalLlm = new ChatGoogleGenerativeAI({ 
-      model: "gemini-2.5-flash",
+      model: process.env.LLM_MODEL_TO_TEST,
       apiKey: process.env.GOOGLE_API_KEY
     });
     
@@ -164,7 +164,7 @@ async function testContaminationEffect() {
 
     console.log("\n2. Testing simple weather query with contaminated collection...");
     const originalLlm = new ChatGoogleGenerativeAI({ 
-      model: "gemini-2.5-flash",
+      model: process.env.LLM_MODEL_TO_TEST,
       apiKey: process.env.GOOGLE_API_KEY
     });
     

@@ -111,7 +111,7 @@ async function testUpstreamApproachFailure() {
     // Test with original ChatGoogleGenerativeAI (should fail due to double conversion)
     console.log("\n3. Testing with original ChatGoogleGenerativeAI...");
     const originalLlm = new ChatGoogleGenerativeAI({ 
-      model: "gemini-2.5-flash",
+      model: process.env.LLM_MODEL_TO_TEST,
       apiKey: process.env.GOOGLE_API_KEY
     });
     

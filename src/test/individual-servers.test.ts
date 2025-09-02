@@ -252,7 +252,7 @@ async function testSingleServer(serverConfig: ServerTestConfig): Promise<TestRes
     // Test with original ChatGoogleGenerativeAI first
     console.log(`  🔄 Testing original ChatGoogleGenerativeAI...`);
     try {
-      const originalLlm = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
+      const originalLlm = new ChatGoogleGenerativeAI({ model: process.env.LLM_MODEL_TO_TEST });
       const originalAgent = createReactAgent({ llm: originalLlm, tools: mcpTools });
       
       const originalResult = await originalAgent.invoke({
@@ -273,7 +273,7 @@ async function testSingleServer(serverConfig: ServerTestConfig): Promise<TestRes
     console.log(`  🔧 Testing upstream transformation (transformMcpToolsForGemini)...`);
     try {
       const transformedTools = transformMcpToolsForGemini(mcpTools);
-      const upstreamLlm = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
+      const upstreamLlm = new ChatGoogleGenerativeAI({ model: process.env.LLM_MODEL_TO_TEST });
       const upstreamAgent = createReactAgent({ llm: upstreamLlm, tools: transformedTools });
       
       const upstreamResult = await upstreamAgent.invoke({

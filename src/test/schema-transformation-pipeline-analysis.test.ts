@@ -162,7 +162,7 @@ async function analyzeServerSchemaTransformation(serverConfig: any): Promise<Sch
       
       // 3. See what LangChain sends to Gemini (upstream approach)
       try {
-        const upstreamLlm = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
+        const upstreamLlm = new ChatGoogleGenerativeAI({ model: process.env.LLM_MODEL_TO_TEST });
         const interceptPromise = interceptLangChainAPICall(upstreamLlm);
         
         const upstreamAgent = createReactAgent({ llm: upstreamLlm, tools: transformedTools });

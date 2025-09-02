@@ -248,7 +248,7 @@ async function testMCPIntegration() {
 
     // Test with original ChatGoogleGenerativeAI (should work with simple weather tools)
     console.log("2. Testing with original ChatGoogleGenerativeAI:");
-    const originalLlm = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
+    const originalLlm = new ChatGoogleGenerativeAI({ model: process.env.LLM_MODEL_TO_TEST });
     const originalAgent = createReactAgent({ llm: originalLlm, tools: mcpTools });
     
     const weatherQuery = "What's the weather like in San Francisco?";
@@ -315,7 +315,7 @@ async function testSimpleSchemaHandling() {
 
     // Test with original ChatGoogleGenerativeAI
     console.log("2. Testing original ChatGoogleGenerativeAI with simple schemas:");
-    const originalLlm = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
+    const originalLlm = new ChatGoogleGenerativeAI({ model: process.env.LLM_MODEL_TO_TEST });
     const originalAgent = createReactAgent({ llm: originalLlm, tools: mcpTools });
     
     const simpleQuery = "What's the weather like in San Francisco?";
