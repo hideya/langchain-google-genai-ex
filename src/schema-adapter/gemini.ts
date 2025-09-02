@@ -21,7 +21,7 @@
  *    see: https://ai.google.dev/gemini-api/docs/structured-output
  */
 
-import { JsonSchemaDraft7, TransformResult } from "./schema-adapter-types.js";
+import { JsonSchemaDraft7, TransformResult } from "./types.js";
 
 type JsonSchema = JsonSchemaDraft7;
 interface GeminiCompatibleSchema {
