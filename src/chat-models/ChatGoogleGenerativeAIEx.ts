@@ -26,9 +26,22 @@ import { StructuredTool } from "@langchain/core/tools";
 export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   
   /**
-   * Override the _generate method to intercept and transform tools before sending to Gemini
+   * Internal method override: Intercepts and transforms tools before sending to Gemini.
+   * 
+   * This private method is the core hook point where all LangChain interactions flow through.
+   * By overriding this method, we can automatically transform MCP tool schemas before they
+   * reach the Gemini API, ensuring compatibility without requiring manual intervention.
+   * 
+   * Called by all public methods: invoke(), stream(), batch(), etc.
+   * Users never call this directly - it's an internal LangChain implementation detail.
+   * 
+   * @private
+   * @param messages - Chat messages to process
+   * @param options - Runtime options including tools that need transformation
+   * @param runManager - LangChain callback manager
+   * @returns Promise resolving to chat result with transformed tools applied
    */
-  async _generate(
+  override async _generate(
     messages: BaseMessage[],
     options?: GoogleGenerativeAIChatCallOptions,
     runManager?: any
@@ -189,9 +202,27 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   }
 
   /**
-   * Also override the bind method to ensure tools are transformed when tools are bound
+   * Public method override: Ensures tools are transformed when binding configuration.
+   * 
+   * The bind() method is part of LangChain's public API for creating new model instances
+   * with additional configuration. Since users can bind tools directly via this method,
+   * we need to intercept and transform them here as well.
+   * 
+   * This complements the _generate() override by catching tools bound at configuration
+   * time, ensuring comprehensive coverage of all tool-binding scenarios.
+   * 
+   * @param kwargs - Configuration options to bind, potentially including tools
+   * @returns New ChatGoogleGenerativeAIEx instance with transformed tools
+   * 
+   * @example
+   * ```typescript
+   * const boundLLM = llm.bind({ 
+   *   tools: mcpTools,      // These get auto-transformed
+   *   temperature: 0.5 
+   * });
+   * ```
    */
-  bind(kwargs: Partial<CallOptions>): ChatGoogleGenerativeAIEx {
+  override bind(kwargs: Partial<GoogleGenerativeAIChatCallOptions>): ChatGoogleGenerativeAIEx {
     const boundInstance = super.bind(kwargs) as ChatGoogleGenerativeAIEx;
     
     // If tools were provided in bind, they need transformation too
@@ -224,14 +255,6 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   override bindTools(tools: any[], kwargs?: Partial<GoogleGenerativeAIChatCallOptions>): ChatGoogleGenerativeAIEx {
     const transformedTools = this.transformTools(tools);
     return super.bindTools(transformedTools, kwargs) as ChatGoogleGenerativeAIEx;
-  }
-
-  /**
-   * Static method to transform tools independently (for debugging/testing)
-   */
-  static transformToolsForGemini(tools: any[]): any[] {
-    const instance = new ChatGoogleGenerativeAIEx({});
-    return instance.transformTools(tools);
   }
 
   /**
