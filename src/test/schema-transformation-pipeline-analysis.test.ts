@@ -205,7 +205,7 @@ async function analyzeServerSchemaTransformation(serverConfig: any): Promise<Sch
       // 4a. FIRST: Test ChatGoogleGenerativeAIEx with NO interference whatsoever
       console.log(`  🧪 Testing ChatGoogleGenerativeAIEx (PRISTINE - no interception)...`);
       try {
-        const pristineDownstreamLlm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
+        const pristineDownstreamLlm = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
         const pristineDownstreamAgent = createReactAgent({ llm: pristineDownstreamLlm, tools: [tool] }); // Original tool!
         
         const pristineDownstreamResult = await pristineDownstreamAgent.invoke({
@@ -227,7 +227,7 @@ async function analyzeServerSchemaTransformation(serverConfig: any): Promise<Sch
       // 4b. THEN: See what ChatGoogleGenerativeAIEx sends (for comparison with interception)
       console.log(`  🔬 Testing ChatGoogleGenerativeAIEx (downstream transformation with schema interception)...`);
       try {
-        const downstreamLlm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
+        const downstreamLlm = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
         const downstreamInterceptPromise = interceptLangChainAPICall(downstreamLlm as any);
         
         const downstreamAgent = createReactAgent({ llm: downstreamLlm, tools: [tool] }); // Original tool!

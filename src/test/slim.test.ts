@@ -19,8 +19,8 @@ const client = new MultiServerMCPClient({
 (async () => {
   const mcpTools = await client.getTools();
 
-  // const llm = new ChatGoogleGenerativeAI({model: "google-2.5-flash"});
-  const llm = new ChatGoogleGenerativeAIEx({model: "google-2.5-flash"});
+  // const llm = new ChatGoogleGenerativeAI({model: "gemini-2.5-flash"});
+  const llm = new ChatGoogleGenerativeAIEx({model: "gemini-2.5-flash"});
 
   const agent = createReactAgent({ llm, tools: mcpTools });
 

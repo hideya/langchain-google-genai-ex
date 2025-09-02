@@ -238,7 +238,7 @@ async function testExtendedClassPreventsContamination() {
 
     console.log("\n2. Testing with ChatGoogleGenerativeAIEx...");
     const extendedLlm = new ChatGoogleGenerativeAIEx({ 
-      model: "google-2.5-flash",
+      model: "gemini-2.5-flash",
       apiKey: process.env.GOOGLE_API_KEY
     });
     

@@ -170,7 +170,7 @@ async function testExtendedClassSuccess() {
     // Test with ChatGoogleGenerativeAIEx (no transformation needed)
     console.log("\n2. Testing with ChatGoogleGenerativeAIEx...");
     const extendedLlm = new ChatGoogleGenerativeAIEx({ 
-      model: "google-2.5-flash", // Also test model remapping
+      model: "gemini-2.5-flash", // Also test model remapping
       apiKey: process.env.GOOGLE_API_KEY
     });
     

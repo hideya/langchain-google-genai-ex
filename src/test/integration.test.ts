@@ -190,12 +190,12 @@ async function testBasicFunctionality() {
 
   // Test 1: Model name remapping
   console.log("\n1. Testing model name remapping:");
-  const llmEx = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
-  const llmOriginal = new ChatGoogleGenerativeAI({ model: "google-2.5-flash" });
+  const llmEx = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
+  const llmOriginal = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
   
   console.log(`   Original model: ${llmOriginal.model}`);
   console.log(`   Extended model: ${llmEx.model}`);
-  console.log(`   ✅ Model remapped: google-2.5-flash → ${llmEx.model}\n`);
+  console.log(`   ✅ Model remapped: gemini-2.5-flash → ${llmEx.model}\n`);
 
   // Test 2: Client access
   console.log("2. Testing client access:");
@@ -266,7 +266,7 @@ async function testMCPIntegration() {
 
     // Test with extended ChatGoogleGenerativeAIEx
     console.log("3. Testing with ChatGoogleGenerativeAIEx:");
-    const extendedLlm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
+    const extendedLlm = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
     const extendedAgent = createReactAgent({ llm: extendedLlm, tools: mcpTools });
     
     console.log(`   Query: ${weatherQuery}`);
@@ -333,7 +333,7 @@ async function testSimpleSchemaHandling() {
 
     // Test with extended ChatGoogleGenerativeAIEx
     console.log("3. Testing ChatGoogleGenerativeAIEx with simple schemas:");
-    const extendedLlm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
+    const extendedLlm = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
     const extendedAgent = createReactAgent({ llm: extendedLlm, tools: mcpTools });
     
     console.log(`   Query: ${simpleQuery}`);
@@ -405,7 +405,7 @@ async function testComplexSchemaHandling() {
 
     // Test with the extended class
     console.log("\n2. Testing extended class with all available tools:");
-    const extendedLlm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
+    const extendedLlm = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
     const agent = createReactAgent({ llm: extendedLlm, tools: mcpTools });
 
     // const testQuery = "Are there any weather alerts in California?";

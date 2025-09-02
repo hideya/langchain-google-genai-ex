@@ -15,10 +15,10 @@ The schema error usually looks like:
 import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
 
 // ❌ This fails when Airtable (or other complex schema servers) are included
-const llm = new ChatGoogleGenerativeAI({ model: "google-2.5-flash" });
+const llm = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
 
 // ✅ This works with complex MCP servers and prevents cascading failures 
-const llm = new ChatGoogleGenerativeAIEx({ model: "google-2.5-flash" });
+const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
 ```
 
 **That's it!** Your MCP tool schema errors are gone, and simple servers remain functional even when complex ones are present. 🎉
@@ -112,7 +112,7 @@ const mcpTools = await client.getTools();
 
 // Use the enhanced ChatGoogleGenerativeAI
 const llm = new ChatGoogleGenerativeAIEx({ 
-  model: "google-2.5-flash",
+  model: "gemini-2.5-flash",
   apiKey: process.env.GOOGLE_API_KEY 
 });
 
