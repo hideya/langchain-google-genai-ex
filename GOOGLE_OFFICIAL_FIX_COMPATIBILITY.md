@@ -6,7 +6,14 @@
 
 Google has officially solved the Gemini API schema compatibility issues with MCP tools in their new **Google GenAI SDK** (`@google/genai`) through the `mcpToTool()` function. However, LangChain.js users cannot benefit from this fix due to fundamental architectural differences between the two systems. 
 
-**Additionally, our research reveals that even manual schema transformations are unreliable** due to LangChain's internal processing pipeline. This document explains both the technical reasons behind Google's integration limitations and why bridge solutions like `@hideya/langchain-google-genai-ex` remain the most reliable approach.
+**Additionally, our research reveals that even upstream schema transformations are unreliable** due to LangChain's internal processing pipeline. This document explains both the technical reasons behind Google's integration limitations and why bridge solutions like `@hideya/langchain-google-genai-ex` remain the most reliable approach.
+
+## Two Approaches to Schema Transformation
+
+**Upstream Approach**: Transform MCP tool schemas *before* they enter LangChain's processing pipeline (what Google's solution represents)  
+**Downstream Approach**: Transform tool schemas *after* LangChain's internal processing, right before the Gemini API call (our bridge solution)
+
+Our testing proves the downstream approach is more reliable in the LangChain.js ecosystem due to architectural constraints.
 
 ## Background: The Schema Compatibility Problem
 
@@ -40,14 +47,14 @@ const response = await ai.models.generateContent({
   model: "gemini-2.5-flash",
   contents: "What is the weather in London?",
   config: {
-    tools: [mcpToTool(client)], // ← Automatic schema transformation
+    tools: [mcpToTool(client)], // ← Upstream schema transformation
   },
 });
 ```
 
 **Key Features:**
 - ✅ **Built-in MCP support** with `mcpToTool()` function
-- ✅ **Automatic schema transformation** handling complex JSON schemas
+- ✅ **Upstream schema transformation** handling complex JSON schemas
 - ✅ **Active development** with [latest features](https://ai.google.dev/gemini-api/docs/libraries)
 - ✅ **Official Google solution** with [comprehensive documentation](https://googleapis.github.io/js-genai/)
 
@@ -114,40 +121,40 @@ MCP Tools → @langchain/mcp-adapters → StructuredTool → invocationParams() 
 - [LangChain MCP Adapters](https://www.npmjs.com/package/@langchain/mcp-adapters)
 - [ChatGoogleGenerativeAI Tool Calling](https://js.langchain.com/docs/integrations/chat/google_generativeai/)
 
-## Evidence: Why Manual Fixes Don't Work Either
+## Evidence: Why Upstream Fixes Don't Work Either
 
 ### Real-World Testing Results
 
-Our [comprehensive testing against 10 MCP servers](../src/test/individual-servers.test.ts) reveals that manual schema transformation approaches are **unreliably fragile**:
+Our [comprehensive testing against 10 MCP servers](../src/test/individual-servers.test.ts) reveals that upstream schema transformation approaches are **unreliably fragile**:
 
-| **MCP Server** | **Google's Approach** | **Manual LangChain Fix** | **Our Automatic Fix** | **Issue** |
-|----------------|----------------------|---------------------------|------------------------|-----------|
-| **Notion** | N/A (No LangChain integration) | ❌ **BREAKS WORKING SCHEMA** | ✅ WORKS | Manual transformation harmful |
-| **Airtable** | N/A (No LangChain integration) | ❌ **INSUFFICIENT** | ✅ WORKS | Manual can't handle edge cases |
+| **MCP Server** | **Google's Approach** | **Upstream LangChain Fix** | **Our Downstream Fix** | **Issue** |
+|----------------|----------------------|---------------------------|-------------------------|-----------|
+| **Notion** | N/A (No LangChain integration) | ❌ **BREAKS WORKING SCHEMA** | ✅ WORKS | Upstream transformation harmful |
+| **Airtable** | N/A (No LangChain integration) | ❌ **INSUFFICIENT** | ✅ WORKS | Upstream can't handle edge cases |
 | **Fetch** | N/A (No LangChain integration) | ✅ Works for simple cases | ✅ WORKS | Simple cases work |
 
-**Key Finding**: Even if Google's `mcpToTool()` could somehow be integrated with LangChain.js, the manual transformation pattern it represents would **still fail** in the LangChain.js ecosystem due to the double conversion problem.
+**Key Finding**: Even if Google's `mcpToTool()` could somehow be integrated with LangChain.js, the upstream transformation pattern it represents would **still fail** in the LangChain.js ecosystem due to the double conversion problem.
 
 ### The Double Conversion Problem
 
-The fundamental issue that affects both Google's approach and manual fixes in LangChain.js:
+The fundamental issue that affects both Google's approach and upstream fixes in LangChain.js:
 
 ```typescript
-// Any manual transformation pattern (including Google's approach):
-MCP Tools → Manual Transform → "Fixed" Tools → LangChain → convertToOpenAIFunction() → zodToJsonSchema() → Broken Again
+// Any upstream transformation pattern (including Google's approach):
+MCP Tools → Upstream Transform → "Fixed" Tools → LangChain → convertToOpenAIFunction() → zodToJsonSchema() → Broken Again
 
 // Evidence from testing:
-// - Notion: Manual fix breaks working schema (✅ → ❌)  
-// - Airtable: Manual fix insufficient for complex cases (❌ → ❌)
+// - Notion: Upstream fix breaks working schema (✅ → ❌)  
+// - Airtable: Upstream fix insufficient for complex cases (❌ → ❌)
 ```
 
-**Technical Explanation**: LangChain's `convertToOpenAIFunction()` uses `zodToJsonSchema()` which **reintroduces problematic schema features** regardless of upstream transformations. This affects any manual transformation approach, including Google's `mcpToTool()`.
+**Technical Explanation**: LangChain's `convertToOpenAIFunction()` uses `zodToJsonSchema()` which **reintroduces problematic schema features** regardless of upstream transformations. This affects any upstream transformation approach, including Google's `mcpToTool()`.
 
 ## Architectural Mismatch Analysis
 
 ### Different Schema Processing Paths
 
-| **Aspect** | **Google's Solution** | **LangChain.js Current** | **Manual LangChain Fix** |
+| **Aspect** | **Google's Solution** | **LangChain.js Current** | **Upstream LangChain Fix** |
 |------------|----------------------|--------------------------|---------------------------|
 | **MCP Integration** | Direct with `mcpToTool()` | Via `@langchain/mcp-adapters` | Via `@langchain/mcp-adapters` |
 | **Schema Transformation** | In `mcpToTool()` function | In `invocationParams()` method | Before LangChain processing |
@@ -174,8 +181,8 @@ MCP Tools → Manual Transform → "Fixed" Tools → LangChain → convertToOpen
    - Google's `mcpToTool()` can't intercept this process
 
 5. **Evidence of Fragility**
-   - **Even if integrated, manual transformation patterns fail** due to double conversion
-   - Our testing proves manual approaches are **unreliably fragile**
+   - **Even if integrated, upstream transformation patterns fail** due to double conversion
+   - Our testing proves upstream approaches are **unreliably fragile**
 
 **References:**
 - [Legacy SDK Deprecation Notice](https://www.npmjs.com/package/@google/generative-ai)
@@ -201,21 +208,21 @@ MCP Tools → Manual Transform → "Fixed" Tools → LangChain → convertToOpen
    - Testing across diverse tool implementations
 
 4. **Architectural Reliability Concerns**
-   - **Evidence shows manual transformation patterns are fragile**
+   - **Evidence shows upstream transformation patterns are fragile**
    - Even perfect integration with Google's approach may not solve reliability issues
    - LangChain's internal processing creates unpredictable interactions
 
 **References:**
 - [LangChain Google GenAI Package Stats](https://socket.dev/npm/package/@langchain/google-genai)
 - [Package Dependencies](https://www.npmjs.com/package/@langchain/google-genai)
-- [Individual Server Test Results](../src/test/individual-servers.test.ts) - Evidence of manual transformation fragility
+- [Individual Server Test Results](../src/test/individual-servers.test.ts) - Evidence of upstream transformation fragility
 
 ### Timeline Considerations
 
 - **Legacy SDK EOL**: August 31, 2025
 - **Migration Complexity**: Major architectural changes required
 - **Community Need**: Immediate solutions needed for production applications
-- **Reliability Concerns**: **Evidence suggests manual approaches may remain fragile** even after migration
+- **Reliability Concerns**: **Evidence suggests upstream approaches may remain fragile** even after migration
 
 ## Why Bridge Solutions Are the Optimal Approach
 
@@ -227,7 +234,7 @@ Bridge solutions like `@hideya/langchain-google-genai-ex` provide:
 2. **Immediate Relief**: Fixes schema issues without waiting for ecosystem migration  
 3. **Production Ready**: Battle-tested with complex MCP servers
 4. **Architectural Compatibility**: Works within existing LangChain.js patterns
-5. **Proven Reliability**: **Testing proves it works where manual approaches fail**
+5. **Proven Reliability**: **Testing proves it works where upstream approaches fail**
 
 ### Evidence-Based Reliability
 
@@ -245,10 +252,10 @@ const results = {
 };
 ```
 
-**Compared to manual approaches**:
-- **0 regressions** (manual approaches broke Notion)
-- **100% coverage** (manual approaches missed Airtable edge cases)
-- **Predictable behavior** (manual approaches have unpredictable interactions)
+**Compared to upstream approaches**:
+- **0 regressions** (upstream approaches broke Notion)
+- **100% coverage** (upstream approaches missed Airtable edge cases)
+- **Predictable behavior** (upstream approaches have unpredictable interactions)
 
 ### Strategic Positioning
 
@@ -274,7 +281,7 @@ The bridge solution intercepts the conversion pipeline at the critical point:
 export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   override invocationParams(options?: any): any {
     const req = super.invocationParams(options);
-    return normalizeGeminiToolsPayload({ ...req }); // ← Schema transformation happens here
+    return normalizeGeminiToolsPayload({ ...req }); // ← Downstream schema transformation happens here
   }
 }
 ```
@@ -285,7 +292,7 @@ This approach:
 - ✅ **Maintainable**: Clear separation of concerns
 - ✅ **Proven Reliable**: **Testing validates it works across all complexity levels**
 
-### Why This Timing Works
+### Why This Downstream Timing Works
 
 ```
 User Code → LangChain Processing → invocationParams() → [OUR INTERCEPTION] → Gemini API
@@ -294,8 +301,8 @@ User Code → LangChain Processing → invocationParams() → [OUR INTERCEPTION]
 ```
 
 **Evidence**: Our testing proves that:
-- **Pre-processing fixes are fragile** (manual approaches fail)
-- **Post-processing fixes are reliable** (our approach succeeds)
+- **Pre-processing (upstream) fixes are fragile** (upstream approaches fail)
+- **Post-processing (downstream) fixes are reliable** (our approach succeeds)
 - **Timing matters** for schema transformation reliability
 
 ### Transformation Logic
@@ -313,14 +320,14 @@ Key transformations applied (all validated through testing):
 
 ## Conclusion
 
-The architectural differences between Google's new SDK and LangChain.js's universal tool abstraction create a fundamental integration barrier. Additionally, **our comprehensive testing reveals that manual transformation approaches are inherently fragile** in the LangChain.js ecosystem due to the double conversion problem.
+The architectural differences between Google's new SDK and LangChain.js's universal tool abstraction create a fundamental integration barrier. Additionally, **our comprehensive testing reveals that upstream transformation approaches are inherently fragile** in the LangChain.js ecosystem due to the double conversion problem.
 
 This situation demonstrates the complexity of ecosystem transitions in the rapidly evolving AI/LLM space, where architectural decisions made for flexibility and abstraction can create integration challenges with provider-specific solutions.
 
 ### Key Takeaways
 
 1. **Google's solution is excellent** - but architecturally incompatible with LangChain.js
-2. **Manual transformation patterns are fragile** - proven by comprehensive testing
+2. **Upstream transformation patterns are fragile** - proven by comprehensive testing
 3. **LangChain.js migration will face reliability challenges** - architecture changes required  
 4. **Bridge solutions provide proven immediate value** - working within existing patterns with validated reliability
 5. **Evidence-based decisions matter** - testing reveals architectural truths that theory alone cannot
@@ -330,8 +337,8 @@ This situation demonstrates the complexity of ecosystem transitions in the rapid
 Our research and testing provide clear evidence:
 
 - **Google's approach**: ✅ Works in its ecosystem, ❌ Cannot integrate with LangChain.js
-- **Manual approaches**: ❌ Proven fragile through comprehensive testing  
-- **Bridge approach**: ✅ Proven reliable across all complexity levels
+- **Upstream approaches**: ❌ Proven fragile through comprehensive testing  
+- **Downstream bridge approach**: ✅ Proven reliable across all complexity levels
 
 **Bottom Line**: Until LangChain.js solves the fundamental architectural reliability issues we've identified, bridge solutions remain the **most reliable approach** for production applications.
 
