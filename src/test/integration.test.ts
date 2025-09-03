@@ -6,18 +6,6 @@ import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 
 // Create MCP client and connect to servers
 const client = new MultiServerMCPClient({
-  // // Global tool configuration options
-  // // Whether to throw on errors if a tool fails to load (optional, default: true)
-  // throwOnLoadError: true,
-  // // Whether to prefix tool names with the server name (optional, default: false)
-  // prefixToolNameWithServerName: false,
-  // // Optional additional prefix for tool names (optional, default: "")
-  // additionalToolNamePrefix: "",
-
-  // // Use standardized content block format in tool outputs
-  // useStandardContentBlocks: true,
-
-  // Server configuration
   mcpServers: {
     // "us-weather": {
     //   transport: "stdio",
@@ -38,9 +26,11 @@ const client = new MultiServerMCPClient({
         "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
       }
     },
+    // // NOTE: comment out "fetch" when you use "notion".
+    // // They both have a tool named "fetch," which causes a conflict.
     // notion: {
     //   transport: "stdio",
-    //   "command": "npx",
+    //   "command": "npx",  // OAuth via "mcp-remote"
     //   "args": ["-y", "mcp-remote", "https://mcp.notion.com/mcp"],
     // },
     // filesystem: {
