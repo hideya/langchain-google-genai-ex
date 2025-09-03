@@ -90,7 +90,11 @@ see [this official **"Tool calling"** document](https://js.langchain.com/docs/co
 4. **LangChain calls**: `llm.bindTools(transformedTools)` (fixed tools + internal process)
 5. **Result**: Tool execution context is broken
 
+Although this fixes the 400 Bad Request caused by schema incompatibilities,
+it fails to execute properly:
+
 **Test Result**: 
+
 ```
 Unfortunately, I'm unable to access information about your Notion account 
 at this time due to an error with the tool.invoke function.
@@ -109,6 +113,8 @@ at this time due to an error with the tool.invoke function.
    }
    ```
 5. **Result**: Schema transformed at exactly the desired moment
+
+This approach works fine.
 
 **Test Result**:
 ```
@@ -136,12 +142,9 @@ and your username is ...
                                Desiered Timing!
 ```
 
-
-## Deep Dive: Why Option A Breaks Tool Execution
-
 ### The LangChain Tool Object Structure
 
-MCP tools aren't just schemas - they're complex objects with:
+LangChain tools aren't just schemas - they're complex objects with:
 
 ```typescript
 {
@@ -158,25 +161,7 @@ MCP tools aren't just schemas - they're complex objects with:
 }
 ```
 
-### What Goes Wrong with Early Transformation
-
-When we tested Option A with deep cloning:
-
-```typescript
-const transformedTools = transformMcpToolsForGemini(JSON.parse(JSON.stringify(mcpTools)));
-```
-
-We got schema errors:
-```
-Unknown name "lc" at 'tools[0]': Cannot find field.
-Unknown name "type" at 'tools[0]': Cannot find field.
-Unknown name "id" at 'tools[0]': Cannot find field.
-```
-
-This implies that `mcpTools` is not a standalone object.
-Some internal properties are referenced by LangChain's internals.
-
-So, early transformation seems to interfere with LangChain's internal tool processing, breaking the execution context that tools need to function.
+Early transformation seems to interfere with LangChain's internal tool processing, breaking the execution context that tools need to function.
 
 ## Final Decision: Option B Only
 
