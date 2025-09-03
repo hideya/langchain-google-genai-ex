@@ -58,7 +58,6 @@
     "test": "node --test dist/test/*.js",
     "test:individual-servers": "tsx src/test/individual-servers.test.ts",
     "test:simple": "tsx src/test/simple.test.ts",
-    "test:slim": "tsx src/test/slim.test.ts",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "type-check": "tsc --noEmit",
