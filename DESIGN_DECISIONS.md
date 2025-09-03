@@ -112,6 +112,27 @@ Your Notion account is linked to the email address ...,
 and your username is ...
 ```
 
+### Comparision of the Transformation Timing
+
+**Option A**
+
+```
+  User Code --→ LangChain Processing --→ LLM Binding
+             ↑
+     <Transform Tools>
+        Too early!
+```
+
+**Option B***
+
+```
+  User Code --→ LangChain Processing --→ LLM Binding
+                                      ↑
+                              <Transform Tools>
+                               Desiered timing!
+```
+
+
 ## Deep Dive: Why Option A Breaks Tool Execution
 
 ### The LangChain Tool Object Structure
@@ -150,57 +171,10 @@ Unknown name "id" at 'tools[0]': Cannot find field.
 
 **Analysis**: Early transformation interferes with LangChain's internal tool processing, breaking the execution context that tools need to function.
 
-## Architectural Principles
-
-### Option A Violates Separation of Concerns
-
-```
-  User Code --→ LangChain Processing --→ LLM Binding
-             ↑
-     <Transform Tools>
-        Too early!
-```
-
-- **Problem**: User code must understand LangChain's internal tool lifecycle
-- **Fragility**: Breaks when LangChain changes internal implementation
-- **Complexity**: Users must manage transformation timing
-
-### Option B Respects the Abstraction Layers
-
-```
-  User Code --→ LangChain Processing --→ LLM Binding
-                                      ↑
-                              <Transform Tools>
-                               Desiered timing!
-```
-
-- **Clean**: Each layer handles its own concerns
-- **Robust**: Works regardless of LangChain internal changes
-- **Simple**: Drop-in replacement
-
 ## Final Decision: Option B Only
 
-We decided to **remove Option A entirely** for these reasons:
+We decided to **drop Option A entirely** because it was difficult to make it work reliably.
 
-### 1. Technical Superiority
-Option B simply works better - it doesn't break tool execution and is architecturally sound.
-
-### 2. Simple User Experience
-```typescript
-// Before: Confusing choice
-import { ChatGoogleGenerativeAIEx, transformMcpToolsForGemini } from '...';
-// "Wait, which one should I use? What's the difference?"
-
-// After: No confusion  
-import { ChatGoogleGenerativeAIEx } from '...';
-// "Perfect, just replace my ChatGoogleGenerativeAI and it works!"
-```
-
-### 3. Maintenance Burden
-Supporting two approaches means having twice the documentation, testing, maintenance, and so on.
-
-### 4. Library Philosophy
-This library exists to solve **one specific problem**: Gemini schema compatibility. Adding complexity that doesn't serve this goal dilutes the value proposition.
 
 ## Conclusion
 
