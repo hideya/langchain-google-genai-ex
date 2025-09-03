@@ -86,7 +86,7 @@ If you searched for `GoogleGenerativeAIFetchError: [GoogleGenerativeAI Error] 40
 
 For many developers, this can make Gemini difficult to use with LangChain.js and some MCP servers. Even if only one complex MCP server is included in the MCP definitions passed to `MultiServerMCPClient`, all subsequent MCP usage starts failing with the error above.
 
-**This library handles all these schema incompatibilities through downstream transformation, converting complex MCP tool schemas into Gemini-friendly formats so you can focus on building instead of debugging schema errors.**
+**This library handles all these schema incompatibilities through schema transformation, converting complex MCP tool schemas into Gemini-friendly formats so you can focus on building instead of debugging schema errors.**
 
 ## Complete Usage Example
 
@@ -166,7 +166,7 @@ const response = await ai.models.generateContent({
   model: "gemini-2.5-flash",
   contents: "What is the weather in London?",
   config: {
-    tools: [mcpToTool(client)], // ← Upstream schema transformation
+    tools: [mcpToTool(client)]
   },
 });
 ```
@@ -179,7 +179,7 @@ If you need LangChain.js integration, use this library as the comprehensive solu
 import { ChatGoogleGenerativeAIEx } from "@hideya/langchain-google-genai-ex";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 
-// Use this library - the definitive LangChain.js solution
+// Use this library - the working LangChain.js solution
 const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
 
 const client = new MultiServerMCPClient({...});
