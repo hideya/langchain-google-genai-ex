@@ -155,9 +155,10 @@ Unknown name "id" at 'tools[0]': Cannot find field.
 ### Option A Violates Separation of Concerns
 
 ```
-User Code → <Transform Tools> → LangChain Processing → LLM Binding
-                   ↑
-               Too Early!
+  User Code --→ LangChain Processing --→ LLM Binding
+             ↑
+     <Transform Tools>
+        Too early!
 ```
 
 - **Problem**: User code must understand LangChain's internal tool lifecycle
@@ -167,9 +168,10 @@ User Code → <Transform Tools> → LangChain Processing → LLM Binding
 ### Option B Respects the Abstraction Layers
 
 ```
-User Code → LangChain Processing → <Transform Tools> → LLM Binding
-                                           ↑
-                                   Desiered Timing!
+  User Code --→ LangChain Processing --→ LLM Binding
+                                      ↑
+                              <Transform Tools>
+                               Desiered timing!
 ```
 
 - **Clean**: Each layer handles its own concerns

@@ -67,9 +67,10 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
    * Overriding this method enables schema conversio at the desired timing:
    * 
    * ```
-   *   User Code → LangChain Processing → <Transform Tools> → LLM Binding
-   *                                              ↑
-   *                                      Desiered Timing!
+   *   User Code --→ LangChain Processing --→ LLM Binding
+   *                                       ↑
+   *                               <Transform Tools>
+   *                                Desiered timing!
    * ```
    * 
    * @param tools - Array of tools to bind (MCP tools, StructuredTools, etc.)
