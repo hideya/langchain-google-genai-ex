@@ -60,6 +60,8 @@ To understand which approach was architecturally sound, we analyzed LangChain's 
 
 ### How `createReactAgent()` Works
 
+Since the failed tests used `createReactAgent()` of LangGraph, its implementation was investigated.
+
 From `/node_modules/@langchain/langgraph/dist/prebuilt/react_agent_executor.js`:
 
 ```typescript
@@ -73,7 +75,10 @@ const getModelRunnable = async (llm) => {
 };
 ```
 
-**Key Discovery**: `createReactAgent()` internally calls `llm.bindTools(toolClasses)` with the tools passed to it.
+`createReactAgent()` internally calls `llm.bindTools(toolClasses)` with the tools passed to it.
+
+For more information about `bindTools()`, 
+see [this official **"Tool calling"** document](https://js.langchain.com/docs/concepts/tool_calling/).
 
 ### The Tool Lifecycle Problem
 
@@ -82,9 +87,8 @@ const getModelRunnable = async (llm) => {
 1. **User transforms tools**: `transformMcpToolsForGemini(mcpTools)` → `transformedTools`
 2. **User passes to agent**: `createReactAgent({ llm, tools: transformedTools })`
 3. **LangChain processes tools**: Internal metadata, validation, etc.
-4. **LangChain calls**: `llm.bindTools(transformedTools)`
-5. **Standard ChatGoogleGenerativeAI**: Processes already-transformed tools
-6. **Result**: Tool execution context is broken
+4. **LangChain calls**: `llm.bindTools(transformedTools)` (fixed tools + internal process)
+5. **Result**: Tool execution context is broken
 
 **Test Result**: 
 ```
@@ -96,7 +100,7 @@ at this time due to an error with the tool.invoke function.
 
 1. **User passes original tools**: `createReactAgent({ llm, tools: mcpTools })`
 2. **LangChain processes tools**: All internal processing complete
-3. **LangChain calls**: `llm.bindTools(mcpTools)` (original tools)
+3. **LangChain calls**: `llm.bindTools(mcpTools)` (original tools + internal process)
 4. **ChatGoogleGenerativeAIEx.bindTools()**: 
    ```typescript
    override bindTools(tools: any[], kwargs?: Partial<GoogleGenerativeAIChatCallOptions>) {
@@ -112,7 +116,7 @@ Your Notion account is linked to the email address ...,
 and your username is ...
 ```
 
-### Comparision of the Transformation Timing
+### Simplified Comparision of the Transformation Timing
 
 **Option A**
 
@@ -169,7 +173,10 @@ Unknown name "type" at 'tools[0]': Cannot find field.
 Unknown name "id" at 'tools[0]': Cannot find field.
 ```
 
-**Analysis**: Early transformation interferes with LangChain's internal tool processing, breaking the execution context that tools need to function.
+This implies that `mcpTools` is not a standalone object.
+Some internal properties are referenced by LangChain's internals.
+
+So, early transformation seems to interfere with LangChain's internal tool processing, breaking the execution context that tools need to function.
 
 ## Final Decision: Option B Only
 
