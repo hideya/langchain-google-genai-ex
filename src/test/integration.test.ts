@@ -1,6 +1,5 @@
 import "dotenv/config";
 import { ChatGoogleGenerativeAIEx } from "../index.js";
-// import { ChatOpenAI } from "@langchain/openai";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { HumanMessage } from "@langchain/core/messages";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
@@ -79,9 +78,7 @@ const client = new MultiServerMCPClient({
 (async () => {
   const mcpTools = await client.getTools();
 
-  // const llm = new ChatOpenAI({model: "gpt-5-mini"});
-
-  const llm = new ChatGoogleGenerativeAIEx({model: "gemini-1.5-pro"});
+  const llm = new ChatGoogleGenerativeAIEx({model: "gemini-1.5-flash"});
   const agent = createReactAgent({ llm, tools: mcpTools });
 
   // const query = "Are there any weather alerts in California?";

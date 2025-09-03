@@ -57,7 +57,7 @@
     "dev": "tsup src/index.ts src/schema-adapter/index.ts src/chat-models/index.ts --format cjs,esm --dts --watch",
     "test": "node --test dist/test/*.js",
     "test:individual-servers": "tsx src/test/individual-servers.test.ts",
-    "test:simple": "tsx src/test/simple.test.ts",
+    "test:integration": "tsx src/test/integration.test.ts",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "type-check": "tsc --noEmit",
