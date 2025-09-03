@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { ChatGoogleGenerativeAIEx, transformMcpToolsForGemini } from "../index.js";
+import { ChatGoogleGenerativeAIEx } from "../index.js";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { HumanMessage } from "@langchain/core/messages";
@@ -13,10 +13,9 @@ const LLM_MODELS_TO_TEST = ["gemini-1.5-flash", "gemini-2.5-flash"];
 /**
  * Individual MCP Server Integration Test
  * 
- * This test suite tests each of the 10 MCP servers individually with three approaches:
+ * This test suite tests each of the MCP servers individually with two approaches:
  * 1. Original ChatGoogleGenerativeAI (baseline)
- * 2. Manual transformation with transformMcpToolsForGemini() + ChatGoogleGenerativeAI  
- * 3. Automatic transformation with ChatGoogleGenerativeAIEx
+ * 2. Automatic transformation with ChatGoogleGenerativeAIEx
  * 
  * Servers tested:
  * 1. us-weather: Weather information for US locations
@@ -31,7 +30,7 @@ const LLM_MODELS_TO_TEST = ["gemini-1.5-flash", "gemini-2.5-flash"];
  * 10. playwright: Browser automation
  * 
  * Each server is tested independently to isolate success/failure cases
- * and compare the effectiveness of different schema transformation approaches.
+ * and compare the effectiveness of the ChatGoogleGenerativeAIEx solution.
  */
 
 interface ServerTestConfig {
@@ -64,7 +63,7 @@ const MCP_SERVERS: ServerTestConfig[] = [
       command: "uvx",
       args: ["mcp-server-fetch"]
     },
-    testQuery: "Summarize the beginning of the news headlines on BBC.com",
+    testQuery: "Use the fetch tool to read and summarize the beginning of the news headlines on BBC.com",
     expectedToolNames: ["fetch"]
   },
   {
@@ -75,7 +74,7 @@ const MCP_SERVERS: ServerTestConfig[] = [
       command: "npx",
       args: ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]
     },
-    testQuery: "Tell me about my Notion account",
+    testQuery: "Use the notion-get-self tool and summarize the information about my account",
     expectedToolNames: ["notion-get-self", "notion-search-pages"],
     // requiresAuth: false,  //  OAuth via "mcp-remote"
   },
@@ -89,7 +88,7 @@ const MCP_SERVERS: ServerTestConfig[] = [
         "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
       }
     },
-    testQuery: "Tell me about my Airtable account",
+    testQuery: "List all of the bases I have access to",
     expectedToolNames: ["list_records", "list_tables"]
   },
   // {
@@ -186,18 +185,15 @@ interface TestResult {
   skipReason?: string;
   originalSuccess?: boolean;
   originalError?: string;
-  manualSuccess?: boolean;
-  manualError?: string;
   automaticSuccess?: boolean;
   automaticError?: string;
 }
 
 /**
  * Tests a single MCP server for basic connectivity and functionality
- * Compares three approaches:
+ * Compares two approaches:
  * 1. Original ChatGoogleGenerativeAI (baseline)
- * 2. Manual transformation with transformMcpToolsForGemini() + ChatGoogleGenerativeAI
- * 3. Automatic transformation with ChatGoogleGenerativeAIEx
+ * 2. Automatic transformation with ChatGoogleGenerativeAIEx
  */
 async function testSingleServer(serverConfig: ServerTestConfig, llmModel: string): Promise<TestResult> {
   const result: TestResult = {
@@ -265,32 +261,11 @@ async function testSingleServer(serverConfig: ServerTestConfig, llmModel: string
       
       const originalResponse = originalResult.messages[originalResult.messages.length - 1].content;
       result.originalSuccess = true;
-      console.log(`  ✅ Original succeeded: ${String(originalResponse).substring(0, 100)}...`);
+      console.log(`  ✅ Original succeeded: \x1b[36m${String(originalResponse).substring(0, 100)}...\x1b[0m`);
     } catch (originalError: any) {
       result.originalSuccess = false;
       result.originalError = originalError.message;
-      console.log(`  ❌ Original failed: ${String(originalError).substring(0, 500)}...`);
-      // console.log(`  ❌ Original failed: ${originalError.message}`);
-    }
-
-    // Test with manual transformation (transformMcpToolsForGemini)
-    console.log(`  🔧 Testing manual transformation (+transformMcpToolsForGemini) (${llmModel})...`);
-    try {
-      const transformedTools = transformMcpToolsForGemini(mcpTools);
-      const manualLlm = new ChatGoogleGenerativeAI({ model: llmModel });
-      const manualAgent = createReactAgent({ llm: manualLlm, tools: transformedTools });
-      
-      const manualResult = await manualAgent.invoke({
-        messages: [new HumanMessage(serverConfig.testQuery)]
-      });
-      
-      const manualResponse = manualResult.messages[manualResult.messages.length - 1].content;
-      result.manualSuccess = true;
-      console.log(`  ✅ Manual succeeded: ${String(manualResponse).substring(0, 100)}...`);
-    } catch (manualError: any) {
-      result.manualSuccess = false;
-      result.manualError = manualError.message;
-      console.log(`  ❌ Manual failed: ${manualError.message}`);
+      console.log(`  ❌ Original failed: \x1b[35m${String(originalError).substring(0, 500)}...\x1b[0m`);
     }
 
     // Test with ChatGoogleGenerativeAIEx (automatic transformation)
@@ -310,38 +285,33 @@ async function testSingleServer(serverConfig: ServerTestConfig, llmModel: string
       result.responsePreview = String(response).substring(0, 150) + "...";
       result.success = true; // Overall success if automatic version works
       
-      console.log(`  ✅ Automatic succeeded: ${result.responsePreview}`);
+      console.log(`  ✅ Automatic succeeded: \x1b[36m${result.responsePreview}\x1b[0m`);
     } catch (automaticError: any) {
       result.automaticSuccess = false;
       result.automaticError = automaticError.message;
       result.success = false;
-      console.log(`  ❌ Automatic failed: ${automaticError.message}`);
+      console.log(`  ❌ Automatic failed: \x1b[33m${automaticError.message}\x1b[0m`);
     }
 
     // Show comparison result
     const originalStatus = result.originalSuccess ? "✅" : "❌";
-    const manualStatus = result.manualSuccess ? "✅" : "❌";
     const automaticStatus = result.automaticSuccess ? "✅" : "❌";
-    console.log(`  🆚 Comparison: Original ${originalStatus} | Manual ${manualStatus} | Automatic ${automaticStatus}`);
+    console.log(`  🆚 Comparison: Original ${originalStatus} | ChatGoogleGenerativeAIEx ${automaticStatus}`);
     
     // Analyze the results
-    if (!result.originalSuccess && result.manualSuccess && result.automaticSuccess) {
-      console.log(`  🎯 Schema fix benefit: Both transformation approaches fixed compatibility issues!`);
-    } else if (!result.originalSuccess && result.manualSuccess && !result.automaticSuccess) {
-      console.log(`  🤔 Interesting: Manual works but automatic doesn't - possible regression`);
-    } else if (!result.originalSuccess && !result.manualSuccess && result.automaticSuccess) {
-      console.log(`  🚀 Automatic approach handles edge cases better than manual transformation`);
-    } else if (result.originalSuccess && result.manualSuccess && result.automaticSuccess) {
-      console.log(`  ✨ Schema fix benefit: No issues, all approaches work (simple schema)`);
-    } else if (!result.originalSuccess && !result.manualSuccess && !result.automaticSuccess) {
-      console.log(`  ⚠️  All approaches failed: Likely server/network issue, not schema-related`);
-    } else if (result.originalSuccess && (!result.manualSuccess || !result.automaticSuccess)) {
-      console.log(`  🔴 Regression: Original works but transformations broke something`);
+    if (!result.originalSuccess && result.automaticSuccess) {
+      console.log(`  🎯 Schema fix benefit: ChatGoogleGenerativeAIEx fixed compatibility issues!`);
+    } else if (result.originalSuccess && result.automaticSuccess) {
+      console.log(`  ✨ No schema issues: Both approaches work (simple schema)`);
+    } else if (!result.originalSuccess && !result.automaticSuccess) {
+      console.log(`  ⚠️  Both approaches failed: Likely server/network issue, not schema-related`);
+    } else if (result.originalSuccess && !result.automaticSuccess) {
+      console.log(`  🔴 Regression: Original works but ChatGoogleGenerativeAIEx broke something`);
     }
 
   } catch (error: any) {
     result.error = error.message;
-    console.log(`  ❌ Server connection failed: ${error.message}`);
+    console.log(`  ❌ Server connection failed: \x1b[33m${error.message}\x1b[0m`);
   } finally {
     if (client) {
       try {
@@ -360,45 +330,40 @@ async function testSingleServer(serverConfig: ServerTestConfig, llmModel: string
  */
 function printSummaryTable(results: TestResult[], llmModel: string) {
   console.log(`\n📊 Test Results Summary - ${llmModel}`);
-  console.log("═".repeat(130));
-  console.log("Server          | Original | +transformMcp... | ChatGoogleGen..Ex | Tools | Schema Fix Benefit     | Notes");
-  console.log("─".repeat(130));
+  console.log("═".repeat(110));
+  console.log("Server          | Original | ChatGoogleGenAIEx | Tools | Schema Fix Benefit     | Notes");
+  console.log("─".repeat(110));
 
   for (const result of results) {
     if (result.skipped) {
       const serverName = result.displayName.substring(0, 15).padEnd(15);
       const notes = result.skipReason || "Unknown";
-      console.log(`${serverName} | SKIPPED  | SKIPPED          | SKIPPED           | N/A   | N/A                    | ${notes}`);
+      console.log(`${serverName} | SKIPPED  | SKIPPED           | N/A   | N/A                    | ${notes}`);
       continue;
     }
 
     const serverName = result.displayName.substring(0, 15).padEnd(15);
     const originalStatus = result.originalSuccess ? "✅ PASS" : "❌ FAIL";
-    const manualStatus = result.manualSuccess ? "✅ PASS" : "❌ FAIL";
     const automaticStatus = result.automaticSuccess ? "✅ PASS" : "❌ FAIL";
     const tools = result.toolsFound.toString().padEnd(5);
     
     let benefit = "Unknown";
-    if (!result.originalSuccess && result.manualSuccess && result.automaticSuccess) {
-      benefit = "🎯 Both fixes work";
-    } else if (!result.originalSuccess && result.manualSuccess && !result.automaticSuccess) {
-      benefit = "🔧 Only manual works";
-    } else if (!result.originalSuccess && !result.manualSuccess && result.automaticSuccess) {
-      benefit = "🚀 Only automatic works";
-    } else if (result.originalSuccess && result.manualSuccess && result.automaticSuccess) {
-      benefit = "✨ All work";
-    } else if (!result.originalSuccess && !result.manualSuccess && !result.automaticSuccess) {
-      benefit = "⚠️  All failed";
-    } else if (result.originalSuccess && (!result.manualSuccess || !result.automaticSuccess)) {
-      benefit = "🔴 Regressions";
+    if (!result.originalSuccess && result.automaticSuccess) {
+      benefit = "🎯 Fixed compatibility";
+    } else if (result.originalSuccess && result.automaticSuccess) {
+      benefit = "✨ Both work";
+    } else if (!result.originalSuccess && !result.automaticSuccess) {
+      benefit = "⚠️  Both failed";
+    } else if (result.originalSuccess && !result.automaticSuccess) {
+      benefit = "🔴 Regression";
     }
     
     const notes = result.automaticSuccess ? "Working properly" : 
                   result.automaticError?.substring(0, 30) + "..." || "Unknown error";
     
-    console.log(`${serverName} | ${originalStatus.padEnd(8)} | ${manualStatus.padEnd(16)} | ${automaticStatus.padEnd(17)} | ${tools} | ${benefit.padEnd(22)} | ${notes}`);
+    console.log(`${serverName} | ${originalStatus.padEnd(8)} | ${automaticStatus.padEnd(17)} | ${tools} | ${benefit.padEnd(22)} | ${notes}`);
   }
-  console.log("═".repeat(130));
+  console.log("═".repeat(110));
 }
 
 /**
@@ -435,54 +400,41 @@ async function runIndividualServerTestsForModel(llmModel: string) {
   const totalTests = results.length;
   const availableTests = results.filter(r => !r.skipped).length;
   const originalPassedTests = results.filter(r => !r.skipped && r.originalSuccess).length;
-  const manualPassedTests = results.filter(r => !r.skipped && r.manualSuccess).length;
   const automaticPassedTests = results.filter(r => !r.skipped && r.automaticSuccess).length;
-  const bothFixesWork = results.filter(r => !r.skipped && !r.originalSuccess && r.manualSuccess && r.automaticSuccess).length;
-  const onlyManualWorks = results.filter(r => !r.skipped && !r.originalSuccess && r.manualSuccess && !r.automaticSuccess).length;
-  const onlyAutomaticWorks = results.filter(r => !r.skipped && !r.originalSuccess && !r.manualSuccess && r.automaticSuccess).length;
+  const schemaFixedTests = results.filter(r => !r.skipped && !r.originalSuccess && r.automaticSuccess).length;
   const skippedTests = results.filter(r => r.skipped).length;
-  const allFailedTests = results.filter(r => !r.skipped && !r.originalSuccess && !r.manualSuccess && !r.automaticSuccess).length;
+  const allFailedTests = results.filter(r => !r.skipped && !r.originalSuccess && !r.automaticSuccess).length;
+  const regressionTests = results.filter(r => !r.skipped && r.originalSuccess && !r.automaticSuccess).length;
 
   console.log(`\n📈 Statistics:`);
   console.log(`   Total Servers: ${totalTests}`);
   console.log(`   Available for Testing: ${availableTests}`);
   console.log(`   ✅ Original ChatGoogleGenerativeAI: ${originalPassedTests}/${availableTests} (${((originalPassedTests/availableTests)*100).toFixed(1)}%)`);
-  console.log(`   ✅ Manual Transformation (+transformMcpToolsForGemini): ${manualPassedTests}/${availableTests} (${((manualPassedTests/availableTests)*100).toFixed(1)}%)`);
-  console.log(`   ✅ Automatic Transformation (ChatGoogleGenerativeAIEx): ${automaticPassedTests}/${availableTests} (${((automaticPassedTests/availableTests)*100).toFixed(1)}%)`);
-  console.log(`   🎯 Both Transformation Approaches Work: ${bothFixesWork} servers`);
-  console.log(`   🔧 Only Manual Transformation Works: ${onlyManualWorks} servers`);
-  console.log(`   🚀 Only Automatic Transformation Works: ${onlyAutomaticWorks} servers`);
+  console.log(`   ✅ ChatGoogleGenerativeAIEx: ${automaticPassedTests}/${availableTests} (${((automaticPassedTests/availableTests)*100).toFixed(1)}%)`);
+  console.log(`   🎯 Schema Issues Fixed: ${schemaFixedTests} servers`);
   console.log(`   ⏸️  Skipped (missing auth): ${skippedTests}`);
-  console.log(`   ❌ All Failed: ${allFailedTests}`);
+  console.log(`   ❌ Both Failed: ${allFailedTests}`);
+  console.log(`   🔴 Regressions: ${regressionTests}`);
 
-  const totalSchemaFixed = bothFixesWork + onlyManualWorks + onlyAutomaticWorks;
-  if (totalSchemaFixed > 0) {
-    console.log(`\n🎉 Success! Schema transformations fixed compatibility issues for ${totalSchemaFixed} servers!`);
+  if (schemaFixedTests > 0) {
+    console.log(`\n🎉 Success! ChatGoogleGenerativeAIEx fixed compatibility issues for ${schemaFixedTests} servers!`);
     
-    if (bothFixesWork > 0) {
-      const bothFixServers = results
-        .filter(r => !r.skipped && !r.originalSuccess && r.manualSuccess && r.automaticSuccess)
-        .map(r => r.displayName);
-      console.log(`   🎯 Both approaches work: ${bothFixServers.join(", ")}`);
-    }
-    
-    if (onlyManualWorks > 0) {
-      const manualOnlyServers = results
-        .filter(r => !r.skipped && !r.originalSuccess && r.manualSuccess && !r.automaticSuccess)
-        .map(r => r.displayName);
-      console.log(`   🔧 Only manual works: ${manualOnlyServers.join(", ")}`);
-    }
-    
-    if (onlyAutomaticWorks > 0) {
-      const automaticOnlyServers = results
-        .filter(r => !r.skipped && !r.originalSuccess && !r.manualSuccess && r.automaticSuccess)
-        .map(r => r.displayName);
-      console.log(`   🚀 Only automatic works: ${automaticOnlyServers.join(", ")}`);
-    }
+    const schemaFixedServers = results
+      .filter(r => !r.skipped && !r.originalSuccess && r.automaticSuccess)
+      .map(r => r.displayName);
+    console.log(`   🎯 Fixed servers: ${schemaFixedServers.join(", ")}`);
+  }
+
+  if (regressionTests > 0) {
+    console.log(`\n⚠️  Warning: ${regressionTests} regression(s) detected!`);
+    const regressionServers = results
+      .filter(r => !r.skipped && r.originalSuccess && !r.automaticSuccess)
+      .map(r => r.displayName);
+    console.log(`   🔴 Regression servers: ${regressionServers.join(", ")}`);
   }
 
   if (originalPassedTests > 0) {
-    console.log(`\n✨ Note: ${originalPassedTests} server(s) work with all implementations`);
+    console.log(`\n✨ Note: ${originalPassedTests} server(s) work with both implementations`);
     const simpleServers = results
       .filter(r => !r.skipped && r.originalSuccess && r.automaticSuccess)
       .map(r => r.displayName);
@@ -505,14 +457,12 @@ async function runIndividualServerTestsForModel(llmModel: string) {
 
   console.log(`\n✅ Schema compatibility testing complete for ${llmModel}!`);
   
-  if (totalSchemaFixed > 0) {
-    console.log(`🎆 Result: Successfully demonstrated schema transformation benefits with ${totalSchemaFixed} complex MCP servers!`);
-    if (bothFixesWork > 0) {
-      console.log(`💯 Perfect: Both manual and automatic approaches work equivalently for ${bothFixesWork} servers`);
-    }
-    if (onlyManualWorks > 0 || onlyAutomaticWorks > 0) {
-      console.log(`🔍 Interesting: Some edge cases where approaches differ - worth investigating`);
-    }
+  if (schemaFixedTests > 0) {
+    console.log(`🎆 Result: Successfully demonstrated ChatGoogleGenerativeAIEx benefits with ${schemaFixedTests} complex MCP servers!`);
+  }
+  
+  if (regressionTests === 0 && automaticPassedTests >= originalPassedTests) {
+    console.log(`💯 Perfect: ChatGoogleGenerativeAIEx maintains or improves compatibility without regressions!`);
   }
   
   return results;
@@ -560,10 +510,23 @@ async function runIndividualServerTests() {
   
   for (const { model, results } of allResults) {
     const availableTests = results.filter(r => !r.skipped).length;
+    const originalPassedTests = results.filter(r => !r.skipped && r.originalSuccess).length;
     const automaticPassedTests = results.filter(r => !r.skipped && r.automaticSuccess).length;
-    const successRate = availableTests > 0 ? ((automaticPassedTests/availableTests)*100).toFixed(1) : "0.0";
+    const schemaFixedTests = results.filter(r => !r.skipped && !r.originalSuccess && r.automaticSuccess).length;
+    const regressionTests = results.filter(r => !r.skipped && r.originalSuccess && !r.automaticSuccess).length;
     
-    console.log(`📊 ${model}: ${automaticPassedTests}/${availableTests} servers successful (${successRate}%)`);
+    const originalSuccessRate = availableTests > 0 ? ((originalPassedTests/availableTests)*100).toFixed(1) : "0.0";
+    const automaticSuccessRate = availableTests > 0 ? ((automaticPassedTests/availableTests)*100).toFixed(1) : "0.0";
+    
+    console.log(`📊 ${model}:`);
+    console.log(`   Original: ${originalPassedTests}/${availableTests} (${originalSuccessRate}%)`);
+    console.log(`   ChatGoogleGenerativeAIEx: ${automaticPassedTests}/${availableTests} (${automaticSuccessRate}%)`);
+    if (schemaFixedTests > 0) {
+      console.log(`   🎯 Schema fixes: ${schemaFixedTests} servers`);
+    }
+    if (regressionTests > 0) {
+      console.log(`   🔴 Regressions: ${regressionTests} servers`);
+    }
   }
   
   console.log(`\n✨ Testing completed for all ${LLM_MODELS_TO_TEST.length} model(s)!`);

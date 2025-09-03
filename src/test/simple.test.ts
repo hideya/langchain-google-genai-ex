@@ -86,11 +86,10 @@ const client = new MultiServerMCPClient({
 
   // const query = "Are there any weather alerts in California?";
   // const query = "Read the top news headlines on bbc.com";
-  const query = "Tell me about my Airtable account";
+  const query = "List all of the bases I have access to";
   // const query = "Tell me about my Notion account";
 
   // const query = "Tell me how many of directories in `.`";
-  // const query = "Tell me about my Notion account";
   // const query = "Tell me about my GitHub profile"
   // const query = "Make a new table in SQLite DB and put items apple and orange " +
   //   "with counts 123 and 345 respectively, " +
