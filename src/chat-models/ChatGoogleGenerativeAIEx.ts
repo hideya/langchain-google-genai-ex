@@ -35,6 +35,14 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
    * Called by all public methods: invoke(), stream(), batch(), etc.
    * Users never call this directly - it's an internal LangChain implementation detail.
    * 
+   * Performance Note: This method is called on every API request, which means tool
+   * transformation happens repeatedly. We intentionally chose NOT to cache transformations:
+   * • Schema transformation: ~1-10ms per call
+   * • Total LLM interaction: ~1000-10000ms per call  
+   * • Optimization impact: <1% performance improvement
+   * • Complexity cost: Thread safety, cache invalidation, memory management
+   * • Reliability benefit: Always uses fresh schemas, no cache invalidation bugs
+   * 
    * @private
    * @param messages - Chat messages to process
    * @param options - Runtime options including tools that need transformation

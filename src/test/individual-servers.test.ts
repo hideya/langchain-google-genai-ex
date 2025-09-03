@@ -66,18 +66,18 @@ const MCP_SERVERS: ServerTestConfig[] = [
     testQuery: "Summarize the beginning of the news headlines on BBC.com",
     expectedToolNames: ["fetch"]
   },
-  // {
-  //   name: "notion",
-  //   displayName: "Notion Server",
-  //   config: {
-  //     transport: "stdio",
-  //     command: "npx",
-  //     args: ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]
-  //   },
-  //   testQuery: "Tell me about my Notion account",
-  //   expectedToolNames: ["notion-get-self", "notion-search-pages"],
-  //   // requiresAuth: false,  //  OAuth via "mcp-remote"
-  // },
+  {
+    name: "notion",
+    displayName: "Notion Server",
+    config: {
+      transport: "stdio",
+      command: "npx",
+      args: ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]
+    },
+    testQuery: "Tell me about my Notion account",
+    expectedToolNames: ["notion-get-self", "notion-search-pages"],
+    // requiresAuth: false,  //  OAuth via "mcp-remote"
+  },
   {
     name: "airtable",
     displayName: "Airtable Server",
