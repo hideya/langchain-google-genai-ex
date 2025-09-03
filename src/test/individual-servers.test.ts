@@ -6,8 +6,10 @@ import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { HumanMessage } from "@langchain/core/messages";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 
-// const LLM_MODEL_TO_TEST = "gemini-2.5-flash";
-const LLM_MODEL_TO_TEST = "gemini-1.5-flash";
+// Configure which LLM models to test
+const LLM_MODELS_TO_TEST = ["gemini-1.5-flash", "gemini-2.5-flash"];
+// const LLM_MODELS_TO_TEST = ["gemini-1.5-flash"]; // Single model for quick testing
+// const LLM_MODELS_TO_TEST = ["gemini-2.5-flash"]; // Single model for quick testing
 
 /**
  * Individual MCP Server Integration Test
@@ -198,7 +200,7 @@ interface TestResult {
  * 2. Manual transformation with transformMcpToolsForGemini() + ChatGoogleGenerativeAI
  * 3. Automatic transformation with ChatGoogleGenerativeAIEx
  */
-async function testSingleServer(serverConfig: ServerTestConfig): Promise<TestResult> {
+async function testSingleServer(serverConfig: ServerTestConfig, llmModel: string): Promise<TestResult> {
   const result: TestResult = {
     serverName: serverConfig.name,
     displayName: serverConfig.displayName,
@@ -253,9 +255,9 @@ async function testSingleServer(serverConfig: ServerTestConfig): Promise<TestRes
     }
 
     // Test with original ChatGoogleGenerativeAI first
-    console.log(`  🔄 Testing original ChatGoogleGenerativeAI...`);
+    console.log(`  🔄 Testing original ChatGoogleGenerativeAI (${llmModel})...`);
     try {
-      const originalLlm = new ChatGoogleGenerativeAI({ model: LLM_MODEL_TO_TEST });
+      const originalLlm = new ChatGoogleGenerativeAI({ model: llmModel });
       const originalAgent = createReactAgent({ llm: originalLlm, tools: mcpTools });
       
       const originalResult = await originalAgent.invoke({
@@ -273,10 +275,10 @@ async function testSingleServer(serverConfig: ServerTestConfig): Promise<TestRes
     }
 
     // Test with manual transformation (transformMcpToolsForGemini)
-    console.log(`  🔧 Testing manual transformation (+transformMcpToolsForGemini)...`);
+    console.log(`  🔧 Testing manual transformation (+transformMcpToolsForGemini) (${llmModel})...`);
     try {
       const transformedTools = transformMcpToolsForGemini(mcpTools);
-      const manualLlm = new ChatGoogleGenerativeAI({ model: LLM_MODEL_TO_TEST });
+      const manualLlm = new ChatGoogleGenerativeAI({ model: llmModel });
       const manualAgent = createReactAgent({ llm: manualLlm, tools: transformedTools });
       
       const manualResult = await manualAgent.invoke({
@@ -293,9 +295,9 @@ async function testSingleServer(serverConfig: ServerTestConfig): Promise<TestRes
     }
 
     // Test with ChatGoogleGenerativeAIEx (automatic transformation)
-    console.log(`  🚀 Testing automatic transformation (ChatGoogleGenerativeAIEx)...`);
+    console.log(`  🚀 Testing automatic transformation (ChatGoogleGenerativeAIEx) (${llmModel})...`);
     try {
-      const automaticLlm = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
+      const automaticLlm = new ChatGoogleGenerativeAIEx({ model: llmModel });
       const automaticAgent = createReactAgent({ llm: automaticLlm, tools: mcpTools });
       
       console.log(`  💬 Query: "${serverConfig.testQuery}"`);
@@ -357,8 +359,8 @@ async function testSingleServer(serverConfig: ServerTestConfig): Promise<TestRes
 /**
  * Prints a summary table of all test results
  */
-function printSummaryTable(results: TestResult[]) {
-  console.log("\n📊 Test Results Summary");
+function printSummaryTable(results: TestResult[], llmModel: string) {
+  console.log(`\n📊 Test Results Summary - ${llmModel}`);
   console.log("═".repeat(130));
   console.log("Server          | Original | +transformMcp... | ChatGoogleGen..Ex | Tools | Schema Fix Benefit     | Notes");
   console.log("─".repeat(130));
@@ -401,19 +403,12 @@ function printSummaryTable(results: TestResult[]) {
 }
 
 /**
- * Main test runner
+ * Main test runner for a specific LLM model
  */
-async function runIndividualServerTests() {
-  console.log("🚀 Individual MCP Server Integration Tests");
+async function runIndividualServerTestsForModel(llmModel: string) {
+  console.log(`🚀 Individual MCP Server Integration Tests - ${llmModel}`);
   console.log("═".repeat(80));
-  console.log("Testing each of the 10 MCP servers individually...\n");
-
-  // Check for required environment variables
-  if (!process.env.GOOGLE_API_KEY) {
-    console.error("❌ GOOGLE_API_KEY environment variable is required!");
-    console.log("   Please copy .env.example to .env and add your Google API key.\n");
-    process.exit(1);
-  }
+  console.log(`Testing each MCP server individually with ${llmModel}...\n`);
 
   const results: TestResult[] = [];
 
@@ -424,7 +419,7 @@ async function runIndividualServerTests() {
     console.log(`\n🔸 Test ${i + 1}/${MCP_SERVERS.length}: ${serverConfig.displayName}`);
     console.log("─".repeat(50));
     
-    const result = await testSingleServer(serverConfig);
+    const result = await testSingleServer(serverConfig, llmModel);
     results.push(result);
     
     // Add a small delay between tests to avoid overwhelming servers
@@ -435,7 +430,7 @@ async function runIndividualServerTests() {
   }
 
   // Print summary
-  printSummaryTable(results);
+  printSummaryTable(results, llmModel);
 
   // Calculate statistics
   const totalTests = results.length;
@@ -509,7 +504,7 @@ async function runIndividualServerTests() {
       });
   }
 
-  console.log(`\n✅ Schema compatibility testing complete!`);
+  console.log(`\n✅ Schema compatibility testing complete for ${llmModel}!`);
   
   if (totalSchemaFixed > 0) {
     console.log(`🎆 Result: Successfully demonstrated schema transformation benefits with ${totalSchemaFixed} complex MCP servers!`);
@@ -524,8 +519,61 @@ async function runIndividualServerTests() {
   return results;
 }
 
+/**
+ * Main test runner that tests all configured LLM models
+ */
+async function runIndividualServerTests() {
+  console.log("🚀 Multi-Model Individual MCP Server Integration Tests");
+  console.log("═".repeat(80));
+  console.log(`Testing with models: ${LLM_MODELS_TO_TEST.join(", ")}\n`);
+
+  // Check for required environment variables
+  if (!process.env.GOOGLE_API_KEY) {
+    console.error("❌ GOOGLE_API_KEY environment variable is required!");
+    console.log("   Please copy .env.example to .env and add your Google API key.\n");
+    process.exit(1);
+  }
+
+  const allResults: { model: string; results: TestResult[] }[] = [];
+
+  // Test each LLM model
+  for (let modelIndex = 0; modelIndex < LLM_MODELS_TO_TEST.length; modelIndex++) {
+    const llmModel = LLM_MODELS_TO_TEST[modelIndex];
+    
+    console.log(`\n${'='.repeat(100)}`);
+    console.log(`🎯 TESTING MODEL ${modelIndex + 1}/${LLM_MODELS_TO_TEST.length}: ${llmModel}`);
+    console.log(`${'='.repeat(100)}`);
+    
+    const results = await runIndividualServerTestsForModel(llmModel);
+    allResults.push({ model: llmModel, results });
+    
+    // Add a longer delay between different models
+    if (modelIndex < LLM_MODELS_TO_TEST.length - 1) {
+      console.log(`\n⏸️  Waiting 5 seconds before testing next model...`);
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    }
+  }
+
+  // Print final summary
+  console.log(`\n\n${'='.repeat(100)}`);
+  console.log(`🏁 MULTI-MODEL TESTING COMPLETE`);
+  console.log(`${'='.repeat(100)}`);
+  
+  for (const { model, results } of allResults) {
+    const availableTests = results.filter(r => !r.skipped).length;
+    const automaticPassedTests = results.filter(r => !r.skipped && r.automaticSuccess).length;
+    const successRate = availableTests > 0 ? ((automaticPassedTests/availableTests)*100).toFixed(1) : "0.0";
+    
+    console.log(`📊 ${model}: ${automaticPassedTests}/${availableTests} servers successful (${successRate}%)`);
+  }
+  
+  console.log(`\n✨ Testing completed for all ${LLM_MODELS_TO_TEST.length} model(s)!`);
+  
+  return allResults;
+}
+
 // Export for use in other tests
-export { runIndividualServerTests, testSingleServer, MCP_SERVERS };
+export { runIndividualServerTests, runIndividualServerTestsForModel, testSingleServer, MCP_SERVERS, LLM_MODELS_TO_TEST };
 
 // Run tests if this file is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
