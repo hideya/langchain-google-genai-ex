@@ -14,7 +14,8 @@ This library prevents its cascading failures where one complex server breaks the
 
 > This library addresses compatibility issues present as of September 3, 2025, with LangChain.js (@langchain/core) v0.3.72 and @langchain/google-genai v0.2.16.
 
-You can avoid this schema issue if you use Google Vertex AI, which supports API endpoints with relaxed schema requirements.
+You can avoid this schema issue if you use Google Vertex AI, which supports API endpoints with relaxed schema requirements.  
+Google provides a fix in its new Gemini SDK (`@google/genai`), but LangChain.js cannot leverage it due to its architectural misalignment.
 
 ## How to Use This Library
 
