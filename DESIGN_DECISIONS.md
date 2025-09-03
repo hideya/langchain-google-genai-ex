@@ -50,7 +50,7 @@ const agent = createReactAgent({ llm, tools: mcpTools }); // Auto-transformed
 
 **Perceived Benefits:**
 - Zero configuration
-- Impossible to misuse
+- Low risk for misuse
 - Clean API surface
 - Preserves all original functionality
 
@@ -88,7 +88,7 @@ const getModelRunnable = async (llm) => {
 
 **Test Result**: 
 ```
-[A] Unfortunately, I'm unable to access information about your Notion account 
+Unfortunately, I'm unable to access information about your Notion account 
 at this time due to an error with the tool.invoke function.
 ```
 
@@ -104,12 +104,12 @@ at this time due to an error with the tool.invoke function.
      return super.bindTools(transformedTools, kwargs);
    }
    ```
-5. **Result**: Schema transformed at exactly the right moment
+5. **Result**: Schema transformed at exactly the desired moment
 
 **Test Result**:
 ```
-[A] Your Notion account is linked to the email address 00hideya@gmail.com, 
-and your username is hideyahideya.
+Your Notion account is linked to the email address ..., 
+and your username is ...
 ```
 
 ## Deep Dive: Why Option A Breaks Tool Execution
@@ -176,32 +176,6 @@ User Code → LangChain Processing → LLM Binding → Schema Transform
 - **Robust**: Works regardless of LangChain internal changes
 - **Simple**: Zero configuration required
 
-## Decision Matrix
-
-| Factor | Option A | Option B | Winner |
-|--------|----------|----------|---------|
-| **Correctness** | ❌ Breaks tool execution | ✅ Works reliably | B |
-| **Simplicity** | ❌ Requires understanding of timing | ✅ Zero config | B |
-| **Maintainability** | ❌ Fragile to LangChain changes | ✅ Stable API contract | B |
-| **User Experience** | ❌ Easy to misuse | ✅ Impossible to misuse | B |
-| **API Surface** | ❌ Two concepts to learn | ✅ One class to import | B |
-| **Testing** | ❌ Complex integration testing | ✅ Simple unit testing | B |
-| **Documentation** | ❌ Must explain timing | ✅ Simple examples | B |
-
-## The "Cool vs. Practical" Trade-off
-
-### Why Option A Seemed "Cooler"
-- Functional programming approach
-- Explicit transformation control
-- Appears more flexible
-- Appeals to engineers who like control
-
-### Why Option B Is Better Engineering
-- **Principle of Least Surprise**: Works exactly as expected
-- **Single Responsibility**: Does one thing perfectly
-- **Fail-Safe Design**: Cannot be used incorrectly
-- **Zero Cognitive Load**: No decisions for users to make
-
 ## Final Decision: Option B Only
 
 We decided to **remove Option A entirely** for these reasons:
@@ -209,7 +183,7 @@ We decided to **remove Option A entirely** for these reasons:
 ### 1. Technical Superiority
 Option B simply works better - it doesn't break tool execution and is architecturally sound.
 
-### 2. User Experience
+### 2. Simple User Experience
 ```typescript
 // Before: Confusing choice
 import { ChatGoogleGenerativeAIEx, transformMcpToolsForGemini } from '...';
@@ -221,50 +195,10 @@ import { ChatGoogleGenerativeAIEx } from '...';
 ```
 
 ### 3. Maintenance Burden
-Supporting two approaches means:
-- Double the documentation
-- Double the testing
-- Double the support questions
-- Double the maintenance overhead
+Supporting two approaches means having twice the documentation, testing, maintenance, and so on.
 
 ### 4. Library Philosophy
 This library exists to solve **one specific problem**: Gemini schema compatibility. Adding complexity that doesn't serve this goal dilutes the value proposition.
-
-## Implementation Strategy
-
-### What We Removed
-- `transformMcpToolsForGemini()` function from public API
-- All Option A documentation and examples
-- Comparison sections that create decision paralysis
-
-### What We Kept
-- `ChatGoogleGenerativeAIEx` as the sole public API
-- Internal transformation logic (still used by the class)
-- Comprehensive schema transformation capabilities
-
-### Internal Architecture
-The transformation logic remains robust and comprehensive:
-- Handles `allOf`/`anyOf`/`oneOf` conversions
-- Resolves `$ref` and `$defs`
-- Normalizes type arrays
-- Filters invalid required fields
-- Removes unsupported JSON Schema features
-
-It's simply invoked at the **correct point in the lifecycle** via the `bindTools()` override.
-
-## Lessons Learned
-
-### 1. Architecture Matters More Than Features
-The "how" often matters more than the "what" when it comes to library design.
-
-### 2. Timing is Critical in Framework Integration
-Understanding **when** to apply transformations is as important as **what** transformations to apply.
-
-### 3. Simple APIs Win
-Users prefer libraries that "just work" over libraries that offer theoretical flexibility they'll never need.
-
-### 4. Investigation Prevents Problems
-Deep technical analysis during design prevents user frustration after release.
 
 ## Conclusion
 
@@ -272,8 +206,4 @@ By choosing the drop-in replacement approach, we created a library that:
 - **Solves the problem completely** without breaking tool execution
 - **Requires zero configuration** from users
 - **Is robust against future changes** in LangChain's internals
-- **Has a clean, obvious API** that's impossible to misuse
-
-The decision to drop Option A wasn't about avoiding "coolness" - it was about choosing **correctness and usability over theoretical flexibility**. Sometimes the best engineering decision is the one that removes choices users never wanted to make.
-
-This analysis demonstrates that good library design isn't just about solving the technical problem, but solving it in a way that respects the broader ecosystem and prioritizes user success over developer cleverness.
+- **Has a clean, obvious API** that is hardly susceptible to misuse

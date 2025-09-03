@@ -7,7 +7,7 @@ This library fixes **Gemini schema compatibility issues** when using MCP servers
 The schema error usually looks like:  
 `[GoogleGenerativeAI Error]: ... [400 Bad Request] Invalid JSON payload received.`
 
-> This library addresses compatibility issues present as of September 2, 2025, with LangChain.js v0.2.16 and @google/generative-ai v0.21.0.
+> This library addresses compatibility issues present as of September 3, 2025, with LangChain.js (@langchain/core) v0.3.72 and @langchain/google-genai v0.2.16.
 
 ## How to Use This Library
 
@@ -28,7 +28,7 @@ const agent = createReactAgent({ llm, tools: mcpTools }); // Auto-transformed!
 ```
 
 **This automatically fixes:**
-- ✅ "anyOf must be the only field set" errors (Gemini 1.5-flash)
+- ✅ "anyOf must be the only field set" errors (Gemini 1.5)
 - ✅ "Unknown name 'exclusiveMaximum'" schema validation errors  
 - ✅ "Invalid JSON payload" errors from complex MCP schemas
 - ✅ Cascading failures where one complex server breaks entire MCP integration
@@ -56,8 +56,6 @@ Before installing, make sure you have:
 - **LangChain.js** - This package works with [`@langchain/core`](https://www.npmjs.com/package/@langchain/core)
   and [`@langchain/mcp-adapters`](https://www.npmjs.com/package/@langchain/mcp-adapters)
 - **MCP Servers** - Access to the MCP servers you want to use
-
-**Note on Dependencies:** This package uses specific versions of `@langchain/google-genai` (~0.2.16) and `@google/generative-ai` (~0.21.0) to ensure schema transformation reliability.
 
 ## Installation
 
@@ -93,7 +91,7 @@ If you searched for `GoogleGenerativeAIFetchError: [GoogleGenerativeAI Error] 40
 - The result is a **400 Bad Request** - even though the same MCP server works fine with OpenAI, Anthropic, etc.
 - Google provides a fix in its new Gemini SDK (`@google/genai`), but LangChain.js cannot leverage it due to its architectural misalignment.
 
-For many developers, this can make Gemini difficult to use with LangChain.js and some MCP servers. Even if only one complex MCP server is included in the MCP definitions passed to `MultiServerMCPClient`, all subsequent MCP usage starts failing with the error above.
+For many developers, this can make Gemini difficult to use with LangChain.js and some MCP servers. Even if only one incompatible MCP server is included in the MCP definitions passed to `MultiServerMCPClient`, all subsequent MCP usage starts failing with the error above.
 
 **This library handles all these schema incompatibilities through schema transformation, converting complex MCP tool schemas into Gemini-friendly formats so you can focus on building instead of debugging schema errors.**
 
@@ -116,7 +114,7 @@ const client = new MultiServerMCPClient({
     },
     notion: {
       transport: "stdio",
-      command: "npx",
+      command: "npx", // OAuth via "mcp-remote"
       args: ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]
     }
   }
@@ -190,15 +188,8 @@ That's it! No other changes needed.
 
 For complete API documentation with detailed examples and type information, see:
 
-**[📖 Full API Documentation](https://hideya.github.io/langchain-google-genai-ex/)**
+**[📖 API Documentation](https://hideya.github.io/langchain-google-genai-ex/)**
 
 ## License
 
 [MIT](./LICENSE)
-
-## Links
-
-- [📖 **Full API Documentation**](https://hideya.github.io/langchain-google-genai-ex/)
-- [📦 **NPM Package**](https://www.npmjs.com/package/@hideya/langchain-google-genai-ex)
-- [🐛 **Issues & Bug Reports**](https://github.com/hideya/langchain-google-genai-ex/issues)
-- [🔧 **Source Code**](https://github.com/hideya/langchain-google-genai-ex)
