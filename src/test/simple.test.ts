@@ -82,16 +82,11 @@ const client = new MultiServerMCPClient({
 
   // const llm = new ChatOpenAI({model: "gpt-5-mini"});
 
-  // const llm = new ChatGoogleGenerativeAIEx({model: "gemini-1.5-pro"});
-  // const agent = createReactAgent({ llm, tools: mcpTools });
+  const llm = new ChatGoogleGenerativeAIEx({model: "gemini-1.5-pro"});
+  const agent = createReactAgent({ llm, tools: mcpTools });
 
   // const llm = new ChatGoogleGenerativeAI({model: "gemini-1.5-pro"});
   // const transformedTools = transformMcpToolsForGemini(mcpTools);
-  // const agent = createReactAgent({ llm, tools: transformedTools });
-
-  // // Option A with deep clone
-  // const llm = new ChatGoogleGenerativeAI({model: "gemini-1.5-pro"});
-  // const transformedTools = transformMcpToolsForGemini(JSON.parse(JSON.stringify(mcpTools))); // Deep clone first
   // const agent = createReactAgent({ llm, tools: transformedTools });
 
   // const query = "Are there any weather alerts in California?";
