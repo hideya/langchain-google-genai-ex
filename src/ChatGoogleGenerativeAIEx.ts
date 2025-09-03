@@ -2,31 +2,19 @@ import { ChatGoogleGenerativeAI, GoogleGenerativeAIChatCallOptions } from "@lang
 import { transformMcpToolsForGemini } from "./schema-adapter-gemini.js";
 
 /**
- * Simplified ChatGoogleGenerativeAI extension that automatically transforms MCP tool schemas
+ * Drop-in replacement for ChatGoogleGenerativeAI that automatically transforms MCP tool schemas
  * to be compatible with Gemini's strict schema requirements.
  * 
- * This class provides a drop-in replacement for ChatGoogleGenerativeAI with automatic
- * schema transformation. It's a thin convenience wrapper around the core transformation
- * logic in transformMcpToolsForGemini().
+ * Simply replace your ChatGoogleGenerativeAI import with ChatGoogleGenerativeAIEx and all
+ * MCP tool schemas will be automatically transformed for Gemini compatibility.
  * 
- * ## Two Ways to Use This Library:
- * 
- * ### Option A: Simple Function (Recommended for most users)
+ * ## Usage:
  * ```typescript
- * import { transformMcpToolsForGemini } from '@hideya/langchain-google-genai-ex';
- * import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
+ * import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
+ * import { createReactAgent } from '@langchain/langgraph/prebuilt';
  * 
- * const mcpTools = await client.getTools();
- * const transformedTools = transformMcpToolsForGemini(mcpTools);
- * const llm = new ChatGoogleGenerativeAI({ model: "gemini-1.5-flash" });
- * const agent = createReactAgent({ llm, tools: transformedTools });
- * ```
- * 
- * ### Option B: Drop-in Replacement (For maximum convenience)
- * ```typescript
  * const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-1.5-flash" });
- * const mcpTools = await client.getTools();
- * const agent = createReactAgent({ llm, tools: mcpTools }); // Auto-transformed
+ * const agent = createReactAgent({ llm, tools: mcpTools }); // Auto-transformed!
  * ```
  * 
  * ## What Gets Fixed:
@@ -39,6 +27,7 @@ import { transformMcpToolsForGemini } from "./schema-adapter-gemini.js";
  * - All Gemini models (1.5-flash, 2.5-flash, etc.)
  * - All MCP server types (Airtable, Notion, GitHub, etc.)
  * - All LangChain tool patterns (MCP tools, StructuredTools, Runnable tools)
+ * - All original ChatGoogleGenerativeAI features (streaming, system instructions, etc.)
  */
 export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   /**

@@ -1,6 +1,5 @@
 import "dotenv/config";
-import { ChatGoogleGenerativeAIEx, transformMcpToolsForGemini } from "../index.js";
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatGoogleGenerativeAIEx } from "../index.js";
 // import { ChatOpenAI } from "@langchain/openai";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { HumanMessage } from "@langchain/core/messages";
@@ -32,19 +31,19 @@ const client = new MultiServerMCPClient({
     //     "mcp-server-fetch"
     //   ]
     // },
-    // airtable: {
-    //   transport: "stdio",
-    //   command: "npx",
-    //   args: ["-y", "airtable-mcp-server"],
-    //   env: {
-    //     "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
-    //   }
-    // },
-    notion: {
+    airtable: {
       transport: "stdio",
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.notion.com/mcp"],
+      command: "npx",
+      args: ["-y", "airtable-mcp-server"],
+      env: {
+        "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
+      }
     },
+    // notion: {
+    //   transport: "stdio",
+    //   "command": "npx",
+    //   "args": ["-y", "mcp-remote", "https://mcp.notion.com/mcp"],
+    // },
     // filesystem: {
     //   command: "npx",
     //   args: [
@@ -85,14 +84,10 @@ const client = new MultiServerMCPClient({
   const llm = new ChatGoogleGenerativeAIEx({model: "gemini-1.5-pro"});
   const agent = createReactAgent({ llm, tools: mcpTools });
 
-  // const llm = new ChatGoogleGenerativeAI({model: "gemini-1.5-pro"});
-  // const transformedTools = transformMcpToolsForGemini(mcpTools);
-  // const agent = createReactAgent({ llm, tools: transformedTools });
-
   // const query = "Are there any weather alerts in California?";
   // const query = "Read the top news headlines on bbc.com";
-  // const query = "Tell me about my Airtable account";
-  const query = "Tell me about my Notion account";
+  const query = "Tell me about my Airtable account";
+  // const query = "Tell me about my Notion account";
 
   // const query = "Tell me how many of directories in `.`";
   // const query = "Tell me about my Notion account";

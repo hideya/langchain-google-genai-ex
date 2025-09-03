@@ -1,32 +1,19 @@
 /**
  * @hideya/langchain-google-genai-ex
  * 
- * Extended ChatGoogleGenerativeAI with access to internal client for advanced use cases
+ * Drop-in replacement for ChatGoogleGenerativeAI that automatically fixes
+ * schema compatibility issues with MCP tools and Google Gemini.
  * 
- * This package provides enhanced functionality for Google Generative AI integration with LangChain:
- * - Model name remapping (google-* → gemini-*)
- * - Access to internal Google AI client
- * - Enhanced cached content support
- * - Tool payload normalization for Gemini compatibility
- * - Support for complex MCP tool schemas
+ * Simply replace:
+ *   import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
+ * With:
+ *   import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
+ * 
+ * All MCP tool schemas are automatically transformed for Gemini compatibility.
  */
 
 // Chat Models - Extended classes with automatic schema transformation
 export { ChatGoogleGenerativeAIEx } from "./ChatGoogleGenerativeAIEx.js";
-
-// Schema Adapters - Manual transformation functions for advanced use cases  
-export { 
-  transformMcpToolsForGemini,
-  transformMcpToolForGemini,
-  makeJsonSchemaGeminiCompatible,
-  validateGeminiSchema
-} from "./schema-adapter-gemini.js";
-
-// Type definitions
-export type { 
-  JsonSchemaDraft7, 
-  TransformResult 
-} from "./schema-adapter-types.js";
 
 // Re-export useful types from the base package
 export type { ChatGoogleGenerativeAI } from "@langchain/google-genai";

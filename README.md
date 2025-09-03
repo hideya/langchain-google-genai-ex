@@ -9,13 +9,12 @@ The schema error usually looks like:
 
 > This library addresses compatibility issues present as of September 2, 2025, with LangChain.js v0.2.16 and @google/generative-ai v0.21.0.
 
-## Two Ways to Use This Library
+## How to Use This Library
 
-### Option A: Simple Function (Recommended for most users)
+### Drop-in Replacement (Zero Configuration)
 
 ```typescript
-import { transformMcpToolsForGemini } from '@hideya/langchain-google-genai-ex';
-import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
+import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { MultiServerMCPClient } from '@langchain/mcp-adapters';
 
@@ -23,33 +22,18 @@ import { MultiServerMCPClient } from '@langchain/mcp-adapters';
 const client = new MultiServerMCPClient({ /* your config */ });
 const mcpTools = await client.getTools();
 
-// Transform tools for Gemini compatibility
-const transformedTools = transformMcpToolsForGemini(mcpTools);
-
-// Use standard ChatGoogleGenerativeAI with transformed tools
-const llm = new ChatGoogleGenerativeAI({ model: "gemini-1.5-flash" });
-const agent = createReactAgent({ llm, tools: transformedTools });
-```
-
-### Option B: Drop-in Replacement (For maximum convenience)
-
-```typescript
-import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
-
-// Everything is handled automatically - just replace the class
+// Just replace ChatGoogleGenerativeAI with ChatGoogleGenerativeAIEx
 const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-1.5-flash" });
 const agent = createReactAgent({ llm, tools: mcpTools }); // Auto-transformed!
 ```
 
-**Both approaches fix the same issues:**
+**This automatically fixes:**
 - ✅ "anyOf must be the only field set" errors (Gemini 1.5-flash)
 - ✅ "Unknown name 'exclusiveMaximum'" schema validation errors  
 - ✅ "Invalid JSON payload" errors from complex MCP schemas
 - ✅ Cascading failures where one complex server breaks entire MCP integration
 
-**Choose based on your preference:**
-- **Option A** gives you full control and easy migration path
-- **Option B** gives you zero-config convenience
+**That's it!** No configuration, no additional steps, no schema transformation code to write.
 
 ## 📋 Table of Contents
 
@@ -58,9 +42,8 @@ Below we'll explain what and how this library works in detail:
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)  
 - [The Problem You're Probably Having](#the-problem-youre-probably-having)
-- [Complete Usage Examples](#complete-usage-examples)
+- [Complete Usage Example](#complete-usage-example)
 - [Features](#features)
-- [Migration Paths](#migration-paths)
 - [API Reference](#api-reference)
 - [Contributing](#contributing)
 
@@ -114,53 +97,7 @@ For many developers, this can make Gemini difficult to use with LangChain.js and
 
 **This library handles all these schema incompatibilities through schema transformation, converting complex MCP tool schemas into Gemini-friendly formats so you can focus on building instead of debugging schema errors.**
 
-## Complete Usage Examples
-
-### Option A: Using the Transform Function
-
-```typescript
-import { transformMcpToolsForGemini } from '@hideya/langchain-google-genai-ex';
-import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
-import { createReactAgent } from '@langchain/langgraph/prebuilt';
-import { MultiServerMCPClient } from '@langchain/mcp-adapters';
-import { HumanMessage } from '@langchain/core/messages';
-
-// Set up MCP client with complex tools (like Airtable) that cause "400 errors"
-const client = new MultiServerMCPClient({
-  mcpServers: {
-    airtable: {
-      transport: "stdio",
-      command: "npx",
-      args: ["-y", "airtable-mcp-server"],
-      env: { "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}` }
-    }
-  }
-});
-
-const mcpTools = await client.getTools();
-
-// Transform tools for Gemini compatibility
-const transformedTools = transformMcpToolsForGemini(mcpTools);
-
-// Use standard ChatGoogleGenerativeAI with transformed tools
-const llm = new ChatGoogleGenerativeAI({ 
-  model: "gemini-1.5-flash",
-  apiKey: process.env.GOOGLE_API_KEY 
-});
-
-// Create agent with transformed tools
-const agent = createReactAgent({ llm, tools: transformedTools });
-
-// This works! No more schema errors
-const result = await agent.invoke({
-  messages: [new HumanMessage("Tell me about my Airtable account")]
-});
-
-console.log(result.messages[result.messages.length - 1].content);
-await client.close();
-```
-
-### Option B: Using the Drop-in Replacement Class
+## Complete Usage Example
 
 ```typescript
 import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
@@ -176,13 +113,18 @@ const client = new MultiServerMCPClient({
       command: "npx",
       args: ["-y", "airtable-mcp-server"],
       env: { "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}` }
+    },
+    notion: {
+      transport: "stdio",
+      command: "npx",
+      args: ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]
     }
   }
 });
 
 const mcpTools = await client.getTools();
 
-// Use the enhanced ChatGoogleGenerativeAI - tools auto-transformed
+// Use ChatGoogleGenerativeAIEx - tools are automatically transformed
 const llm = new ChatGoogleGenerativeAIEx({ 
   model: "gemini-1.5-flash",
   apiKey: process.env.GOOGLE_API_KEY 
@@ -199,6 +141,12 @@ const result = await agent.invoke({
 console.log(result.messages[result.messages.length - 1].content);
 await client.close();
 ```
+
+**Key Benefits:**
+- **Zero configuration** - Just replace the import
+- **Works with all MCP servers** - Airtable, Notion, GitHub, etc.
+- **Preserves all functionality** - Streaming, system instructions, etc.
+- **No breaking changes** - Drop-in replacement for ChatGoogleGenerativeAI
 
 ## Features
 
@@ -217,63 +165,25 @@ await client.close();
 - **Nested structure handling** - recursively processes complex object hierarchies
 
 
-### Migration Paths
+### Simple Migration
 
-**Choose the approach that fits your needs:**
-
-#### Migration from Google's New SDK
-If you're migrating from Google's official SDK to LangChain.js:
+If you're already using LangChain.js and hitting schema errors, just replace your import:
 
 ```typescript
-// If you were using Google's SDK directly:
-import { GoogleGenAI, mcpToTool } from "@google/genai";
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-
-const ai = new GoogleGenAI({});
-const client = new Client(...);
-const response = await ai.models.generateContent({
-  model: "gemini-2.5-flash",
-  contents: "What is the weather in London?",
-  config: {
-    tools: [mcpToTool(client)], // ← Google's official solution
-  },
-});
-```
-
-```typescript
-// Migrate to LangChain.js with Option A (recommended):
-import { transformMcpToolsForGemini } from "@hideya/langchain-google-genai-ex";
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { MultiServerMCPClient } from "@langchain/mcp-adapters";
-
-const client = new MultiServerMCPClient({...});
-const mcpTools = await client.getTools();
-const transformedTools = transformMcpToolsForGemini(mcpTools); // ← Our solution
-const llm = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
-const agent = createReactAgent({ llm, tools: transformedTools });
-```
-
-#### Migration from Standard LangChain.js
-If you're already using LangChain.js and hitting schema errors:
-
-```typescript
-// If this is failing with schema errors:
+// Before: Failing with schema errors
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 const llm = new ChatGoogleGenerativeAI({ model: "gemini-1.5-flash" });
 const agent = createReactAgent({ llm, tools: mcpTools }); // ❌ Fails
 ```
 
 ```typescript
-// Easy fix with Option A:
-import { transformMcpToolsForGemini } from "@hideya/langchain-google-genai-ex";
-const transformedTools = transformMcpToolsForGemini(mcpTools);
-const agent = createReactAgent({ llm, tools: transformedTools }); // ✅ Works
-
-// Or even easier with Option B:
+// After: Just change the import
 import { ChatGoogleGenerativeAIEx } from "@hideya/langchain-google-genai-ex";
 const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-1.5-flash" });
-const agent = createReactAgent({ llm, tools: mcpTools }); // ✅ Works
+const agent = createReactAgent({ llm, tools: mcpTools }); // ✅ Works!
 ```
+
+That's it! No other changes needed.
 
 
 ## API Reference
@@ -281,14 +191,6 @@ const agent = createReactAgent({ llm, tools: mcpTools }); // ✅ Works
 For complete API documentation with detailed examples and type information, see:
 
 **[📖 Full API Documentation](https://hideya.github.io/langchain-google-genai-ex/)**
-
-## Contributing
-
-Issues and PRs welcome! This package specifically targets the intersection of:
-- LangChain.js framework
-- Google Gemini API (via ChatGoogleGenerativeAI)  
-- MCP (Model Context Protocol) tools
-- Complex JSON Schema compatibility
 
 ## License
 
