@@ -2,14 +2,19 @@
 
 ### Simple library to fix Gemini API schema issues with MCP tools / LangChain.js
 
-This library fixes **Gemini schema compatibility issues** when using MCP servers with complex schemas (like Airtable).
-It prevents cascading failures where one complex server breaks the entire MCP integration when using `MultiServerMCPClient()`.
-It supports both Gemini 1.5 and 2.5.
+This library fixes **Gemini schema compatibility issues** when using LangChain.js
+and MCP servers with complex schemas (like Airtable).  
+Supports both Gemini 1.5 and 2.5.
 
 The schema error usually looks like:  
 `[GoogleGenerativeAI Error]: ... [400 Bad Request] Invalid JSON payload received.`
 
+This error typically occurs when using `MultiServerMCPClient()`.  
+This library prevents its cascading failures where one complex server breaks the entire MCP integration.
+
 > This library addresses compatibility issues present as of September 3, 2025, with LangChain.js (@langchain/core) v0.3.72 and @langchain/google-genai v0.2.16.
+
+You can avoid this schema issue if you use Google Vertex AI, which supports API endpoints with relaxed schema requirements.
 
 ## How to Use This Library
 
@@ -37,7 +42,7 @@ const agent = createReactAgent({ llm, tools: mcpTools }); // Auto-transformed!
 
 **That's it!** No configuration, no additional steps.
 
-You can always switch back to the original `ChatGoogleGenerativeAI`
+You can easily switch back to the original `ChatGoogleGenerativeAI`
 when its schema handling improves,
 or when the MCP server's schema improves to meet Gemini's strict requirements.
 
