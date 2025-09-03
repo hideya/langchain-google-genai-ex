@@ -21,24 +21,29 @@ const client = new MultiServerMCPClient({
 
   // Server configuration
   mcpServers: {
-    "us-weather": {
+    // "us-weather": {
+    //   transport: "stdio",
+    //   command: "npx",
+    //   args: ["-y", "@h1deya/mcp-server-weather"]
+    // },
+    // fetch: {
+    //   command: "uvx",
+    //   args: [
+    //     "mcp-server-fetch"
+    //   ]
+    // },
+    // airtable: {
+    //   transport: "stdio",
+    //   command: "npx",
+    //   args: ["-y", "airtable-mcp-server"],
+    //   env: {
+    //     "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
+    //   }
+    // },
+    notion: {
       transport: "stdio",
-      command: "npx",
-      args: ["-y", "@h1deya/mcp-server-weather"]
-    },
-    fetch: {
-      command: "uvx",
-      args: [
-        "mcp-server-fetch"
-      ]
-    },
-    airtable: {
-      transport: "stdio",
-      command: "npx",
-      args: ["-y", "airtable-mcp-server"],
-      env: {
-        "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
-      }
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp.notion.com/mcp"],
     },
     // filesystem: {
     //   command: "npx",
@@ -47,11 +52,6 @@ const client = new MultiServerMCPClient({
     //     "@modelcontextprotocol/server-filesystem",
     //     "."  // path to a directory to allow access to
     //   ]
-    // },
-    // notion: {
-    //   transport: "stdio",
-    //   "command": "npx",
-    //   "args": ["-y", "mcp-remote", "https://mcp.notion.com/mcp"],
     // },
     // github: {
     //   transport: "http",
@@ -82,16 +82,22 @@ const client = new MultiServerMCPClient({
 
   // const llm = new ChatOpenAI({model: "gpt-5-mini"});
 
-  const llm = new ChatGoogleGenerativeAIEx({model: "gemini-1.5-pro"});
-  const agent = createReactAgent({ llm, tools: mcpTools });
+  // const llm = new ChatGoogleGenerativeAIEx({model: "gemini-1.5-pro"});
+  // const agent = createReactAgent({ llm, tools: mcpTools });
 
   // const llm = new ChatGoogleGenerativeAI({model: "gemini-1.5-pro"});
   // const transformedTools = transformMcpToolsForGemini(mcpTools);
   // const agent = createReactAgent({ llm, tools: transformedTools });
 
+  // // Option A with deep clone
+  // const llm = new ChatGoogleGenerativeAI({model: "gemini-1.5-pro"});
+  // const transformedTools = transformMcpToolsForGemini(JSON.parse(JSON.stringify(mcpTools))); // Deep clone first
+  // const agent = createReactAgent({ llm, tools: transformedTools });
+
   // const query = "Are there any weather alerts in California?";
   // const query = "Read the top news headlines on bbc.com";
-  const query = "Tell me about my Airtable account";
+  // const query = "Tell me about my Airtable account";
+  const query = "Tell me about my Notion account";
 
   // const query = "Tell me how many of directories in `.`";
   // const query = "Tell me about my Notion account";
