@@ -6,6 +6,8 @@ import { HumanMessage } from "@langchain/core/messages";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 
 // Configure which LLM models to test
+// const LLM_MODELS_TO_TEST = ["gemini-1.5-pro", "gemini-2.5-flash"];
+// // NOTE: gemini-1.5-flash sometimes (not always) ignores tools it can use
 const LLM_MODELS_TO_TEST = ["gemini-1.5-flash", "gemini-2.5-flash"];
 // const LLM_MODELS_TO_TEST = ["gemini-1.5-flash"]; // Single model for quick testing
 // const LLM_MODELS_TO_TEST = ["gemini-2.5-flash"]; // Single model for quick testing
@@ -44,64 +46,64 @@ interface ServerTestConfig {
 }
 
 const MCP_SERVERS: ServerTestConfig[] = [
-  {
-    name: "us-weather",
-    displayName: "US Weather Serv",
-    config: {
-      transport: "stdio",
-      command: "npx",
-      args: ["-y", "@h1deya/mcp-server-weather"]
-    },
-    testQuery: "Are there any weather alerts in California?",
-    expectedToolNames: ["get-alerts", "get-forecast"]
-  },
-  {
-    name: "fetch",
-    displayName: "Fetch Server",
-    config: {
-      transport: "stdio",
-      command: "uvx",
-      args: ["mcp-server-fetch"]
-    },
-    testQuery: "Use the fetch tool to read and summarize the beginning of the news headlines on BBC.com",
-    expectedToolNames: ["fetch"]
-  },
-  {
-    name: "notion",
-    displayName: "Notion Server",
-    config: {
-      transport: "stdio",
-      command: "npx",
-      args: ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]
-    },
-    testQuery: "Use the notion-get-self tool and summarize the information about my account",
-    expectedToolNames: ["notion-get-self", "notion-search-pages"],
-    // requiresAuth: false,  //  OAuth via "mcp-remote"
-  },
-  {
-    name: "airtable",
-    displayName: "Airtable Server",
-    config: {
-      command: "npx",
-      args: ["-y", "airtable-mcp-server"],
-      env: {
-        "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
-      }
-    },
-    testQuery: "List all of the bases I have access to",
-    expectedToolNames: ["list_records", "list_tables"]
-  },
   // {
-  //   name: "brave-search",
-  //   displayName: "Brave Serch Server",
+  //   name: "us-weather",
+  //   displayName: "US Weather Serv",
+  //   config: {
+  //     transport: "stdio",
+  //     command: "npx",
+  //     args: ["-y", "@h1deya/mcp-server-weather"]
+  //   },
+  //   testQuery: "Are there any weather alerts in California?",
+  //   expectedToolNames: ["get-alerts", "get-forecast"]
+  // },
+  // {
+  //   name: "fetch",
+  //   displayName: "Fetch Server",
+  //   config: {
+  //     transport: "stdio",
+  //     command: "uvx",
+  //     args: ["mcp-server-fetch"]
+  //   },
+  //   testQuery: "Use the fetch tool to read and summarize the beginning of the news headlines on BBC.com",
+  //   expectedToolNames: ["fetch"]
+  // },
+  // {
+  //   name: "notion",
+  //   displayName: "Notion Server",
+  //   config: {
+  //     transport: "stdio",
+  //     command: "npx",
+  //     args: ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]
+  //   },
+  //   testQuery: "Use the notion-get-self tool and summarize the information about my account",
+  //   expectedToolNames: ["notion-get-self", "notion-search-pages"],
+  //   // requiresAuth: false,  //  OAuth via "mcp-remote"
+  // },
+  // {
+  //   name: "airtable",
+  //   displayName: "Airtable Server",
   //   config: {
   //     command: "npx",
-  //     args: [ "-y", "@modelcontextprotocol/server-brave-search"],
-  //     env: { "BRAVE_API_KEY": `${process.env.BRAVE_API_KEY}` }
+  //     args: ["-y", "airtable-mcp-server"],
+  //     env: {
+  //       "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
+  //     }
   //   },
-  //   testQuery: "Use Brace search to find out today's top story in Japan",
-  //   expectedToolNames: ["brave_web_search", "brave_local_search"]
+  //   testQuery: "List all of the bases I have access to",
+  //   expectedToolNames: ["list_records", "list_tables"]
   // },
+  {
+    name: "brave-search",
+    displayName: "Brave Serch Server",
+    config: {
+      command: "npx",
+      args: [ "-y", "@modelcontextprotocol/server-brave-search"],
+      env: { "BRAVE_API_KEY": `${process.env.BRAVE_API_KEY}` }
+    },
+    testQuery: "Use the Brace search tool to find out major news in Japan",
+    expectedToolNames: ["brave_web_search", "brave_local_search"]
+  },
   // {
   //   name: "filesystem",
   //   displayName: "Filesystem Server",
