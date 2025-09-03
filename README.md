@@ -2,7 +2,9 @@
 
 ### Simple library to fix Gemini API schema issues with MCP tools / LangChain.js
 
-This library fixes **Gemini schema compatibility issues** when using MCP servers with complex schemas (like Airtable). It prevents cascading failures where one complex server breaks the entire MCP integration when using `MultiServerMCPClient()`.
+This library fixes **Gemini schema compatibility issues** when using MCP servers with complex schemas (like Airtable).
+It prevents cascading failures where one complex server breaks the entire MCP integration when using `MultiServerMCPClient()`.
+It supports both Gemini 1.5 and 2.5.
 
 The schema error usually looks like:  
 `[GoogleGenerativeAI Error]: ... [400 Bad Request] Invalid JSON payload received.`
@@ -23,7 +25,7 @@ const client = new MultiServerMCPClient({ /* your config */ });
 const mcpTools = await client.getTools();
 
 // Just replace ChatGoogleGenerativeAI with ChatGoogleGenerativeAIEx
-const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-1.5-flash" });
+const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
 const agent = createReactAgent({ llm, tools: mcpTools }); // Auto-transformed!
 ```
 
@@ -124,7 +126,7 @@ const mcpTools = await client.getTools();
 
 // Use ChatGoogleGenerativeAIEx - tools are automatically transformed
 const llm = new ChatGoogleGenerativeAIEx({ 
-  model: "gemini-1.5-flash",
+  model: "gemini-1.5-flash", // 2.5 is also supported
   apiKey: process.env.GOOGLE_API_KEY 
 });
 
@@ -186,9 +188,7 @@ That's it! No other changes needed.
 
 ## API Reference
 
-For complete API documentation with detailed examples and type information, see:
-
-**[📖 API Documentation](https://hideya.github.io/langchain-google-genai-ex/)**
+Can be found [here](https://hideya.github.io/langchain-google-genai-ex)
 
 ## License
 
