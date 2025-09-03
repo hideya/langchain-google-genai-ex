@@ -1,6 +1,6 @@
 # Design Decision: Why We Chose the Drop-in Replacement Approach
 
-## Executive Summary
+## Summary
 
 During the development of `@hideya/langchain-google-genai-ex`, we extensively evaluated two approaches for solving Gemini schema compatibility issues with MCP tools:
 
@@ -120,16 +120,16 @@ and your username is ...
   User Code --→ LangChain Processing --→ LLM Binding
              ↑
      <Transform Tools>
-        Too early!
+        Too Early!
 ```
 
-**Option B***
+**Option B**
 
 ```
   User Code --→ LangChain Processing --→ LLM Binding
                                       ↑
                               <Transform Tools>
-                               Desiered timing!
+                               Desiered Timing!
 ```
 
 

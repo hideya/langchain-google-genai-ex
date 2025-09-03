@@ -70,7 +70,7 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
    *   User Code --→ LangChain Processing --→ LLM Binding
    *                                       ↑
    *                               <Transform Tools>
-   *                                Desiered timing!
+   *                                Desiered Timing!
    * ```
    * 
    * @param tools - Array of tools to bind (MCP tools, StructuredTools, etc.)

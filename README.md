@@ -108,6 +108,8 @@ all subsequent MCP usage starts failing with the error above.
 onverting complex MCP tool schemas into Gemini-friendly formats
 so you can focus on building instead of debugging schema errors.**
 
+See [this design decision document](./DESIGN_DECISIONS.md) for the implementation details.
+
 ## Complete Usage Example
 
 ```typescript
@@ -200,6 +202,8 @@ That's it! No other changes needed.
 ## API Reference
 
 Can be found [here](https://hideya.github.io/langchain-google-genai-ex)
+
+See [this design decision document](./DESIGN_DECISIONS.md) for the implementation details.
 
 ## License
 
