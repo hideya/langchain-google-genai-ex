@@ -1,35 +1,51 @@
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatGoogleGenerativeAI, GoogleGenerativeAIChatCallOptions } from "@langchain/google-genai";
 import { transformMcpToolsForGemini } from "../schema-adapter/index.js";
 
 /**
- * Extended ChatGoogleGenerativeAI class that automatically transforms MCP tool schemas
+ * Simplified ChatGoogleGenerativeAI extension that automatically transforms MCP tool schemas
  * to be compatible with Gemini's strict schema requirements.
  * 
- * This class intercepts tool definitions and applies schema transformations before
- * they're sent to the Gemini API, preventing the common "400 Bad Request" errors
- * that occur when using MCP tools with complex JSON schemas.
+ * This class provides a drop-in replacement for ChatGoogleGenerativeAI with automatic
+ * schema transformation. It's a thin convenience wrapper around the core transformation
+ * logic in transformMcpToolsForGemini().
  * 
- * Usage:
+ * ## Two Ways to Use This Library:
+ * 
+ * ### Option A: Simple Function (Recommended for most users)
  * ```typescript
- * const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
- * const client = new MultiServerMCPClient({...});
+ * import { transformMcpToolsForGemini } from '@hideya/langchain-google-genai-ex';
+ * import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
+ * 
  * const mcpTools = await client.getTools();
- * const agent = createReactAgent({ llm, tools: mcpTools });
+ * const transformedTools = transformMcpToolsForGemini(mcpTools);
+ * const llm = new ChatGoogleGenerativeAI({ model: "gemini-1.5-flash" });
+ * const agent = createReactAgent({ llm, tools: transformedTools });
  * ```
  * 
- * The schema transformations are automatically applied, so complex MCP tools 
- * (like Airtable) work without manual intervention.
+ * ### Option B: Drop-in Replacement (For maximum convenience)
+ * ```typescript
+ * const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-1.5-flash" });
+ * const mcpTools = await client.getTools();
+ * const agent = createReactAgent({ llm, tools: mcpTools }); // Auto-transformed
+ * ```
+ * 
+ * ## What Gets Fixed:
+ * - "anyOf must be the only field set" errors (Gemini 1.5-flash)
+ * - "Unknown name 'exclusiveMaximum'" and similar schema validation errors
+ * - "Invalid JSON payload" errors from complex MCP schemas
+ * - Cascading failures where one complex server breaks entire MCP integration
+ * 
+ * ## Works With:
+ * - All Gemini models (1.5-flash, 2.5-flash, etc.)
+ * - All MCP server types (Airtable, Notion, GitHub, etc.)
+ * - All LangChain tool patterns (MCP tools, StructuredTools, Runnable tools)
  */
 export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   /**
-   * Public method override: Ensures tools are transformed when binding configuration.
+   * Binds configuration options with automatic tool schema transformation.
    * 
-   * The bind() method is part of LangChain's public API for creating new model instances
-   * with additional configuration. Since users can bind tools directly via this method,
-   * we need to intercept and transform them here as well.
-   * 
-   * This complements the _generate() override by catching tools bound at configuration
-   * time, ensuring comprehensive coverage of all tool-binding scenarios.
+   * This method intercepts the bind() call and automatically transforms any tools
+   * using transformMcpToolsForGemini() before passing them to the parent class.
    * 
    * @param kwargs - Configuration options to bind, potentially including tools
    * @returns New ChatGoogleGenerativeAIEx instance with transformed tools
@@ -37,7 +53,7 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
    * @example
    * ```typescript
    * const boundLLM = llm.bind({ 
-   *   tools: mcpTools,      // These get auto-transformed
+   *   tools: mcpTools,      // Auto-transformed for Gemini compatibility
    *   temperature: 0.5 
    * });
    * ```
@@ -54,10 +70,10 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   }
 
   /**
-   * Public method override: Binds tools with automatic transformation.
+   * Binds tools with automatic schema transformation.
    * 
-   * This is a convenience method specifically for binding tools to the model.
-   * All tools are automatically transformed to be Gemini-compatible.
+   * This convenience method specifically handles tool binding and automatically
+   * transforms all tools using transformMcpToolsForGemini() for Gemini compatibility.
    * 
    * @param tools - Array of tools to bind (MCP tools, StructuredTools, etc.)
    * @param kwargs - Additional configuration options
@@ -71,13 +87,5 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   override bindTools(tools: any[], kwargs?: Partial<GoogleGenerativeAIChatCallOptions>): ChatGoogleGenerativeAIEx {
     const transformedTools = transformMcpToolsForGemini(tools);
     return super.bindTools(transformedTools, kwargs) as ChatGoogleGenerativeAIEx;
-  }
-
-  /**
-   * Get transformation statistics for the last set of tools processed
-   */
-  getLastTransformationStats(): { toolsProcessed: number; toolsTransformed: number } {
-    // This could be enhanced to track statistics if needed
-    return { toolsProcessed: 0, toolsTransformed: 0 };
   }
 }
