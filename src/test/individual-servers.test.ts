@@ -1,6 +1,6 @@
 import "dotenv/config";
-import { ChatGoogleGenerativeAIEx } from "../chat-models/ChatGoogleGenerativeAIEx.js";
-import { transformMcpToolsForGemini } from "../schema-adapter/index.js";
+import { ChatGoogleGenerativeAIEx } from "../ChatGoogleGenerativeAIEx.js";
+import { transformMcpToolsForGemini } from "../schema-adapter-gemini.js";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { HumanMessage } from "@langchain/core/messages";

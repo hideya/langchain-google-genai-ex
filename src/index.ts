@@ -12,7 +12,7 @@
  */
 
 // Chat Models - Extended classes with automatic schema transformation
-export { ChatGoogleGenerativeAIEx } from "./chat-models/index.js";
+export { ChatGoogleGenerativeAIEx } from "./ChatGoogleGenerativeAIEx.js";
 
 // Schema Adapters - Manual transformation functions for advanced use cases  
 export { 
@@ -20,14 +20,13 @@ export {
   transformMcpToolForGemini,
   makeJsonSchemaGeminiCompatible,
   validateGeminiSchema
-} from "./schema-adapter/index.js";
+} from "./schema-adapter-gemini.js";
 
 // Type definitions
 export type { 
   JsonSchemaDraft7, 
   TransformResult 
-} from "./schema-adapter/types.js";
+} from "./schema-adapter-types.js";
 
 // Re-export useful types from the base package
 export type { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-export type { GoogleGenerativeAI } from "@google/generative-ai";

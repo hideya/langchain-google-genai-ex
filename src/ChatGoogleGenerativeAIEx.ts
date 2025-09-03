@@ -1,5 +1,5 @@
 import { ChatGoogleGenerativeAI, GoogleGenerativeAIChatCallOptions } from "@langchain/google-genai";
-import { transformMcpToolsForGemini } from "../schema-adapter/index.js";
+import { transformMcpToolsForGemini } from "./schema-adapter-gemini.js";
 
 /**
  * Simplified ChatGoogleGenerativeAI extension that automatically transforms MCP tool schemas

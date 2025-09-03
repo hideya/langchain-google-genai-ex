@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { ChatGoogleGenerativeAIEx } from "../chat-models/ChatGoogleGenerativeAIEx.js";
+import { ChatGoogleGenerativeAIEx } from "../ChatGoogleGenerativeAIEx.js";
 // import { ChatGoogleGenerativeAIEx } from "@h1deya/langchain-google-genai-ex";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
