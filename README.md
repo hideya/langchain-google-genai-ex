@@ -49,7 +49,7 @@ or when the MCP server's schema improves to meet Gemini's strict requirements.
 You can find a simple usage example ready to clone and run
 [here](https://github.com/hideya/langchain-google-genai-ex-usage).
 
-## 📋 Table of Contents
+## Table of Contents
 
 Below we'll explain what and how this library works in detail:
 
@@ -59,7 +59,6 @@ Below we'll explain what and how this library works in detail:
 - [Complete Usage Example](#complete-usage-example)
 - [Features](#features)
 - [API Reference](#api-reference)
-- [Contributing](#contributing)
 
 ## Prerequisites
 
@@ -171,13 +170,13 @@ await client.close();
 
 ## Features
 
-### ✅ **All Original ChatGoogleGenerativeAI Features**
+### All Original ChatGoogleGenerativeAI Features
 `ChatGoogleGenerativeAIEx` extends the original class, so you get everything:
 - Streaming, function calling, system instructions
 - All model parameters and configurations
 - Full LangChain.js integration
 
-### ✅ **Comprehensive Schema Transformation**
+### Comprehensive Schema Transformation
 - **Systematic conversion** of `allOf`/`anyOf`/`oneOf` to equivalent object structures
 - **Reference resolution** - handles `$ref` and `$defs` by flattening definitions
 - **Type normalization** - converts type arrays `["string", "null"]` to `nullable` properties
