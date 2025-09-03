@@ -43,3 +43,6 @@ test-results/
 
 # test result file
 test-*
+
+# Generated API documents
+docs/

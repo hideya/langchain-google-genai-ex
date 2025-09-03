@@ -13,7 +13,7 @@ The schema error usually looks like:
 
 ## How to Use This Library
 
-### Drop-in Replacement (Zero Configuration)
+### Drop-in Replacement
 
 ```typescript
 import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
@@ -154,7 +154,7 @@ await client.close();
 ```
 
 **Key Benefits:**
-- **Zero configuration** - Just replace the import
+- **Simple to use** - Just replace the import
 - **Works with all MCP servers** - Airtable, Notion, GitHub, etc.
 - **Preserves all functionality** - Streaming, system instructions, etc.
 - **No breaking changes** - Drop-in replacement for ChatGoogleGenerativeAI

@@ -49,7 +49,7 @@ const agent = createReactAgent({ llm, tools: mcpTools }); // Auto-transformed
 ```
 
 **Perceived Benefits:**
-- Zero configuration
+- Drop-in replacement
 - Low risk for misuse
 - Clean API surface
 - Preserves all original functionality
@@ -155,9 +155,9 @@ Unknown name "id" at 'tools[0]': Cannot find field.
 ### Option A Violates Separation of Concerns
 
 ```
-User Code → Transform Tools → LangChain Processing → LLM Binding
-                ↑
-            Too Early!
+User Code → <Transform Tools> → LangChain Processing → LLM Binding
+                   ↑
+               Too Early!
 ```
 
 - **Problem**: User code must understand LangChain's internal tool lifecycle
@@ -167,14 +167,14 @@ User Code → Transform Tools → LangChain Processing → LLM Binding
 ### Option B Respects the Abstraction Layers
 
 ```
-User Code → LangChain Processing → LLM Binding → Schema Transform
-                                       ↑
-                                  Perfect Timing!
+User Code → LangChain Processing → <Transform Tools> → LLM Binding
+                                           ↑
+                                   Desiered Timing!
 ```
 
 - **Clean**: Each layer handles its own concerns
 - **Robust**: Works regardless of LangChain internal changes
-- **Simple**: Zero configuration required
+- **Simple**: Drop-in replacement
 
 ## Final Decision: Option B Only
 
@@ -189,7 +189,7 @@ Option B simply works better - it doesn't break tool execution and is architectu
 import { ChatGoogleGenerativeAIEx, transformMcpToolsForGemini } from '...';
 // "Wait, which one should I use? What's the difference?"
 
-// After: Zero confusion  
+// After: No confusion  
 import { ChatGoogleGenerativeAIEx } from '...';
 // "Perfect, just replace my ChatGoogleGenerativeAI and it works!"
 ```
@@ -204,6 +204,6 @@ This library exists to solve **one specific problem**: Gemini schema compatibili
 
 By choosing the drop-in replacement approach, we created a library that:
 - **Solves the problem completely** without breaking tool execution
-- **Requires zero configuration** from users
+- **Requires no configuration** from users
 - **Is robust against future changes** in LangChain's internals
 - **Has a clean, obvious API** that is hardly susceptible to misuse
