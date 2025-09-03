@@ -35,7 +35,11 @@ const agent = createReactAgent({ llm, tools: mcpTools }); // Auto-transformed!
 - ✅ "Invalid JSON payload" errors from complex MCP schemas
 - ✅ Cascading failures where one complex server breaks entire MCP integration
 
-**That's it!** No configuration, no additional steps, no schema transformation code to write.
+**That's it!** No configuration, no additional steps.
+
+You can always switch back to the original `ChatGoogleGenerativeAI`
+when its schema handling improves,
+or when the MCP server's schema improves to meet Gemini's strict requirements.
 
 ## 📋 Table of Contents
 
@@ -81,21 +85,28 @@ If you've ever tried using **Google Gemini** together with **LangChain.js** and 
 [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent: [400 Bad Request] Invalid JSON payload received. Unknown name "anyOf" at 'tools[0].function_declarations[8].parameters.properties[2]...': Proto field is not repeating, cannot start list.
 ```
 
-This typically occurs when you configure multiple MCP servers using `MultiServerMCPClient`, especially if some of these servers have complex schemas.
+This typically occurs when you configure multiple MCP servers using `MultiServerMCPClient`,
+especially when some of the servers have complex schemas.
 
 If you searched for `GoogleGenerativeAIFetchError: [GoogleGenerativeAI Error] 400 Bad Request`, this section explains the cause and how to workaround it when using LangChain.
 
 ### Why This Happens
 
 - [**Gemini's schema requirements for function calling are very strict**](https://ai.google.dev/api/caching#Schema)
-  MCP servers define their tools using flexible JSON schemas and LLMs invoke MCP tools via function calling. Most LLMs accept these schemas just fine.
+  MCP servers define their tools using flexible JSON schemas and LLMs invoke MCP tools via function calling.
+  Most LLMs accept these schemas just fine.
 - But Gemini **rejects valid MCP tool schemas** if they contain fields it doesn't expect (e.g., use of `anyOf`).
 - The result is a **400 Bad Request** - even though the same MCP server works fine with OpenAI, Anthropic, etc.
-- Google provides a fix in its new Gemini SDK (`@google/genai`), but LangChain.js cannot leverage it due to its architectural misalignment.
+- Google provides a fix in its new Gemini SDK (`@google/genai`),
+  but LangChain.js cannot leverage it due to its architectural misalignment.
 
-For many developers, this can make Gemini difficult to use with LangChain.js and some MCP servers. Even if only one incompatible MCP server is included in the MCP definitions passed to `MultiServerMCPClient`, all subsequent MCP usage starts failing with the error above.
+For many developers, this can make Gemini difficult to use with LangChain.js and some MCP servers.
+Even if only one incompatible MCP server is included in the MCP definitions passed to `MultiServerMCPClient`,
+all subsequent MCP usage starts failing with the error above.
 
-**This library handles all these schema incompatibilities through schema transformation, converting complex MCP tool schemas into Gemini-friendly formats so you can focus on building instead of debugging schema errors.**
+**This library handles all these schema incompatibilities through schema transformation, 
+onverting complex MCP tool schemas into Gemini-friendly formats
+so you can focus on building instead of debugging schema errors.**
 
 ## Complete Usage Example
 
