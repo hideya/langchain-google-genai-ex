@@ -30,33 +30,33 @@ import { transformMcpToolsForGemini } from "./schema-adapter-gemini.js";
  * - All original ChatGoogleGenerativeAI features (streaming, system instructions, etc.)
  */
 export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
-  /**
-   * Binds configuration options with automatic tool schema transformation.
-   * 
-   * This method intercepts the bind() call and automatically transforms any tools
-   * using transformMcpToolsForGemini() before passing them to the parent class.
-   * 
-   * @param kwargs - Configuration options to bind, potentially including tools
-   * @returns New ChatGoogleGenerativeAIEx instance with transformed tools
-   * 
-   * @example
-   * ```typescript
-   * const boundLLM = llm.bind({ 
-   *   tools: mcpTools,      // Auto-transformed for Gemini compatibility
-   *   temperature: 0.5 
-   * });
-   * ```
-   */
-  override bind(kwargs: Partial<GoogleGenerativeAIChatCallOptions>): ChatGoogleGenerativeAIEx {
-    if (kwargs.tools) {
-      const transformedKwargs = {
-        ...kwargs,
-        tools: transformMcpToolsForGemini(kwargs.tools as any[])
-      };
-      return super.bind(transformedKwargs) as ChatGoogleGenerativeAIEx;
-    }
-    return super.bind(kwargs) as ChatGoogleGenerativeAIEx;
-  }
+  // /**
+  //  * Binds configuration options with automatic tool schema transformation.
+  //  * 
+  //  * This method intercepts the bind() call and automatically transforms any tools
+  //  * using transformMcpToolsForGemini() before passing them to the parent class.
+  //  * 
+  //  * @param kwargs - Configuration options to bind, potentially including tools
+  //  * @returns New ChatGoogleGenerativeAIEx instance with transformed tools
+  //  * 
+  //  * @example
+  //  * ```typescript
+  //  * const boundLLM = llm.bind({ 
+  //  *   tools: mcpTools,      // Auto-transformed for Gemini compatibility
+  //  *   temperature: 0.5 
+  //  * });
+  //  * ```
+  //  */
+  // override bind(kwargs: Partial<GoogleGenerativeAIChatCallOptions>): ChatGoogleGenerativeAIEx {
+  //   if (kwargs.tools) {
+  //     const transformedKwargs = {
+  //       ...kwargs,
+  //       tools: transformMcpToolsForGemini(kwargs.tools as any[])
+  //     };
+  //     return super.bind(transformedKwargs) as ChatGoogleGenerativeAIEx;
+  //   }
+  //   return super.bind(kwargs) as ChatGoogleGenerativeAIEx;
+  // }
 
   /**
    * Binds tools with automatic schema transformation.

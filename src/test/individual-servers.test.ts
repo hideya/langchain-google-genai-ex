@@ -44,17 +44,17 @@ interface ServerTestConfig {
 }
 
 const MCP_SERVERS: ServerTestConfig[] = [
-  // {
-  //   name: "us-weather",
-  //   displayName: "US Weather Serv",
-  //   config: {
-  //     transport: "stdio",
-  //     command: "npx",
-  //     args: ["-y", "@h1deya/mcp-server-weather"]
-  //   },
-  //   testQuery: "Are there any weather alerts in California?",
-  //   expectedToolNames: ["get-alerts", "get-forecast"]
-  // },
+  {
+    name: "us-weather",
+    displayName: "US Weather Serv",
+    config: {
+      transport: "stdio",
+      command: "npx",
+      args: ["-y", "@h1deya/mcp-server-weather"]
+    },
+    testQuery: "Are there any weather alerts in California?",
+    expectedToolNames: ["get-alerts", "get-forecast"]
+  },
   {
     name: "fetch",
     displayName: "Fetch Server",
