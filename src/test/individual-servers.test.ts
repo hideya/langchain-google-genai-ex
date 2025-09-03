@@ -6,6 +6,9 @@ import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { HumanMessage } from "@langchain/core/messages";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 
+// const LLM_MODEL_TO_TEST = "gemini-2.5-flash";
+const LLM_MODEL_TO_TEST = "gemini-1.5-flash";
+
 /**
  * Individual MCP Server Integration Test
  * 
@@ -52,17 +55,17 @@ const MCP_SERVERS: ServerTestConfig[] = [
   //   testQuery: "Are there any weather alerts in California?",
   //   expectedToolNames: ["get-alerts", "get-forecast"]
   // },
-  // {
-  //   name: "fetch",
-  //   displayName: "Fetch Server",
-  //   config: {
-  //     transport: "stdio",
-  //     command: "uvx",
-  //     args: ["mcp-server-fetch"]
-  //   },
-  //   testQuery: "Summarize the beginning of the news headlines on BBC.com",
-  //   expectedToolNames: ["fetch"]
-  // },
+  {
+    name: "fetch",
+    displayName: "Fetch Server",
+    config: {
+      transport: "stdio",
+      command: "uvx",
+      args: ["mcp-server-fetch"]
+    },
+    testQuery: "Summarize the beginning of the news headlines on BBC.com",
+    expectedToolNames: ["fetch"]
+  },
   // {
   //   name: "notion",
   //   displayName: "Notion Server",
@@ -252,7 +255,7 @@ async function testSingleServer(serverConfig: ServerTestConfig): Promise<TestRes
     // Test with original ChatGoogleGenerativeAI first
     console.log(`  🔄 Testing original ChatGoogleGenerativeAI...`);
     try {
-      const originalLlm = new ChatGoogleGenerativeAI({ model: process.env.LLM_MODEL_TO_TEST });
+      const originalLlm = new ChatGoogleGenerativeAI({ model: LLM_MODEL_TO_TEST });
       const originalAgent = createReactAgent({ llm: originalLlm, tools: mcpTools });
       
       const originalResult = await originalAgent.invoke({
@@ -273,7 +276,7 @@ async function testSingleServer(serverConfig: ServerTestConfig): Promise<TestRes
     console.log(`  🔧 Testing manual transformation (+transformMcpToolsForGemini)...`);
     try {
       const transformedTools = transformMcpToolsForGemini(mcpTools);
-      const manualLlm = new ChatGoogleGenerativeAI({ model: process.env.LLM_MODEL_TO_TEST });
+      const manualLlm = new ChatGoogleGenerativeAI({ model: LLM_MODEL_TO_TEST });
       const manualAgent = createReactAgent({ llm: manualLlm, tools: transformedTools });
       
       const manualResult = await manualAgent.invoke({
