@@ -1,8 +1,5 @@
-import { ChatGoogleGenerativeAI, GoogleGenerativeAIChatCallOptions } from "@langchain/google-genai";
-import { transformMcpToolForGemini } from "../schema-adapter/gemini.js";
-import { BaseMessage } from "@langchain/core/messages";
-import { ChatResult } from "@langchain/core/outputs";
-import { StructuredTool } from "@langchain/core/tools";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { transformMcpToolsForGemini } from "../schema-adapter/index.js";
 
 /**
  * Extended ChatGoogleGenerativeAI class that automatically transforms MCP tool schemas
@@ -24,191 +21,6 @@ import { StructuredTool } from "@langchain/core/tools";
  * (like Airtable) work without manual intervention.
  */
 export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
-  
-  /**
-   * Internal method override: Intercepts and transforms tools before sending to Gemini.
-   * 
-   * This private method is the core hook point where all LangChain interactions flow through.
-   * By overriding this method, we can automatically transform MCP tool schemas before they
-   * reach the Gemini API, ensuring compatibility without requiring manual intervention.
-   * 
-   * Called by all public methods: invoke(), stream(), batch(), etc.
-   * Users never call this directly - it's an internal LangChain implementation detail.
-   * 
-   * Performance Note: This method is called on every API request, which means tool
-   * transformation happens repeatedly. We intentionally chose NOT to cache transformations:
-   * • Schema transformation: ~1-10ms per call
-   * • Total LLM interaction: ~1000-10000ms per call  
-   * • Optimization impact: <1% performance improvement
-   * • Complexity cost: Thread safety, cache invalidation, memory management
-   * • Reliability benefit: Always uses fresh schemas, no cache invalidation bugs
-   * 
-   * @private
-   * @param messages - Chat messages to process
-   * @param options - Runtime options including tools that need transformation
-   * @param runManager - LangChain callback manager
-   * @returns Promise resolving to chat result with transformed tools applied
-   */
-  override async _generate(
-    messages: BaseMessage[],
-    options?: GoogleGenerativeAIChatCallOptions,
-    runManager?: any
-  ): Promise<ChatResult> {
-    // If no tools are provided, use the parent implementation as-is
-    if (!options?.tools || !Array.isArray(options.tools) || options.tools.length === 0) {
-      return super._generate(messages, options as any, runManager);
-    }
-
-    // Transform the tools to be Gemini-compatible
-    const transformedOptions = {
-      ...options,
-      tools: this.transformTools(options.tools)
-    };
-
-    // Call the parent implementation with transformed tools
-    return super._generate(messages, transformedOptions, runManager);
-  }
-
-  /**
-   * Transform tools to be compatible with Gemini's schema requirements
-   */
-  private transformTools(tools: any[]): any[] {
-    return tools.map(tool => {
-      try {
-        // Handle different tool formats
-        if (this.isMcpTool(tool)) {
-          return this.transformMcpTool(tool);
-        } else if (this.isStructuredTool(tool)) {
-          return this.transformStructuredTool(tool);
-        } else if (this.isRunnableTool(tool)) {
-          return this.transformRunnableTool(tool);
-        }
-        
-        // If we can't identify the tool type, return as-is and hope for the best
-        console.warn(`ChatGoogleGenerativeAIEx: Unknown tool format, passing through unchanged:`, typeof tool);
-        return tool;
-      } catch (error) {
-        console.error(`ChatGoogleGenerativeAIEx: Error transforming tool, passing through unchanged:`, error);
-        return tool;
-      }
-    });
-  }
-
-  /**
-   * Check if tool looks like an MCP tool
-   */
-  private isMcpTool(tool: any): boolean {
-    return tool && 
-           typeof tool === 'object' && 
-           typeof tool.name === 'string' &&
-           (tool.inputSchema || tool.input_schema) &&
-           typeof tool.invoke === 'function';
-  }
-
-  /**
-   * Check if tool is a LangChain StructuredTool
-   */
-  private isStructuredTool(tool: any): boolean {
-    return tool instanceof StructuredTool || 
-           (tool && typeof tool.schema !== 'undefined' && typeof tool.name === 'string');
-  }
-
-  /**
-   * Check if tool is a Runnable tool with schema
-   */
-  private isRunnableTool(tool: any): boolean {
-    return tool &&
-           typeof tool === 'object' &&
-           typeof tool.name === 'string' &&
-           (tool.func || tool.schema) &&
-           typeof tool.invoke === 'function';
-  }
-
-  /**
-   * Transform an MCP tool
-   */
-  private transformMcpTool(tool: any): any {
-    const inputSchema = tool.inputSchema || tool.input_schema || {};
-    
-    const transformResult = transformMcpToolForGemini({
-      name: tool.name,
-      description: tool.description,
-      inputSchema: inputSchema
-    });
-
-    if (transformResult.wasTransformed && transformResult.changesSummary) {
-      console.log(`ChatGoogleGenerativeAIEx: Transformed MCP tool '${tool.name}': ${transformResult.changesSummary}`);
-    }
-
-    // Return the tool with transformed schema
-    return {
-      ...tool,
-      inputSchema: transformResult.functionDeclaration.parameters,
-      input_schema: transformResult.functionDeclaration.parameters,
-      // Preserve the original schema in case it's needed for debugging
-      _originalInputSchema: inputSchema
-    };
-  }
-
-  /**
-   * Transform a LangChain StructuredTool
-   */
-  private transformStructuredTool(tool: any): any {
-    if (!tool.schema) {
-      return tool;
-    }
-
-    const transformResult = transformMcpToolForGemini({
-      name: tool.name,
-      description: tool.description,
-      inputSchema: tool.schema
-    });
-
-    if (transformResult.wasTransformed && transformResult.changesSummary) {
-      console.log(`ChatGoogleGenerativeAIEx: Transformed StructuredTool '${tool.name}': ${transformResult.changesSummary}`);
-    }
-
-    return {
-      ...tool,
-      schema: transformResult.functionDeclaration.parameters,
-      _originalSchema: tool.schema
-    };
-  }
-
-  /**
-   * Transform a Runnable tool
-   */
-  private transformRunnableTool(tool: any): any {
-    const schema = tool.schema || tool.func?.schema;
-    if (!schema) {
-      return tool;
-    }
-
-    const transformResult = transformMcpToolForGemini({
-      name: tool.name,
-      description: tool.description,
-      inputSchema: schema
-    });
-
-    if (transformResult.wasTransformed && transformResult.changesSummary) {
-      console.log(`ChatGoogleGenerativeAIEx: Transformed Runnable tool '${tool.name}': ${transformResult.changesSummary}`);
-    }
-
-    const result = { ...tool };
-    if (result.schema) {
-      result.schema = transformResult.functionDeclaration.parameters;
-      result._originalSchema = schema;
-    }
-    if (result.func?.schema) {
-      result.func.schema = transformResult.functionDeclaration.parameters;
-      if (!result.func._originalSchema) {
-        result.func._originalSchema = schema;
-      }
-    }
-
-    return result;
-  }
-
   /**
    * Public method override: Ensures tools are transformed when binding configuration.
    * 
@@ -231,18 +43,14 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
    * ```
    */
   override bind(kwargs: Partial<GoogleGenerativeAIChatCallOptions>): ChatGoogleGenerativeAIEx {
-    const boundInstance = super.bind(kwargs) as ChatGoogleGenerativeAIEx;
-    
-    // If tools were provided in bind, they need transformation too
     if (kwargs.tools) {
       const transformedKwargs = {
         ...kwargs,
-        tools: this.transformTools(kwargs.tools as any[])
+        tools: transformMcpToolsForGemini(kwargs.tools as any[])
       };
       return super.bind(transformedKwargs) as ChatGoogleGenerativeAIEx;
     }
-    
-    return boundInstance;
+    return super.bind(kwargs) as ChatGoogleGenerativeAIEx;
   }
 
   /**
@@ -261,7 +69,7 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
    * ```
    */
   override bindTools(tools: any[], kwargs?: Partial<GoogleGenerativeAIChatCallOptions>): ChatGoogleGenerativeAIEx {
-    const transformedTools = this.transformTools(tools);
+    const transformedTools = transformMcpToolsForGemini(tools);
     return super.bindTools(transformedTools, kwargs) as ChatGoogleGenerativeAIEx;
   }
 
