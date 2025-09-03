@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { ChatGoogleGenerativeAIEx } from "../ChatGoogleGenerativeAIEx.js";
+import { ChatGoogleGenerativeAIEx, transformMcpToolsForGemini } from "../index.js";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 // import { ChatOpenAI } from "@langchain/openai";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
@@ -26,54 +26,74 @@ const client = new MultiServerMCPClient({
       command: "npx",
       args: ["-y", "@h1deya/mcp-server-weather"]
     },
-    filesystem: {
-      command: "npx",
-      args: [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "."  // path to a directory to allow access to
-      ]
-    },
-    notion: {
-      transport: "stdio",
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.notion.com/mcp"],
-    },
-    github: {
-      transport: "http",
-      url: "https://api.githubcopilot.com/mcp/",
-      headers: {
-        "Authorization": `Bearer ${process.env.GITHUB_PERSONAL_ACCESS_TOKEN}`
-      }
-    },
-    sqlite: {
+    fetch: {
       command: "uvx",
       args: [
-        "mcp-server-sqlite",
-        "--db-path",
-        "test-mcp-server-sqlite.sqlite3"
+        "mcp-server-fetch"
       ]
     },
-    playwright: {
+    airtable: {
+      transport: "stdio",
       command: "npx",
-      args: [
-        "@playwright/mcp@latest"
-      ]
+      args: ["-y", "airtable-mcp-server"],
+      env: {
+        "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
+      }
     },
+    // filesystem: {
+    //   command: "npx",
+    //   args: [
+    //     "-y",
+    //     "@modelcontextprotocol/server-filesystem",
+    //     "."  // path to a directory to allow access to
+    //   ]
+    // },
+    // notion: {
+    //   transport: "stdio",
+    //   "command": "npx",
+    //   "args": ["-y", "mcp-remote", "https://mcp.notion.com/mcp"],
+    // },
+    // github: {
+    //   transport: "http",
+    //   url: "https://api.githubcopilot.com/mcp/",
+    //   headers: {
+    //     "Authorization": `Bearer ${process.env.GITHUB_PERSONAL_ACCESS_TOKEN}`
+    //   }
+    // },
+    // sqlite: {
+    //   command: "uvx",
+    //   args: [
+    //     "mcp-server-sqlite",
+    //     "--db-path",
+    //     "test-mcp-server-sqlite.sqlite3"
+    //   ]
+    // },
+    // playwright: {
+    //   command: "npx",
+    //   args: [
+    //     "@playwright/mcp@latest"
+    //   ]
+    // },
   }
 });
 
 (async () => {
   const mcpTools = await client.getTools();
 
-  // const llm = new ChatGoogleGenerativeAIEx({model: "gemini-2.5-flash"});
-  const llm = new ChatGoogleGenerativeAI({model: "gemini-2.5-flash"});
   // const llm = new ChatOpenAI({model: "gpt-5-mini"});
 
-  const agent = createReactAgent({ llm, tools: mcpTools });
+  // const llm = new ChatGoogleGenerativeAIEx({model: "gemini-1.5-pro"});
+  // const agent = createReactAgent({ llm, tools: mcpTools });
+
+  const llm = new ChatGoogleGenerativeAI({model: "gemini-1.5-pro"});
+  const transformedTools = transformMcpToolsForGemini(mcpTools);
+  const agent = createReactAgent({ llm, tools: transformedTools });
 
   // const query = "Are there any weather alerts in California?";
-  const query = "Tell me how many of directories in `.`";
+  // const query = "Read the top news headlines on bbc.com";
+  const query = "Tell me about my Airtable account";
+
+  // const query = "Tell me how many of directories in `.`";
   // const query = "Tell me about my Notion account";
   // const query = "Tell me about my GitHub profile"
   // const query = "Make a new table in SQLite DB and put items apple and orange " +
