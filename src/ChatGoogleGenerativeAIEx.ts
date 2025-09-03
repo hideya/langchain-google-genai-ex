@@ -64,7 +64,7 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
    * This convenience method specifically handles tool binding and automatically
    * transforms all tools using transformMcpToolsForGemini() for Gemini compatibility.
    * 
-   * Overriding this method allows for schema conversion at the desired timing:
+   * Overriding this method enables schema conversio at the desired timing:
    * 
    * ```
    *   User Code → LangChain Processing → <Transform Tools> → LLM Binding
