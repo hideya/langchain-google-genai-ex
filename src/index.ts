@@ -15,5 +15,5 @@
 // Chat Models - Extended classes with automatic schema transformation
 export { ChatGoogleGenerativeAIEx } from "./ChatGoogleGenerativeAIEx.js";
 
-// Re-export useful types from the base package
-export type { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+// // Re-export useful types from the base package
+// export type { ChatGoogleGenerativeAI } from "@langchain/google-genai";
