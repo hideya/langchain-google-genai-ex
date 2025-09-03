@@ -41,6 +41,9 @@ You can always switch back to the original `ChatGoogleGenerativeAI`
 when its schema handling improves,
 or when the MCP server's schema improves to meet Gemini's strict requirements.
 
+You can find a simple usage example ready to clone and run
+[here](https://github.com/hideya/langchain-google-genai-ex-usage).
+
 ## 📋 Table of Contents
 
 Below we'll explain what and how this library works in detail:
@@ -203,7 +206,10 @@ That's it! No other changes needed.
 
 Can be found [here](https://hideya.github.io/langchain-google-genai-ex)
 
-See [this design decision document](./DESIGN_DECISIONS.md) for the implementation details.
+## LINKS
+
+- [A simple usage example](https://github.com/hideya/langchain-google-genai-ex-usage) which is ready to clone and run
+- [Design decision document](./DESIGN_DECISIONS.md) describes the implementation details
 
 ## License
 
