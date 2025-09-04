@@ -1,4 +1,4 @@
-# Google Gemini + MCP Tools + LangChain.js → Fixed!
+# Fix "400 Bad Request" in Gemini + LangChain.js + MCP
 
 ## Drop-in replacement to fix Gemini API schema issues with MCP tools / LangChain.js
 
