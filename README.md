@@ -4,8 +4,7 @@
 
 This library provides **a drop-in replacement for `@langchain/google-genai`
 that fixes Gemini's 400 Bad Request errors** when using LangChain.js with MCP servers.
-Automatically transforms schemas with unsupported constructs (e.g., anyOf, allOf) into Gemini-compatible JSON.  
-Supports both Gemini 1.5 and 2.5.
+Automatically transforms schemas with unsupported constructs (e.g., anyOf, allOf) into Gemini-compatible JSON.
 
 The schema error usually looks like:  
 `[GoogleGenerativeAI Error]: ... [400 Bad Request] Invalid JSON payload received.`
@@ -21,7 +20,7 @@ Replace:
 
 ```typescript
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
-
+...
 const llm = new ChatGoogleGenerativeAI({ ... });
 ```
 
@@ -29,30 +28,27 @@ with:
 
 ```typescript
 import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
-
+...
 const llm = new ChatGoogleGenerativeAIEx({ ... });
 ```
+
+**That's it!** No configuration, no additional steps.
 
 **This automatically fixes:**
 - ✅ "anyOf must be the only field set" errors (Gemini 1.5)
 - ✅ "Unknown name 'exclusiveMaximum'" schema validation errors  
 - ✅ "Invalid JSON payload" errors from complex MCP schemas
 - ✅ Cascading failures where one complex server breaks entire MCP integration
-
-**That's it!** No configuration, no additional steps.
+- ✅ Supports both Gemini 1.5 and 2.5
 
 You can easily switch back to the original `ChatGoogleGenerativeAI`
 when its schema handling improves,
 or when the MCP server's schema improves to meet Gemini's strict requirements.
 
-You can find a simple usage example ready to clone and run
+A simple usage example, which is ready to clone and run, can be found
 [here](https://github.com/hideya/langchain-google-genai-ex-usage).
 
 > This library addresses compatibility issues present as of September 3, 2025, with LangChain.js (@langchain/core) v0.3.72 and @langchain/google-genai v0.2.16.
-
-> You can avoid this schema issue if you use Google Vertex AI that supports API endpoints with relaxed schema requirements.
-> Google provides a fix in its new Gemini SDK (`@google/genai`), but LangChain.js cannot leverage it due to its architectural misalignment.
-
 
 ## Table of Contents
 
@@ -75,23 +71,13 @@ Before installing, make sure you have:
   and [`@langchain/mcp-adapters`](https://www.npmjs.com/package/@langchain/mcp-adapters)
 - **MCP Servers** - Access to the MCP servers you want to use
 
+Tested with `@langchain/core@0.3.72` and `@langchain/google-genai@0.2.16`.
 
 ## Installation
 
 ```bash
 npm install @hideya/langchain-google-genai-ex
 ```
-and the following as needed:
-```bash
-# LangChain dependencies (if not already installed)
-npm install @langchain/core @langchain/mcp-adapters
-
-# Utilities for MCP Tool calling (as needed)
-npm install @langchain/langgraph
-```
-
-Tested with `@langchain/core@0.3.72` and `@langchain/google-genai@0.2.16`.
-
 
 ## The Problem You're Probably Having
 
@@ -105,6 +91,11 @@ This typically occurs when you configure multiple MCP servers using `MultiServer
 especially when some of the servers have complex schemas.
 
 If you searched for `GoogleGenerativeAIFetchError: [GoogleGenerativeAI Error] 400 Bad Request`, this section explains the cause and how to workaround it when using LangChain.
+
+> The MCP servers I have encountered so far that have failed are:
+> - `@notionhq/notion-mcp-server@1.9.0` (run with `npx`)
+> - `airtable-mcp-server@1.6.1` (run with `npx`)
+> - `mcp-server-fetch==2025.4.7` (run with `uvx`)
 
 ### Why This Happens
 
@@ -130,42 +121,32 @@ See [this design decision document](./DESIGN_DECISIONS.md) for the implementatio
 ## Complete Usage Example
 
 ```typescript
+// import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { MultiServerMCPClient } from '@langchain/mcp-adapters';
 import { HumanMessage } from '@langchain/core/messages';
 
-// Set up MCP client with complex tools (like Airtable) that cause "400 errors"
+// The following Fetch MCP server causes "400 Bad Request"
 const client = new MultiServerMCPClient({
   mcpServers: {
-    airtable: {
-      transport: "stdio",
-      command: "npx",
-      args: ["-y", "airtable-mcp-server"],
-      env: { "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}` }
-    },
-    notion: {
-      transport: "stdio",
-      command: "npx", // OAuth via "mcp-remote"
-      args: ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]
+    fetch: {
+      command: "uvx",
+      args: ["mcp-server-fetch==2025.4.7"]
     }
   }
 });
 
 const mcpTools = await client.getTools();
 
-// Use ChatGoogleGenerativeAIEx - tools are automatically transformed
-const llm = new ChatGoogleGenerativeAIEx({ 
-  model: "gemini-1.5-flash", // 2.5 is also supported
-  apiKey: process.env.GOOGLE_API_KEY 
-});
+// const llm = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
+const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash"} );
 
-// Create agent with MCP tools - no manual transformation needed!
 const agent = createReactAgent({ llm, tools: mcpTools });
 
 // This works! No more schema errors
 const result = await agent.invoke({
-  messages: [new HumanMessage("Tell me about my Airtable account")]
+  messages: [new HumanMessage("Read the top news headlines on bbc.com")]
 });
 
 console.log(result.messages[result.messages.length - 1].content);
@@ -193,28 +174,6 @@ await client.close();
 - **Property validation** - filters `required` fields that don't exist in `properties`
 - **Format compatibility** - removes unsupported JSON Schema formats and keywords
 - **Nested structure handling** - recursively processes complex object hierarchies
-
-
-### Simple Migration
-
-If you're already using LangChain.js and hitting schema errors, just replace your import:
-
-```typescript
-// Before: Failing with schema errors
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-const llm = new ChatGoogleGenerativeAI({ model: "gemini-1.5-flash" });
-const agent = createReactAgent({ llm, tools: mcpTools }); // ❌ Fails
-```
-
-```typescript
-// After: Just change the import
-import { ChatGoogleGenerativeAIEx } from "@hideya/langchain-google-genai-ex";
-const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-1.5-flash" });
-const agent = createReactAgent({ llm, tools: mcpTools }); // ✅ Works!
-```
-
-That's it! No other changes needed.
-
 
 ## API Reference
 
