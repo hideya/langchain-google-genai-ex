@@ -48,7 +48,7 @@ interface ServerTestConfig {
 const MCP_SERVERS: ServerTestConfig[] = [
   // {
   //   name: "us-weather",
-  //   displayName: "US Weather Serv",
+  //   displayName: "US Weather Server",
   //   config: {
   //     transport: "stdio",
   //     command: "npx",
@@ -58,6 +58,7 @@ const MCP_SERVERS: ServerTestConfig[] = [
   //   expectedToolNames: ["get-alerts", "get-forecast"]
   // },
   {
+    // Fetcg server (mcp-server-fetch==2025.4.7) fails
     name: "fetch",
     displayName: "Fetch Server",
     config: {
@@ -68,42 +69,63 @@ const MCP_SERVERS: ServerTestConfig[] = [
     testQuery: "Use the fetch tool to read and summarize the beginning of the news headlines on BBC.com",
     expectedToolNames: ["fetch"]
   },
-  {
-    name: "notion",
-    displayName: "Notion Server",
-    config: {
-      transport: "stdio",
-      command: "npx",
-      args: ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]
-    },
-    testQuery: "Use the notion-get-self tool and summarize the information about my account",
-    expectedToolNames: ["notion-get-self", "notion-search-pages"],
-    // requiresAuth: false,  //  OAuth via "mcp-remote"
-  },
-  {
-    name: "airtable",
-    displayName: "Airtable Server",
-    config: {
-      command: "npx",
-      args: ["-y", "airtable-mcp-server"],
-      env: {
-        "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
-      }
-    },
-    testQuery: "List all of the bases I have access to",
-    expectedToolNames: ["list_records", "list_tables"]
-  },
-  {
-    name: "brave-search",
-    displayName: "Brave Serch Server",
-    config: {
-      command: "npx",
-      args: [ "-y", "@modelcontextprotocol/server-brave-search"],
-      env: { "BRAVE_API_KEY": `${process.env.BRAVE_API_KEY}` }
-    },
-    testQuery: "Use the Brace search tool to find out major news in Japan",
-    expectedToolNames: ["brave_web_search", "brave_local_search"]
-  },
+  //
+  // // NOTE: comment out "fetch" when you use "notion".
+  // // They both have a tool named "fetch," which causes a conflict.
+  //
+  // {
+  //   // Notion local server (@notionhq/notion-mcp-server@1.9.0) fails
+  //   name: "notion",
+  //   displayName: "Notion Local Server",
+  //   config: {
+  //     transport: "stdio",
+  //     command: "npx",
+  //     args: ["-y", "@notionhq/notion-mcp-server@1.9.0"],
+  //     env: {
+  //       "NOTION_TOKEN": `${process.env.NOTION_INTEGRATION_SECRET}`
+  //     }
+  //   },
+  //   testQuery: "Use the notion-get-self tool and summarize the information about my account",
+  //   expectedToolNames: ["notion-get-self", "notion-search-pages"],
+  // },
+  // {
+  //   // Notion remote server has fixed the issue
+  //   name: "notion",
+  //   displayName: "Notion Remote Server",
+  //   config: {
+  //     transport: "stdio",
+  //     command: "npx",
+  //     args: ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]
+  //   },
+  //   testQuery: "Use the notion-get-self tool and summarize the information about my account",
+  //   expectedToolNames: ["notion-get-self", "notion-search-pages"],
+  //   // requiresAuth: false,  //  OAuth via "mcp-remote"
+  // },
+  // {
+  //   // This Airtable local server (airtable-mcp-server@1.6.1) fails
+  //   name: "airtable",
+  //   displayName: "Airtable Server",
+  //   config: {
+  //     command: "npx",
+  //     args: ["-y", "airtable-mcp-server@1.6.1"],
+  //     env: {
+  //       "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
+  //     }
+  //   },
+  //   testQuery: "List all of the bases I have access to",
+  //   expectedToolNames: ["list_records", "list_tables"]
+  // },
+  // {
+  //   name: "brave-search",
+  //   displayName: "Brave Serch Server",
+  //   config: {
+  //     command: "npx",
+  //     args: [ "-y", "@modelcontextprotocol/server-brave-search"],
+  //     env: { "BRAVE_API_KEY": `${process.env.BRAVE_API_KEY}` }
+  //   },
+  //   testQuery: "Use the Brace search tool to find out major news in Japan",
+  //   expectedToolNames: ["brave_web_search", "brave_local_search"]
+  // },
   // {
   //   name: "filesystem",
   //   displayName: "Filesystem Server",
