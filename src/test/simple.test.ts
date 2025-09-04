@@ -25,7 +25,7 @@ const client = new MultiServerMCPClient({
   const agent = createReactAgent({ llm, tools: mcpTools });
 
   const result = await agent.invoke({
-    messages: [new HumanMessage("Fetch https://news.ycombinator.com and summarize")]
+    messages: [new HumanMessage("Read https://en.wikipedia.org/wiki/MIT_License and summarize it")]
   });
 
   console.log(result.messages[result.messages.length - 1].content);
