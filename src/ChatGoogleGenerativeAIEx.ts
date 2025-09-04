@@ -10,7 +10,7 @@ import { transformMcpToolsForGemini } from "./schema-adapter-gemini.js";
  * 
  * ## Usage:
  * ```typescript
- * import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
+ * import { ChatGoogleGenerativeAIEx } from '@h1deya/langchain-google-genai-ex';
  * import { createReactAgent } from '@langchain/langgraph/prebuilt';
  * 
  * const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-1.5-flash" });

@@ -540,7 +540,7 @@ export function validateGeminiSchema(schema: GeminiCompatibleSchema, path = ''):
  * 
  * @example
  * ```typescript
- * import { transformMcpToolsForGemini } from '@hideya/langchain-google-genai-ex/schema-adapter';
+ * import { transformMcpToolsForGemini } from '@h1deya/langchain-google-genai-ex/schema-adapter';
  * import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
  * import { createReactAgent } from '@langchain/langgraph/prebuilt';
  * 

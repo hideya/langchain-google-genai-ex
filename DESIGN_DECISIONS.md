@@ -2,7 +2,7 @@
 
 ## Summary
 
-During the development of `@hideya/langchain-google-genai-ex`, we extensively evaluated two approaches for solving Gemini schema compatibility issues with MCP tools:
+During the development of `@h1deya/langchain-google-genai-ex`, we extensively evaluated two approaches for solving Gemini schema compatibility issues with MCP tools:
 
 - **Option A**: Explicit transformation function (`transformMcpToolsForGemini()`)
 - **Option B**: Drop-in replacement class (`ChatGoogleGenerativeAIEx`)
@@ -23,7 +23,7 @@ Unknown name "anyOf" at 'tools[0].function_declarations[8].parameters.properties
 ### Option A: Explicit Transformation Function
 
 ```typescript
-import { transformMcpToolsForGemini } from '@hideya/langchain-google-genai-ex';
+import { transformMcpToolsForGemini } from '@h1deya/langchain-google-genai-ex';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 
 const mcpTools = await client.getTools();
@@ -41,7 +41,7 @@ const agent = createReactAgent({ llm, tools: transformedTools });
 ### Option B: Drop-in Replacement Class
 
 ```typescript
-import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
+import { ChatGoogleGenerativeAIEx } from '@h1deya/langchain-google-genai-ex';
 
 const mcpTools = await client.getTools();
 const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-1.5-flash" });

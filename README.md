@@ -27,7 +27,7 @@ const llm = new ChatGoogleGenerativeAI({ ... });
 with:
 
 ```typescript
-import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
+import { ChatGoogleGenerativeAIEx } from '@h1deya/langchain-google-genai-ex';
 ...
 const llm = new ChatGoogleGenerativeAIEx({ ... });
 ```
@@ -76,7 +76,7 @@ Tested with `@langchain/core@0.3.72` and `@langchain/google-genai@0.2.16`.
 ## Installation
 
 ```bash
-npm install @hideya/langchain-google-genai-ex
+npm install @h1deya/langchain-google-genai-ex
 ```
 
 ## The Problem You're Probably Having
@@ -122,7 +122,7 @@ See [this design decision document](./DESIGN_DECISIONS.md) for the implementatio
 
 ```typescript
 // import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { ChatGoogleGenerativeAIEx } from '@hideya/langchain-google-genai-ex';
+import { ChatGoogleGenerativeAIEx } from '@h1deya/langchain-google-genai-ex';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { MultiServerMCPClient } from '@langchain/mcp-adapters';
 import { HumanMessage } from '@langchain/core/messages';
