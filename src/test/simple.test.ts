@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { ChatGoogleGenerativeAIEx } from "../index.js";
-// import { ChatGoogleGenerativeAIEx } from "@hideya/langchain-google-genai-ex";
+// import { ChatGoogleGenerativeAIEx } from "@h1deya/langchain-google-genai-ex";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
@@ -25,7 +25,7 @@ const client = new MultiServerMCPClient({
   const agent = createReactAgent({ llm, tools: mcpTools });
 
   const result = await agent.invoke({
-    messages: [new HumanMessage("Read the top news headlines on bbc.com")]
+    messages: [new HumanMessage("Fetch https://news.ycombinator.com and summarize")]
   });
 
   console.log(result.messages[result.messages.length - 1].content);

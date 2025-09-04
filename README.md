@@ -1,6 +1,6 @@
-# Fix "400 Bad Request" in Gemini + LangChain.js + MCP
+# Fix Gemini "400 Error" with LangChain.js + MCP
 
-## Drop-in replacement to fix Gemini API schema issues with MCP tools / LangChain.js
+## Drop-in replacement that unblocks MCP tool schemas in Gemini
 
 This library provides **a drop-in replacement for `@langchain/google-genai`
 that fixes Gemini's 400 Bad Request errors** when using LangChain.js with MCP servers.
@@ -35,11 +35,11 @@ const llm = new ChatGoogleGenerativeAIEx({ ... });
 **That's it!** No configuration, no additional steps.
 
 **This automatically fixes:**
-- ✅ "anyOf must be the only field set" errors (Gemini 1.5)
+- ✅ "anyOf must be the only field set" errors
 - ✅ "Unknown name 'exclusiveMaximum'" schema validation errors  
 - ✅ "Invalid JSON payload" errors from complex MCP schemas
 - ✅ Cascading failures where one complex server breaks entire MCP integration
-- ✅ Supports both Gemini 1.5 and 2.5
+- ✅ Works with both Gemini 1.5 and 2.5
 
 You can easily switch back to the original `ChatGoogleGenerativeAI`
 when its schema handling improves,
@@ -174,6 +174,14 @@ await client.close();
 - **Property validation** - filters `required` fields that don't exist in `properties`
 - **Format compatibility** - removes unsupported JSON Schema formats and keywords
 - **Nested structure handling** - recursively processes complex object hierarchies
+
+### Known Limitations
+- **Unresolved references:** If a schema points to `$ref` definitions that aren't available, they're simplified to a generic object.
+- **Tuple-style arrays:** For schemas that define arrays with position-specific types, only the first item is used.
+- **Enums and formats:** Only string enums and a small set of formats are kept; others are dropped.
+- **Complex combinations:** `oneOf`/`allOf` are simplified, which may loosen or slightly change validation rules.
+
+These adjustments keep most MCP tools working, but rare edge cases could behave differently from the original schema.
 
 ## API Reference
 
