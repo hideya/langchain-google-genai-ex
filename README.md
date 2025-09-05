@@ -1,9 +1,5 @@
 # Fix Gemini "400 Error" with LangChain.js + MCP
 
-`npm i @langchain/core @langchain/mcp-adapters @langchain/langgraph @langchain/google-genai @h1deya/langchain-google-genai-ex`
-
-`export GOOGLE_API_KEY=…`
-
 ## Drop-in replacement that unblocks MCP tool schemas in Gemini
 
 This library provides **a drop-in replacement for `@langchain/google-genai`
@@ -52,7 +48,7 @@ or when the MCP server's schema improves to meet Gemini's strict requirements.
 A simple usage example, which is ready to clone and run, can be found
 [here](https://github.com/hideya/langchain-google-genai-ex-usage).
 
-> This library addresses compatibility issues present as of September 3, 2025, with LangChain.js (@langchain/core) v0.3.72 and @langchain/google-genai v0.2.16.
+> This library addresses compatibility issues present as of September 5, 2025, with LangChain.js (@langchain/core) v0.3.72 and @langchain/google-genai v0.2.16.
 
 ## Table of Contents
 
@@ -80,7 +76,7 @@ Tested with `@langchain/core@0.3.72` and `@langchain/google-genai@0.2.16`.
 ## Installation
 
 ```bash
-npm install @h1deya/langchain-google-genai-ex
+npm i @h1deya/langchain-google-genai-ex
 ```
 
 ## The Problem You're Probably Having
@@ -88,13 +84,17 @@ npm install @h1deya/langchain-google-genai-ex
 If you've ever tried using **Google Gemini** together with **LangChain.js** and **MCP servers with complex schemas**, you may have run into this error:
 
 ```
-[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent: [400 Bad Request] Invalid JSON payload received. Unknown name "anyOf" at 'tools[0].function_declarations[8].parameters.properties[2]...': Proto field is not repeating, cannot start list.
+[GoogleGenerativeAI Error]: Error fetching from 
+https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent: 
+[400 Bad Request] Invalid JSON payload received. 
+Unknown name "anyOf" at 'tools[0].function_declarations[8]...
 ```
 
 This typically occurs when you configure multiple MCP servers using `MultiServerMCPClient`,
 especially when some of the servers have complex schemas.
 
-If you searched for `GoogleGenerativeAIFetchError: [GoogleGenerativeAI Error] 400 Bad Request`, this section explains the cause and how to workaround it when using LangChain.
+If you searched for `GoogleGenerativeAIFetchError: [GoogleGenerativeAI Error] 400 Bad Request`,
+the following sections explain the cause and how to workaround it when using LangChain.
 
 > The MCP servers I have encountered so far that have failed are:
 > - `@notionhq/notion-mcp-server@1.9.0` (run with `npx`)
@@ -103,10 +103,10 @@ If you searched for `GoogleGenerativeAIFetchError: [GoogleGenerativeAI Error] 40
 
 ### Why This Happens
 
-- [**Gemini's schema requirements for function calling are very strict**](https://ai.google.dev/api/caching#Schema)
-  MCP servers define their tools using flexible JSON schemas, and LLMs invoke MCP tools via function calling.
+- [**Gemini's schema requirements for function calling are very strict**](https://ai.google.dev/api/caching#Schema).
+- MCP servers define their tools using flexible JSON schemas, and LLMs invoke MCP tools via function calling.
   Most LLMs accept these schemas just fine.
-- Gemini rejects MCP tool schemas if they contain fields it doesn't expect (e.g., use of `anyOf`).
+- However, Gemini API rejects MCP tool schemas if they contain fields it doesn't expect (e.g., use of `anyOf`).
 - The result is a **400 Bad Request** - even though the same MCP server works fine with OpenAI, Anthropic, etc.
 - Google Vertex AI that supports API endpoints with relaxed schema requirements but it requires GCP setup.
 - Google provides a fix in its new Gemini SDK ([`@google/genai`](https://github.com/googleapis/js-genai?tab=readme-ov-file#model-context-protocol-mcp-support-experimental)),
@@ -114,13 +114,11 @@ If you searched for `GoogleGenerativeAIFetchError: [GoogleGenerativeAI Error] 40
 
 For many developers, this can make Gemini difficult to use with LangChain.js and some MCP servers.
 Even if only one incompatible MCP server is included in the MCP definitions passed to `MultiServerMCPClient`,
-all subsequent MCP usage starts failing with the error above.
+all subsequent MCP usage starts failing with the 400 Bad Request error.
 
 **This library handles all these schema incompatibilities through schema transformation, 
 converting complex MCP tool schemas into Gemini-friendly formats**,
 so you can focus on building instead of debugging schema errors.
-
-See [this design decision document](./DESIGN_DECISIONS.md) for the implementation details.
 
 ## Complete Usage Example
 
@@ -185,6 +183,8 @@ await client.close();
 - **Complex combinations:** `oneOf`/`allOf` are simplified, which may loosen or slightly change validation rules.
 
 These adjustments keep most MCP tools working, but rare edge cases could behave differently from the original schema.
+
+See [this design decision document](./DESIGN_DECISIONS.md) for the implementation details.
 
 ## API Reference
 

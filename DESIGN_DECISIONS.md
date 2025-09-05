@@ -7,7 +7,7 @@ During the development of `@h1deya/langchain-google-genai-ex`, we extensively ev
 - **Option A**: Explicit transformation function (`transformMcpToolsForGemini()`)
 - **Option B**: Drop-in replacement class (`ChatGoogleGenerativeAIEx`)
 
-After deep technical analysis and testing, we chose **Option B** as the sole API. This document explains the technical reasoning behind this decision.
+After technical analysis and testing, we chose **Option B** as the sole API. This document explains the technical reasoning behind this decision.
 
 ## The Problem We're Solving
 
@@ -35,7 +35,7 @@ const agent = createReactAgent({ llm, tools: transformedTools });
 **Perceived Benefits:**
 - Explicit control over transformation
 - Works with standard `ChatGoogleGenerativeAI`
-- Functional programming approach
+- Pragmatic programming approach
 - Easy to test transformation in isolation
 
 ### Option B: Drop-in Replacement Class
@@ -62,7 +62,7 @@ To understand which approach was architecturally sound, we analyzed LangChain's 
 
 Since the failed tests used `createReactAgent()` of LangGraph, its implementation was investigated.
 
-From `/node_modules/@langchain/langgraph/dist/prebuilt/react_agent_executor.js`:
+From `node_modules/@langchain/langgraph/dist/prebuilt/react_agent_executor.js`:
 
 ```typescript
 const getModelRunnable = async (llm) => {
@@ -86,7 +86,7 @@ see [this official **"Tool calling"** document](https://js.langchain.com/docs/co
 
 1. **User transforms tools**: `transformMcpToolsForGemini(mcpTools)` → `transformedTools`
 2. **User passes to agent**: `createReactAgent({ llm, tools: transformedTools })`
-3. **LangChain processes tools**: Internal metadata, validation, etc.
+3. **LangChain seems to processes tools**: Internal metadata, validation, etc.
 4. **LangChain calls**: `llm.bindTools(transformedTools)` (fixed tools + internal process)
 5. **Result**: Tool execution context is broken
 
@@ -171,7 +171,9 @@ We decided to **drop Option A entirely** because it was difficult to make it wor
 ## Conclusion
 
 By choosing the drop-in replacement approach, we created a library that:
-- **Solves the problem completely** without breaking tool execution
+- **Solves the problem** without breaking tool execution
 - **Requires no configuration** from users
-- **Is robust against future changes** in LangChain's internals
+- **Is more robust against future changes** in LangChain's internals
 - **Has a clean, obvious API** that is hardly susceptible to misuse
+
+---
