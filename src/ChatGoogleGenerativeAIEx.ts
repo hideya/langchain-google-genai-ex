@@ -10,11 +10,15 @@ import { transformMcpToolsForGemini } from "./schema-adapter-gemini.js";
  * 
  * ## Usage:
  * ```typescript
- * import { ChatGoogleGenerativeAIEx } from '@h1deya/langchain-google-genai-ex';
- * import { createReactAgent } from '@langchain/langgraph/prebuilt';
+ * // Before
+ * import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+ * ...
+ * const model = new ChatGoogleGenerativeAI({...});
  * 
- * const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-1.5-flash" });
- * const agent = createReactAgent({ llm, tools: mcpTools }); // Auto-transformed!
+ * // After (drop-in)
+ * import { ChatGoogleGenerativeAIEx } from "@h1deya/langchain-google-genai-ex";
+ * ...
+ * const model = new ChatGoogleGenerativeAIEx({...});
  * ```
  * 
  * ## What Gets Fixed:
@@ -23,11 +27,11 @@ import { transformMcpToolsForGemini } from "./schema-adapter-gemini.js";
  * - "Invalid JSON payload" errors from complex MCP schemas
  * - Cascading failures where one complex server breaks entire MCP integration
  * 
- * ## Works With:
- * - All Gemini models (1.5-flash, 2.5-flash, etc.)
- * - All MCP server types (Airtable, Notion, GitHub, etc.)
- * - All LangChain tool patterns (MCP tools, StructuredTools, Runnable tools)
+ * ## Key Benefits:
+ * - Simple to use - Just replace the import and the classname
  * - All original ChatGoogleGenerativeAI features (streaming, system instructions, etc.)
+ * - Full LangChain.js integration
+ * - Tested with Gemini 1.5 and 2.5 models
  */
 export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   // /**
@@ -61,17 +65,8 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   /**
    * Binds tools with automatic schema transformation.
    * 
-   * This convenience method specifically handles tool binding and automatically
-   * transforms all tools using transformMcpToolsForGemini() for Gemini compatibility.
-   * 
-   * Overriding this method enables schema conversio at the desired timing:
-   * 
-   * ```
-   *   User Code --→ LangChain Processing --→ LLM Binding
-   *                                       ↑
-   *                               <Transform Tools>
-   *                                Desiered Timing!
-   * ```
+   * This overridden method specifically handles tool binding after automatically
+   * transforming all tools for Gemini compatibility.
    * 
    * @param tools - Array of tools to bind (MCP tools, StructuredTools, etc.)
    * @param kwargs - Additional configuration options

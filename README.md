@@ -1,6 +1,7 @@
-# Fix Gemini "400 Error" with LangChain.js + MCP
+# Fix Gemini "400 Error" with LangChain.js + MCP [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/hideya/langchain-google-genai-ex/blob/main/LICENSE) [![npm version](https://img.shields.io/npm/v/@h1deya/langchain-google-genai-ex.svg)](https://www.npmjs.com/package/@h1deya/langchain-google-genai-ex)
 
-## Drop-in replacement that unblocks MCP tool schemas in Gemini
+
+### Drop-in replacement that unblocks MCP tool schemas in Gemini
 
 This library provides **a drop-in replacement for `@langchain/google-genai`
 that fixes Gemini's 400 Bad Request errors** when using LangChain.js with MCP servers.
@@ -59,7 +60,7 @@ Below we'll explain what and how this library works in detail:
 - [The Problem You're Probably Having](#the-problem-youre-probably-having)
 - [Complete Usage Example](#complete-usage-example)
 - [Features](#features)
-- [API Reference](#api-reference)
+- [API Reference](https://hideya.github.io//langchain-google-genai-ex/classes/ChatGoogleGenerativeAIEx.html)
 
 ## Prerequisites
 
@@ -192,7 +193,7 @@ See [this design decision document](./DESIGN_DECISIONS.md) for the implementatio
 
 ## API Reference
 
-Can be found [here](https://hideya.github.io/langchain-google-genai-ex)
+Can be found [here](https://hideya.github.io//langchain-google-genai-ex/classes/ChatGoogleGenerativeAIEx.html)
 
 ## LINKS
 

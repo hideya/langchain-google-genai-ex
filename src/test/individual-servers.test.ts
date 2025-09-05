@@ -46,48 +46,50 @@ interface ServerTestConfig {
 }
 
 const MCP_SERVERS: ServerTestConfig[] = [
-  // {
-  //   name: "us-weather",
-  //   displayName: "US Weather Server",
-  //   config: {
-  //     transport: "stdio",
-  //     command: "npx",
-  //     args: ["-y", "@h1deya/mcp-server-weather"]
-  //   },
-  //   testQuery: "Are there any weather alerts in California?",
-  //   expectedToolNames: ["get-alerts", "get-forecast"]
-  // },
   {
-    // Fetcg server (mcp-server-fetch==2025.4.7) fails
-    name: "fetch",
-    displayName: "Fetch Server",
+    name: "us-weather", // Yields no issues — just a sanity check
+    displayName: "US Weather Server",
     config: {
       transport: "stdio",
-      command: "uvx",
-      args: ["mcp-server-fetch"]
+      command: "npx",
+      args: ["-y", "@h1deya/mcp-server-weather"]
     },
-    testQuery: "Use the fetch tool to read and summarize the beginning of the news headlines on BBC.com",
-    expectedToolNames: ["fetch"]
+    testQuery: "Are there any weather alerts in California?",
+    expectedToolNames: ["get-alerts", "get-forecast"]
   },
-  //
-  // // NOTE: comment out "fetch" when you use "notion".
-  // // They both have a tool named "fetch," which causes a conflict.
-  //
+
   // {
-  //   // Notion local server (@notionhq/notion-mcp-server@1.9.0) fails
-  //   name: "notion",
-  //   displayName: "Notion Local Server",
+  //   // Fetcg server (mcp-server-fetch==2025.4.7) fails
+  //   name: "fetch",
+  //   displayName: "Fetch Server",
   //   config: {
   //     transport: "stdio",
-  //     command: "npx",
-  //     args: ["-y", "@notionhq/notion-mcp-server@1.9.0"],
-  //     env: {
-  //       "NOTION_TOKEN": `${process.env.NOTION_INTEGRATION_SECRET}`
-  //     }
+  //     command: "uvx",
+  //     args: ["mcp-server-fetch"]
   //   },
-  //   testQuery: "Use the notion-get-self tool and summarize the information about my account",
-  //   expectedToolNames: ["notion-get-self", "notion-search-pages"],
+  //   testQuery: "Use the fetch tool to read and summarize the beginning of the news headlines on BBC.com",
+  //   expectedToolNames: ["fetch"]
   // },
+  
+  // NOTE: comment out "fetch" when you use "notion".
+  // They both have a tool named "fetch," which causes a conflict.
+  
+  {
+    // Notion local server (@notionhq/notion-mcp-server@1.9.0) fails
+    name: "notion",
+    displayName: "Notion Local Server",
+    config: {
+      transport: "stdio",
+      command: "npx",
+      args: ["-y", "@notionhq/notion-mcp-server@1.9.0"],
+      env: {
+        "NOTION_TOKEN": `${process.env.NOTION_INTEGRATION_SECRET}`
+      }
+    },
+    testQuery: "Use the notion-get-self tool and summarize the information about my account",
+    expectedToolNames: ["notion-get-self", "notion-search-pages"],
+  },
+
   // {
   //   // Notion remote server has fixed the issue
   //   name: "notion",
@@ -101,22 +103,24 @@ const MCP_SERVERS: ServerTestConfig[] = [
   //   expectedToolNames: ["notion-get-self", "notion-search-pages"],
   //   // requiresAuth: false,  //  OAuth via "mcp-remote"
   // },
+
+  {
+    // This Airtable local server (airtable-mcp-server@1.6.1) fails
+    name: "airtable",
+    displayName: "Airtable Server",
+    config: {
+      command: "npx",
+      args: ["-y", "airtable-mcp-server@1.6.1"],
+      env: {
+        "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
+      }
+    },
+    testQuery: "List all of the bases I have access to",
+    expectedToolNames: ["list_records", "list_tables"]
+  },
+
   // {
-  //   // This Airtable local server (airtable-mcp-server@1.6.1) fails
-  //   name: "airtable",
-  //   displayName: "Airtable Server",
-  //   config: {
-  //     command: "npx",
-  //     args: ["-y", "airtable-mcp-server@1.6.1"],
-  //     env: {
-  //       "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
-  //     }
-  //   },
-  //   testQuery: "List all of the bases I have access to",
-  //   expectedToolNames: ["list_records", "list_tables"]
-  // },
-  // {
-  //   name: "brave-search",
+  //   name: "brave-search", // Yields no issues — just a sanity check
   //   displayName: "Brave Serch Server",
   //   config: {
   //     command: "npx",
@@ -126,8 +130,9 @@ const MCP_SERVERS: ServerTestConfig[] = [
   //   testQuery: "Use the Brace search tool to find out major news in Japan",
   //   expectedToolNames: ["brave_web_search", "brave_local_search"]
   // },
+
   // {
-  //   name: "filesystem",
+  //   name: "filesystem", // Yields no issues — just a sanity check
   //   displayName: "Filesystem Server",
   //   config: {
   //     command: "npx",
@@ -140,8 +145,9 @@ const MCP_SERVERS: ServerTestConfig[] = [
   //   testQuery: "Tell me how many directories are in the current directory",
   //   expectedToolNames: ["read_file", "list_directory"]
   // },
+
   // {
-  //   name: "sqlite",
+  //   name: "sqlite", // Yields no issues — just a sanity check
   //   displayName: "SQLite Server",
   //   config: {
   //     command: "uvx",
@@ -155,7 +161,7 @@ const MCP_SERVERS: ServerTestConfig[] = [
   //   expectedToolNames: ["execute-query", "list-tables"]
   // },
   // {
-  //   name: "github",
+  //   name: "github", // Yields no issues — just a sanity check
   //   displayName: "GitHub Server",
   //   config: {
   //     transport: "http",
@@ -169,8 +175,9 @@ const MCP_SERVERS: ServerTestConfig[] = [
   //   requiresAuth: true,
   //   authEnvVar: "GITHUB_PERSONAL_ACCESS_TOKEN"
   // },
+
   // {
-  //   name: "slack",
+  //   name: "slack", // Yields no issues — just a sanity check
   //   displayName: "Slack Server",
   //   config: {
   //     transport: "stdio",
@@ -185,8 +192,9 @@ const MCP_SERVERS: ServerTestConfig[] = [
   //   testQuery: "Please list all the users",
   //   expectedToolNames: ["slack_list_channels", "slack_post_message"]
   // },
+
   // {
-  //   name: "playwright",
+  //   name: "playwright", // Yields no issues — just a sanity check
   //   displayName: "Playwright Server",
   //   config: {
   //     command: "npx",
