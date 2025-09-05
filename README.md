@@ -1,5 +1,9 @@
 # Fix Gemini "400 Error" with LangChain.js + MCP
 
+`npm i @langchain/core @langchain/mcp-adapters @langchain/langgraph @langchain/google-genai @h1deya/langchain-google-genai-ex`
+
+`export GOOGLE_API_KEY=…`
+
 ## Drop-in replacement that unblocks MCP tool schemas in Gemini
 
 This library provides **a drop-in replacement for `@langchain/google-genai`
@@ -104,9 +108,9 @@ If you searched for `GoogleGenerativeAIFetchError: [GoogleGenerativeAI Error] 40
   Most LLMs accept these schemas just fine.
 - Gemini rejects MCP tool schemas if they contain fields it doesn't expect (e.g., use of `anyOf`).
 - The result is a **400 Bad Request** - even though the same MCP server works fine with OpenAI, Anthropic, etc.
-- Google Vertex AI that supports API endpoints with relaxed schema requirements but targets enterprise accounts and billing.
-- Google provides a fix in its new Gemini SDK (`@google/genai`),
-  but LangChain.js cannot leverage it due to its architectural misalignment.
+- Google Vertex AI that supports API endpoints with relaxed schema requirements but it requires GCP setup.
+- Google provides a fix in its new Gemini SDK ([`@google/genai`](https://github.com/googleapis/js-genai?tab=readme-ov-file#model-context-protocol-mcp-support-experimental)),
+  but LangChain.js users cannot leverage it due to architectural misalignment.
 
 For many developers, this can make Gemini difficult to use with LangChain.js and some MCP servers.
 Even if only one incompatible MCP server is included in the MCP definitions passed to `MultiServerMCPClient`,
@@ -155,7 +159,6 @@ await client.close();
 
 **Key Benefits:**
 - **Simple to use** - Just replace the import and the classname
-- **Works with all MCP servers** - Airtable, Notion, GitHub, etc.
 - **Preserves all functionality** - Streaming, system instructions, etc.
 - **No breaking changes** - Drop-in replacement for ChatGoogleGenerativeAI
 

@@ -2,14 +2,13 @@ import "dotenv/config";
 import { ChatGoogleGenerativeAIEx } from "../index.js";
 // import { ChatGoogleGenerativeAIEx } from "@h1deya/langchain-google-genai-ex";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
+import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { HumanMessage } from "@langchain/core/messages";
 
-// The following Fetch MCP server causes "400 Bad Request"
 const client = new MultiServerMCPClient({
   mcpServers: {
-    fetch: {
+    fetch: { // This MCP server causes "400 Bad Request"
       command: "uvx",
       args: ["mcp-server-fetch==2025.4.7"]
     }

@@ -29,9 +29,9 @@ const client = new MultiServerMCPClient({
     //   }
     // },
 
-    // // NOTE: comment out "fetch" when you use "notion".
+    // // **NOTE:** comment out "fetch" when you use "notion".
     // // They both have a tool named "fetch," which causes a conflict.
-    //
+
     // // Notion local server (@notionhq/notion-mcp-server@1.9.0) fails
     // "notion": {
     //     "command": "npx",
@@ -48,7 +48,7 @@ const client = new MultiServerMCPClient({
     //   "args": ["-y", "mcp-remote", "https://mcp.notion.com/mcp"],
     // },
 
-    // // Yields no issues — just a sanity check
+    // // Yields no issues, only a sanity check
     // filesystem: {
     //   command: "npx",
     //   args: [
@@ -58,7 +58,7 @@ const client = new MultiServerMCPClient({
     //   ]
     // },
 
-    // // Yields no issues — just a sanity check
+    // // Yields no issues, only a sanity check
     // github: {
     //   transport: "http",
     //   url: "https://api.githubcopilot.com/mcp/",
@@ -77,10 +77,10 @@ const client = new MultiServerMCPClient({
 
   const agent = createReactAgent({ llm, tools: mcpTools });
 
-  const query = "Read the top news headlines on bbc.com";
+  // const query = "Read the top news headlines on bbc.com";
   // const query = "List all of the Airtable bases I have access to";
   // const query = "Tell me about my Notion account";
-  // const query = "Tell me how many of directories in `.`";
+  const query = "Tell me how many of directories in `.`";
   // const query = "Tell me about my GitHub profile"
 
   console.log("\x1b[33m");  // color to yellow
