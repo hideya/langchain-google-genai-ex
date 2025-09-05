@@ -155,6 +155,9 @@ console.log(result.messages[result.messages.length - 1].content);
 await client.close();
 ```
 
+A simple usage example, which is ready to clone and run, can be found
+[here](https://github.com/hideya/langchain-google-genai-ex-usage).
+
 **Key Benefits:**
 - **Simple to use** - Just replace the import and the classname
 - **Preserves all functionality** - Streaming, system instructions, etc.
@@ -183,6 +186,7 @@ await client.close();
 - **Complex combinations:** `oneOf`/`allOf` are simplified, which may loosen or slightly change validation rules.
 
 These adjustments keep most MCP tools working, but rare edge cases could behave differently from the original schema.
+Please report issues you encounter using [Issue](https://github.com/hideya/langchain-google-genai-ex/issues).
 
 See [this design decision document](./DESIGN_DECISIONS.md) for the implementation details.
 
