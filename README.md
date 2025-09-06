@@ -111,7 +111,7 @@ the following sections explain the cause and how to workaround it when using Lan
 - The result is a **400 Bad Request** - even though the same MCP server works fine with OpenAI, Anthropic, etc.
 - Google Vertex AI that supports API endpoints with relaxed schema requirements but it requires GCP setup.
 - Google provides a fix in its new Gemini SDK ([`@google/genai`](https://github.com/googleapis/js-genai?tab=readme-ov-file#model-context-protocol-mcp-support-experimental)),
-  but LangChain.js users cannot leverage it due to architectural misalignment.
+  but LangChain.js users cannot leverage it due to architectural incompatibility.
 
 For many developers, this can make Gemini difficult to use with LangChain.js and some MCP servers.
 Even if only one incompatible MCP server is included in the MCP definitions passed to `MultiServerMCPClient`,

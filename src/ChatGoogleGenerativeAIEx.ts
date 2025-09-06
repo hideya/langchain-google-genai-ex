@@ -76,9 +76,12 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
    * ```typescript
    * const llmWithTools = llm.bindTools(mcpTools, { temperature: 0 });
    * ```
+   * 
+   * @note Set LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE=true to see transformation details
    */
   override bindTools(tools: any[], kwargs?: Partial<GoogleGenerativeAIChatCallOptions>): ChatGoogleGenerativeAIEx {
-    const transformedTools = transformMcpToolsForGemini(tools);
+    const verbose = process.env.LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE === 'true';
+    const transformedTools = transformMcpToolsForGemini(tools, { verbose });
     return super.bindTools(transformedTools, kwargs) as ChatGoogleGenerativeAIEx;
   }
 }

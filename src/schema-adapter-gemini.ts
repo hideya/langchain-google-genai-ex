@@ -536,6 +536,8 @@ export function validateGeminiSchema(schema: GeminiCompatibleSchema, path = ''):
  * when used with LangChain.js
  * 
  * @param mcpTools - Array of MCP tools from MultiServerMCPClient.getTools()
+ * @param options - Configuration options
+ * @param options.verbose - If true, logs transformation details to console
  * @returns Array of tools with Gemini-compatible schemas
  * 
  * @example
@@ -545,23 +547,56 @@ export function validateGeminiSchema(schema: GeminiCompatibleSchema, path = ''):
  * import { createReactAgent } from '@langchain/langgraph/prebuilt';
  * 
  * const mcpTools = await client.getTools();
- * const geminiTools = transformMcpToolsForGemini(mcpTools);
+ * const geminiTools = transformMcpToolsForGemini(mcpTools, { verbose: true });
  * 
  * const llm = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
  * const agent = createReactAgent({ llm, tools: geminiTools });
  * ```
  */
-export function transformMcpToolsForGemini(mcpTools: any[]): any[] {
-  return mcpTools.map(tool => {
-    const { functionDeclaration } = transformMcpToolForGemini({
+export function transformMcpToolsForGemini(mcpTools: any[], options: { verbose?: boolean } = {}): any[] {
+  const { verbose = false } = options;
+  
+  if (verbose && mcpTools.length > 0) {
+    console.log(`🔧 Transforming ${mcpTools.length} MCP tool(s) for Gemini compatibility...`);
+  }
+  
+  const transformedTools = mcpTools.map(tool => {
+    const { functionDeclaration, wasTransformed, changesSummary } = transformMcpToolForGemini({
       name: tool.name,
       description: tool.description,
       inputSchema: tool.schema || {}
     });
+    
+    if (verbose) {
+      if (wasTransformed) {
+        console.log(`  🔄 ${tool.name}: ${changesSummary}`);
+      } else {
+        console.log(`  ✅ ${tool.name}: No transformation needed (simple schema)`);
+      }
+    }
     
     return {
       ...tool,
       schema: functionDeclaration.parameters
     };
   });
+  
+  if (verbose && mcpTools.length > 0) {
+    const transformedCount = mcpTools.filter((_, index) => {
+      const { wasTransformed } = transformMcpToolForGemini({
+        name: mcpTools[index].name,
+        description: mcpTools[index].description,
+        inputSchema: mcpTools[index].schema || {}
+      });
+      return wasTransformed;
+    }).length;
+    
+    if (transformedCount > 0) {
+      console.log(`📊 Summary: ${transformedCount}/${mcpTools.length} tool(s) required schema transformation`);
+    } else {
+      console.log(`📊 Summary: All tools had simple schemas - no transformations needed`);
+    }
+  }
+  
+  return transformedTools;
 }
