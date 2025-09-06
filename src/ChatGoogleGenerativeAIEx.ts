@@ -30,9 +30,10 @@ import { transformMcpToolsForGemini } from "./schema-adapter-gemini.js";
  * This will show:
  * ```
  * 🔧 Transforming 3 MCP tool(s) for Gemini compatibility...
- *   ✅ fetch: No transformation needed (simple schema)
- *   🔄 airtable.list_records: 2 anyOf variants fixed, 1 invalid required field filtered
- *   📊 Summary: 1/3 tool(s) required schema transformation
+ *   ✅ get-alerts: No transformation needed (simple schema)
+ *   ✅ get-forecast: No transformation needed (simple schema)
+ *   🔄 fetch: 2 exclusive bound(s) converted, 1 unsupported format(s) removed (uri)
+ * 📊 Summary: 1/3 tool(s) required schema transformation
  * ```
  * 
  * ## What Gets Fixed:

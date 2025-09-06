@@ -14,6 +14,15 @@ process.env.LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE = "true";
 // Create MCP client and connect to servers
 const client = new MultiServerMCPClient({
   mcpServers: {
+    // Very simple and yields no issues, only a sanity check
+    "us-weather": {  // US weather only
+      command: "npx",
+      args: [
+        "-y",
+        "@h1deya/mcp-server-weather"
+      ]
+    },
+
     // This Fetch server (mcp-server-fetch==2025.4.7) fails
     fetch: {
       command: "uvx",

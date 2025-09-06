@@ -176,10 +176,10 @@ LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE=true npm run your-script
 **Example output:**
 ```
 🔧 Transforming 3 MCP tool(s) for Gemini compatibility...
-  ✅ fetch: No transformation needed (simple schema)
-  🔄 airtable.list_records: 2 anyOf variants fixed, 1 invalid required field filtered
-  🔄 notion.search_pages: 1 type array converted
-📊 Summary: 2/3 tool(s) required schema transformation
+  ✅ get-alerts: No transformation needed (simple schema)
+  ✅ get-forecast: No transformation needed (simple schema)
+  🔄 fetch: 2 exclusive bound(s) converted, 1 unsupported format(s) removed (uri)
+📊 Summary: 1/3 tool(s) required schema transformation
 ```
 
 **When to use verbose logging:**
