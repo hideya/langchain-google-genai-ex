@@ -170,7 +170,7 @@ A simple usage example, which is ready to clone and run, can be found
 Want to see exactly what schema transformations are happening? Set the environment variable to get detailed logs:
 
 ```bash
-LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE=true npm run your-script
+LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE=true
 ```
 
 **Example output:**
