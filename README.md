@@ -59,6 +59,7 @@ Below we'll explain what and how this library works in detail:
 - [Installation](#installation)  
 - [The Problem You're Probably Having](#the-problem-youre-probably-having)
 - [Complete Usage Example](#complete-usage-example)
+- [Debugging: Verbose Logging](#debugging-verbose-logging)
 - [Features](#features)
 - [API Reference](https://hideya.github.io//langchain-google-genai-ex/classes/ChatGoogleGenerativeAIEx.html)
 
@@ -163,6 +164,34 @@ A simple usage example, which is ready to clone and run, can be found
 - **Simple to use** - Just replace the import and the classname
 - **Preserves all functionality** - Streaming, system instructions, etc.
 - **No breaking changes** - Drop-in replacement for ChatGoogleGenerativeAI
+
+## Debugging: Verbose Logging
+
+Want to see exactly what schema transformations are happening? Set the environment variable to get detailed logs:
+
+```bash
+LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE=true npm run your-script
+```
+
+**Example output:**
+```
+🔧 Transforming 3 MCP tool(s) for Gemini compatibility...
+  ✅ fetch: No transformation needed (simple schema)
+  🔄 airtable.list_records: 2 anyOf variants fixed, 1 invalid required field filtered
+  🔄 notion.search_pages: 1 type array converted
+📊 Summary: 2/3 tool(s) required schema transformation
+```
+
+**When to use verbose logging:**
+- **Debugging**: When tools aren't working as expected
+- **Understanding**: See what complex schemas are being simplified
+- **Verification**: Confirm that transformations are happening correctly
+- **Development**: Monitor which MCP servers need schema fixes
+
+The verbose output helps you understand:
+- Which tools have complex schemas that need transformation
+- What specific changes are being made (anyOf fixes, type conversions, etc.)
+- How many tools in your setup require compatibility fixes
 
 ## Features
 

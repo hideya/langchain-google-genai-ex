@@ -8,6 +8,9 @@ import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 // const MODEL_NAME = "gemini-1.5-flash";
 const MODEL_NAME = "gemini-2.5-flash";
 
+// Uncomment the following to enable verbose logging
+process.env.LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE = "true";
+
 // Create MCP client and connect to servers
 const client = new MultiServerMCPClient({
   mcpServers: {
@@ -77,10 +80,10 @@ const client = new MultiServerMCPClient({
 
   const agent = createReactAgent({ llm, tools: mcpTools });
 
-  // const query = "Read the top news headlines on bbc.com";
+  const query = "Read the top news headlines on bbc.com";
   // const query = "List all of the Airtable bases I have access to";
   // const query = "Tell me about my Notion account";
-  const query = "Tell me how many of directories in `.`";
+  // const query = "Tell me how many of directories in `.`";
   // const query = "Tell me about my GitHub profile"
 
   console.log("\x1b[33m");  // color to yellow
