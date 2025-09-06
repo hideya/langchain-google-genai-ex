@@ -224,7 +224,7 @@ See [this design decision document](./DESIGN_DECISIONS.md) for the implementatio
 
 Can be found [here](https://hideya.github.io//langchain-google-genai-ex/classes/ChatGoogleGenerativeAIEx.html)
 
-## LINKS
+## Links
 
 - [A simple usage example](https://github.com/hideya/langchain-google-genai-ex-usage) which is ready to clone and run
 - [Design decision document](./DESIGN_DECISIONS.md) describes the implementation details
