@@ -78,6 +78,29 @@ const client = new MultiServerMCPClient({
     //     "Authorization": `Bearer ${process.env.GITHUB_PERSONAL_ACCESS_TOKEN}`
     //   }
     // },
+
+    // // Yields no issues, only a sanity check
+    // slack: {
+    //   command: "npx",
+    //   args: [
+    //     "-y",
+    //     "@teamsparta/mcp-server-slack"
+    //   ],
+    //   env: {
+    //     "SLACK_BOT_TOKEN": `${process.env.SLACK_BOT_TOKEN}`,
+    //     "SLACK_TEAM_ID": `${process.env.SLACK_TEAM_ID}`,
+    //     "SLACK_CHANNEL_IDS": `${process.env.SLACK_CHANNEL_IDS}`
+    //   },
+    // },
+
+    // // Yields no issues, only a sanity check
+    // playwright: {
+    //   command: "npx",
+    //   args: [
+    //     "-y",
+    //     "@playwright/mcp@latest"
+    //   ]
+    // },
   }
 });
 
@@ -93,7 +116,9 @@ const client = new MultiServerMCPClient({
   // const query = "List all of the Airtable bases I have access to";
   // const query = "Tell me about my Notion account";
   // const query = "Tell me how many of directories in `.`";
-  // const query = "Tell me about my GitHub profile"
+  // const query = "Tell me about my GitHub profile";
+  // const query = "Please list all the Slack users";
+  // const query = "Open the BBC.com page, then close it";
 
   console.log("\x1b[33m");  // color to yellow
   console.log("[Q]", query);

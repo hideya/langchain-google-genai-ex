@@ -192,7 +192,7 @@ const MCP_SERVERS: ServerTestConfig[] = [
   //       "SLACK_CHANNEL_IDS": `${process.env.SLACK_CHANNEL_IDS}`
   //     },
   //   },
-  //   testQuery: "Please list all the users",
+  //   testQuery: "Please list all the Slack users",
   //   expectedToolNames: ["slack_list_channels", "slack_post_message"]
   // },
 
