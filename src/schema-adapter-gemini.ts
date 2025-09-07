@@ -15,6 +15,13 @@
  * - Removes unsupported JSON Schema features
  * - Converts type arrays to nullable single types where possible
  * 
+ * Known Limitations:
+ * - **Unresolved references:** If a schema points to `$ref` definitions that aren't available, they're simplified to a generic object.
+ * - **Tuple-style arrays:** For schemas that define arrays with position-specific types, only the first item is used.
+ * - **Enums and formats:** Only string enums and a small set of formats are kept; others are dropped.
+ * - **Complex combinations:** `oneOf`/`allOf` are simplified, which may loosen or slightly change validation rules.
+ * These adjustments keep most MCP tools working, but rare edge cases could behave differently from the original schema.
+ * 
  * For the OpenAPI subset requirement for function declarations
  *    see: https://ai.google.dev/api/caching#Schema
  * For the OpenAPI 3.0 subset limitations vs full JSON Schema
@@ -539,19 +546,6 @@ export function validateGeminiSchema(schema: GeminiCompatibleSchema, path = ''):
  * @param options - Configuration options
  * @param options.verbose - If true, logs transformation details to console
  * @returns Array of tools with Gemini-compatible schemas
- * 
- * @example
- * ```typescript
- * import { transformMcpToolsForGemini } from '@h1deya/langchain-google-genai-ex/schema-adapter';
- * import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
- * import { createReactAgent } from '@langchain/langgraph/prebuilt';
- * 
- * const mcpTools = await client.getTools();
- * const geminiTools = transformMcpToolsForGemini(mcpTools, { verbose: true });
- * 
- * const llm = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
- * const agent = createReactAgent({ llm, tools: geminiTools });
- * ```
  */
 export function transformMcpToolsForGemini(mcpTools: any[], options: { verbose?: boolean } = {}): any[] {
   const { verbose = false } = options;
