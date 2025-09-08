@@ -59,6 +59,7 @@ Below we'll explain what and how this library works in detail:
 - [Installation](#installation)  
 - [The Problem You're Probably Having](#the-problem-youre-probably-having)
 - [Complete Usage Example](#complete-usage-example)
+- [Debugging: Verbose Logging](#debugging-verbose-logging)
 - [Features](#features)
 - [API Reference](https://hideya.github.io//langchain-google-genai-ex/classes/ChatGoogleGenerativeAIEx.html)
 
@@ -111,7 +112,7 @@ the following sections explain the cause and how to workaround it when using Lan
 - The result is a **400 Bad Request** - even though the same MCP server works fine with OpenAI, Anthropic, etc.
 - Google Vertex AI that supports API endpoints with relaxed schema requirements but it requires GCP setup.
 - Google provides a fix in its new Gemini SDK ([`@google/genai`](https://github.com/googleapis/js-genai?tab=readme-ov-file#model-context-protocol-mcp-support-experimental)),
-  but LangChain.js users cannot leverage it due to architectural misalignment.
+  but LangChain.js users cannot leverage it due to architectural incompatibility.
 
 For many developers, this can make Gemini difficult to use with LangChain.js and some MCP servers.
 Even if only one incompatible MCP server is included in the MCP definitions passed to `MultiServerMCPClient`,
@@ -164,6 +165,34 @@ A simple usage example, which is ready to clone and run, can be found
 - **Preserves all functionality** - Streaming, system instructions, etc.
 - **No breaking changes** - Drop-in replacement for ChatGoogleGenerativeAI
 
+## Debugging: Verbose Logging
+
+Want to see exactly what schema transformations are happening? Set the environment variable to get detailed logs:
+
+```bash
+LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE=true
+```
+
+**Example output:**
+```
+🔧 Transforming 3 MCP tool(s) for Gemini compatibility...
+  ✅ get-alerts: No transformation needed (simple schema)
+  ✅ get-forecast: No transformation needed (simple schema)
+  🔄 fetch: 2 exclusive bound(s) converted, 1 unsupported format(s) removed (uri)
+📊 Summary: 1/3 tool(s) required schema transformation
+```
+
+**When to use verbose logging:**
+- **Debugging**: When tools aren't working as expected
+- **Understanding**: See what complex schemas are being simplified
+- **Verification**: Confirm that transformations are happening correctly
+- **Development**: Monitor which MCP servers need schema fixes
+
+The verbose output helps you understand:
+- Which tools have complex schemas that need transformation
+- What specific changes are being made (anyOf fixes, type conversions, etc.)
+- How many tools in your setup require compatibility fixes
+
 ## Features
 
 ### All Original ChatGoogleGenerativeAI Features
@@ -195,7 +224,7 @@ See [this design decision document](./DESIGN_DECISIONS.md) for the implementatio
 
 Can be found [here](https://hideya.github.io//langchain-google-genai-ex/classes/ChatGoogleGenerativeAIEx.html)
 
-## LINKS
+## Links
 
 - [A simple usage example](https://github.com/hideya/langchain-google-genai-ex-usage) which is ready to clone and run
 - [Design decision document](./DESIGN_DECISIONS.md) describes the implementation details

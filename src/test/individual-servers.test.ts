@@ -12,6 +12,9 @@ const LLM_MODELS_TO_TEST = ["gemini-1.5-flash", "gemini-2.5-flash"];
 // const LLM_MODELS_TO_TEST = ["gemini-1.5-flash"]; // Single model for quick testing
 // const LLM_MODELS_TO_TEST = ["gemini-2.5-flash"]; // Single model for quick testing
 
+// Uncomment the following to enable verbose logging
+// process.env.LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE = "true";
+
 /**
  * Individual MCP Server Integration Test
  * 
@@ -58,37 +61,37 @@ const MCP_SERVERS: ServerTestConfig[] = [
     expectedToolNames: ["get-alerts", "get-forecast"]
   },
 
-  // {
-  //   // Fetcg server (mcp-server-fetch==2025.4.7) fails
-  //   name: "fetch",
-  //   displayName: "Fetch Server",
-  //   config: {
-  //     transport: "stdio",
-  //     command: "uvx",
-  //     args: ["mcp-server-fetch"]
-  //   },
-  //   testQuery: "Use the fetch tool to read and summarize the beginning of the news headlines on BBC.com",
-  //   expectedToolNames: ["fetch"]
-  // },
+  {
+    // Fetcg server (mcp-server-fetch==2025.4.7) fails
+    name: "fetch",
+    displayName: "Fetch Server",
+    config: {
+      transport: "stdio",
+      command: "uvx",
+      args: ["mcp-server-fetch"]
+    },
+    testQuery: "Read https://en.wikipedia.org/wiki/LangChain and summarize",
+    expectedToolNames: ["fetch"]
+  },
   
   // NOTE: comment out "fetch" when you use "notion".
   // They both have a tool named "fetch," which causes a conflict.
   
-  {
-    // Notion local server (@notionhq/notion-mcp-server@1.9.0) fails
-    name: "notion",
-    displayName: "Notion Local Server",
-    config: {
-      transport: "stdio",
-      command: "npx",
-      args: ["-y", "@notionhq/notion-mcp-server@1.9.0"],
-      env: {
-        "NOTION_TOKEN": `${process.env.NOTION_INTEGRATION_SECRET}`
-      }
-    },
-    testQuery: "Use the notion-get-self tool and summarize the information about my account",
-    expectedToolNames: ["notion-get-self", "notion-search-pages"],
-  },
+  // {
+  //   // Notion local server (@notionhq/notion-mcp-server@1.9.0) fails
+  //   name: "notion",
+  //   displayName: "Notion Local Server",
+  //   config: {
+  //     transport: "stdio",
+  //     command: "npx",
+  //     args: ["-y", "@notionhq/notion-mcp-server@1.9.0"],
+  //     env: {
+  //       "NOTION_TOKEN": `${process.env.NOTION_INTEGRATION_SECRET}`
+  //     }
+  //   },
+  //   testQuery: "Use the notion-get-self tool and summarize the information about my account",
+  //   expectedToolNames: ["notion-get-self", "notion-search-pages"],
+  // },
 
   // {
   //   // Notion remote server has fixed the issue
@@ -104,20 +107,20 @@ const MCP_SERVERS: ServerTestConfig[] = [
   //   // requiresAuth: false,  //  OAuth via "mcp-remote"
   // },
 
-  {
-    // This Airtable local server (airtable-mcp-server@1.6.1) fails
-    name: "airtable",
-    displayName: "Airtable Server",
-    config: {
-      command: "npx",
-      args: ["-y", "airtable-mcp-server@1.6.1"],
-      env: {
-        "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
-      }
-    },
-    testQuery: "List all of the bases I have access to",
-    expectedToolNames: ["list_records", "list_tables"]
-  },
+  // {
+  //   // This Airtable local server (airtable-mcp-server@1.6.1) fails
+  //   name: "airtable",
+  //   displayName: "Airtable Server",
+  //   config: {
+  //     command: "npx",
+  //     args: ["-y", "airtable-mcp-server@1.6.1"],
+  //     env: {
+  //       "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
+  //     }
+  //   },
+  //   testQuery: "List all of the bases I have access to",
+  //   expectedToolNames: ["list_records", "list_tables"]
+  // },
 
   // {
   //   name: "brave-search", // Yields no issues — just a sanity check
@@ -189,7 +192,7 @@ const MCP_SERVERS: ServerTestConfig[] = [
   //       "SLACK_CHANNEL_IDS": `${process.env.SLACK_CHANNEL_IDS}`
   //     },
   //   },
-  //   testQuery: "Please list all the users",
+  //   testQuery: "Please list all the Slack users",
   //   expectedToolNames: ["slack_list_channels", "slack_post_message"]
   // },
 
