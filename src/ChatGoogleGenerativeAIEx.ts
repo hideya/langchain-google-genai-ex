@@ -21,6 +21,21 @@ import { transformMcpToolsForGemini } from "./schema-adapter-gemini.js";
  * const model = new ChatGoogleGenerativeAIEx({...});
  * ```
  * 
+ * ## Verbose Logging:
+ * Set environment variable to see transformation details:
+ * ```bash
+ * LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE=true npm run your-script
+ * ```
+ * 
+ * This will show:
+ * ```
+ * 🔧 Transforming 3 MCP tool(s) for Gemini compatibility...
+ *   ✅ get-alerts: No transformation needed (simple schema)
+ *   ✅ get-forecast: No transformation needed (simple schema)
+ *   🔄 fetch: 2 exclusive bound(s) converted, 1 unsupported format(s) removed (uri)
+ * 📊 Summary: 1/3 tool(s) required schema transformation
+ * ```
+ * 
  * ## What Gets Fixed:
  * - "anyOf must be the only field set" errors (Gemini 1.5-flash)
  * - "Unknown name 'exclusiveMaximum'" and similar schema validation errors
@@ -76,9 +91,12 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
    * ```typescript
    * const llmWithTools = llm.bindTools(mcpTools, { temperature: 0 });
    * ```
+   * 
+   * @note Set LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE=true to see transformation details
    */
   override bindTools(tools: any[], kwargs?: Partial<GoogleGenerativeAIChatCallOptions>): ChatGoogleGenerativeAIEx {
-    const transformedTools = transformMcpToolsForGemini(tools);
+    const verbose = process.env.LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE === 'true';
+    const transformedTools = transformMcpToolsForGemini(tools, { verbose });
     return super.bindTools(transformedTools, kwargs) as ChatGoogleGenerativeAIEx;
   }
 }

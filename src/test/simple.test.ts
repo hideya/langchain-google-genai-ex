@@ -6,6 +6,9 @@ import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { HumanMessage } from "@langchain/core/messages";
 
+// Uncomment the following to enable verbose logging
+// process.env.LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE = "true";
+
 const client = new MultiServerMCPClient({
   mcpServers: {
     fetch: { // This MCP server causes "400 Bad Request"
