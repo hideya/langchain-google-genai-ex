@@ -20,6 +20,7 @@
  * - **Tuple-style arrays:** For schemas that define arrays with position-specific types, only the first item is used.
  * - **Enums and formats:** Only string enums and a small set of formats are kept; others are dropped.
  * - **Complex combinations:** `oneOf`/`allOf` are simplified, which may loosen or slightly change validation rules.
+ * 
  * These adjustments keep most MCP tools working, but rare edge cases could behave differently from the original schema.
  * 
  * For the OpenAPI subset requirement for function declarations

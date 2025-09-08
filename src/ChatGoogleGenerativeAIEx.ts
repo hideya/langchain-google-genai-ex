@@ -47,6 +47,14 @@ import { transformMcpToolsForGemini } from "./schema-adapter-gemini.js";
  * - All original ChatGoogleGenerativeAI features (streaming, system instructions, etc.)
  * - Full LangChain.js integration
  * - Tested with Gemini 1.5 and 2.5 models
+ * 
+ * ## Known Limitations:
+ * - **Unresolved references:** If a schema points to `$ref` definitions that aren't available, they're simplified to a generic object.
+ * - **Tuple-style arrays:** For schemas that define arrays with position-specific types, only the first item is used.
+ * - **Enums and formats:** Only string enums and a small set of formats are kept; others are dropped.
+ * - **Complex combinations:** `oneOf`/`allOf` are simplified, which may loosen or slightly change validation rules.
+ * 
+ * These adjustments keep most MCP tools working, but rare edge cases could behave differently from the original schema.
  */
 export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   // /**
