@@ -3,8 +3,7 @@ import { ChatGoogleGenerativeAIEx } from "../index.js";
 // import { ChatGoogleGenerativeAIEx } from "@h1deya/langchain-google-genai-ex";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
-import { createReactAgent } from "@langchain/langgraph/prebuilt";
-import { HumanMessage } from "@langchain/core/messages";
+import { createAgent, HumanMessage } from "langchain";
 
 // Uncomment the following to enable verbose logging
 // process.env.LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE = "true";
@@ -21,13 +20,16 @@ const client = new MultiServerMCPClient({
 (async () => {
   const mcpTools = await client.getTools();
 
-  // const llm = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
-  const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash"} );
+  // const model = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
+  // const model = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash"} );
+  const model = new ChatGoogleGenerativeAIEx({ model: "gemini-3-flash-preview"} );
 
-  const agent = createReactAgent({ llm, tools: mcpTools });
+  const agent = createAgent({ model, tools: mcpTools });
 
   const result = await agent.invoke({
-    messages: [new HumanMessage("Read https://en.wikipedia.org/wiki/LangChain and summarize")]
+    messages: [
+      new HumanMessage("Fetch the raw HTML content from bbc.com and tell me the titile")
+    ]
   });
 
   console.log(result.messages[result.messages.length - 1].content);

@@ -1,15 +1,11 @@
 import "dotenv/config";
 import { ChatGoogleGenerativeAIEx } from "../index.js";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { createReactAgent } from "@langchain/langgraph/prebuilt";
-import { HumanMessage } from "@langchain/core/messages";
+import { createAgent, HumanMessage } from "langchain";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 
 // Configure which LLM models to test
-// const LLM_MODELS_TO_TEST = ["gemini-1.5-pro", "gemini-2.5-flash"];
-// // NOTE: gemini-1.5-flash sometimes (not always) ignores tools it can use
-const LLM_MODELS_TO_TEST = ["gemini-1.5-flash", "gemini-2.5-flash"];
-// const LLM_MODELS_TO_TEST = ["gemini-1.5-flash"]; // Single model for quick testing
+const LLM_MODELS_TO_TEST = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-3-flash-preview"];
 // const LLM_MODELS_TO_TEST = ["gemini-2.5-flash"]; // Single model for quick testing
 
 // Uncomment the following to enable verbose logging
@@ -70,142 +66,40 @@ const MCP_SERVERS: ServerTestConfig[] = [
       command: "uvx",
       args: ["mcp-server-fetch"]
     },
-    testQuery: "Read https://en.wikipedia.org/wiki/LangChain and summarize",
+    testQuery: "Fetch the raw HTML content from bbc.com and tell me the titile",
     expectedToolNames: ["fetch"]
   },
-  
-  // NOTE: comment out "fetch" when you use "notion".
-  // They both have a tool named "fetch," which causes a conflict.
-  
-  // {
-  //   // Notion local server (@notionhq/notion-mcp-server@1.9.0) fails
-  //   name: "notion",
-  //   displayName: "Notion Local Server",
-  //   config: {
-  //     transport: "stdio",
-  //     command: "npx",
-  //     args: ["-y", "@notionhq/notion-mcp-server@1.9.0"],
-  //     env: {
-  //       "NOTION_TOKEN": `${process.env.NOTION_INTEGRATION_SECRET}`
-  //     }
-  //   },
-  //   testQuery: "Use the notion-get-self tool and summarize the information about my account",
-  //   expectedToolNames: ["notion-get-self", "notion-search-pages"],
-  // },
 
-  // {
-  //   // Notion remote server has fixed the issue
-  //   name: "notion",
-  //   displayName: "Notion Remote Server",
-  //   config: {
-  //     transport: "stdio",
-  //     command: "npx",
-  //     args: ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]
-  //   },
-  //   testQuery: "Use the notion-get-self tool and summarize the information about my account",
-  //   expectedToolNames: ["notion-get-self", "notion-search-pages"],
-  //   // requiresAuth: false,  //  OAuth via "mcp-remote"
-  // },
+  {
+    // This Airtable local server (airtable-mcp-server@1.10.0) fails
+    name: "airtable",
+    displayName: "Airtable Server",
+    config: {
+      command: "npx",
+      args: ["-y", "airtable-mcp-server@1.10.0"],
+      env: {
+        "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
+      }
+    },
+    testQuery: "List all of the bases I have access to",
+    expectedToolNames: ["list_records", "list_tables"]
+  },
 
-  // {
-  //   // This Airtable local server (airtable-mcp-server@1.6.1) fails
-  //   name: "airtable",
-  //   displayName: "Airtable Server",
-  //   config: {
-  //     command: "npx",
-  //     args: ["-y", "airtable-mcp-server@1.6.1"],
-  //     env: {
-  //       "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
-  //     }
-  //   },
-  //   testQuery: "List all of the bases I have access to",
-  //   expectedToolNames: ["list_records", "list_tables"]
-  // },
-
-  // {
-  //   name: "brave-search", // Yields no issues — just a sanity check
-  //   displayName: "Brave Serch Server",
-  //   config: {
-  //     command: "npx",
-  //     args: [ "-y", "@modelcontextprotocol/server-brave-search"],
-  //     env: { "BRAVE_API_KEY": `${process.env.BRAVE_API_KEY}` }
-  //   },
-  //   testQuery: "Use the Brace search tool to find out major news in Japan",
-  //   expectedToolNames: ["brave_web_search", "brave_local_search"]
-  // },
-
-  // {
-  //   name: "filesystem", // Yields no issues — just a sanity check
-  //   displayName: "Filesystem Server",
-  //   config: {
-  //     command: "npx",
-  //     args: [
-  //       "-y",
-  //       "@modelcontextprotocol/server-filesystem",
-  //       "."  // path to a directory to allow access to
-  //     ]
-  //   },
-  //   testQuery: "Tell me how many directories are in the current directory",
-  //   expectedToolNames: ["read_file", "list_directory"]
-  // },
-
-  // {
-  //   name: "sqlite", // Yields no issues — just a sanity check
-  //   displayName: "SQLite Server",
-  //   config: {
-  //     command: "uvx",
-  //     args: [
-  //       "mcp-server-sqlite",
-  //       "--db-path",
-  //       "test-mcp-server-sqlite.sqlite3"
-  //     ]
-  //   },
-  //   testQuery: "Make a new table called 'fruits' with columns 'name' and 'count', insert apple with count 123 and orange with count 345, then show all items",
-  //   expectedToolNames: ["execute-query", "list-tables"]
-  // },
-  // {
-  //   name: "github", // Yields no issues — just a sanity check
-  //   displayName: "GitHub Server",
-  //   config: {
-  //     transport: "http",
-  //     url: "https://api.githubcopilot.com/mcp/",
-  //     headers: {
-  //       "Authorization": `Bearer ${process.env.GITHUB_PERSONAL_ACCESS_TOKEN}`
-  //     }
-  //   },
-  //   testQuery: "Tell me about my GitHub profile",
-  //   expectedToolNames: ["search_repositories", "get_user"],
-  //   requiresAuth: true,
-  //   authEnvVar: "GITHUB_PERSONAL_ACCESS_TOKEN"
-  // },
-
-  // {
-  //   name: "slack", // Yields no issues — just a sanity check
-  //   displayName: "Slack Server",
-  //   config: {
-  //     transport: "stdio",
-  //     command: "npx",
-  //     args: ["-y", "@teamsparta/mcp-server-slack"],
-  //     env: {
-  //       "SLACK_BOT_TOKEN": `${process.env.SLACK_BOT_TOKEN}`,
-  //       "SLACK_TEAM_ID": `${process.env.SLACK_TEAM_ID}`,
-  //       "SLACK_CHANNEL_IDS": `${process.env.SLACK_CHANNEL_IDS}`
-  //     },
-  //   },
-  //   testQuery: "Please list all the Slack users",
-  //   expectedToolNames: ["slack_list_channels", "slack_post_message"]
-  // },
-
-  // {
-  //   name: "playwright", // Yields no issues — just a sanity check
-  //   displayName: "Playwright Server",
-  //   config: {
-  //     command: "npx",
-  //     args: ["-y", "@playwright/mcp@latest"]
-  //   },
-  //   testQuery: "Open the BBC.com page, then close it",
-  //   expectedToolNames: ["playwright_navigate", "playwright_screenshot"],
-  // },
+  {
+    name: "github", // Yields no issues — just a sanity check
+    displayName: "GitHub Server",
+    config: {
+      transport: "http",
+      url: "https://api.githubcopilot.com/mcp/",
+      headers: {
+        "Authorization": `Bearer ${process.env.GITHUB_PERSONAL_ACCESS_TOKEN}`
+      }
+    },
+    testQuery: "Tell me about my GitHub profile",
+    expectedToolNames: ["search_repositories", "get_user"],
+    requiresAuth: true,
+    authEnvVar: "GITHUB_PERSONAL_ACCESS_TOKEN"
+  },
 ];
 
 interface TestResult {
@@ -288,7 +182,7 @@ async function testSingleServer(serverConfig: ServerTestConfig, llmModel: string
     console.log(`  🔄 Testing original ChatGoogleGenerativeAI (${llmModel})...`);
     try {
       const originalLlm = new ChatGoogleGenerativeAI({ model: llmModel });
-      const originalAgent = createReactAgent({ llm: originalLlm, tools: mcpTools });
+      const originalAgent = createAgent({ model: originalLlm, tools: mcpTools });
       
       const originalResult = await originalAgent.invoke({
         messages: [new HumanMessage(serverConfig.testQuery)]
@@ -308,7 +202,7 @@ async function testSingleServer(serverConfig: ServerTestConfig, llmModel: string
     console.log(`  🚀 Testing automatic transformation (ChatGoogleGenerativeAIEx) (${llmModel})...`);
     try {
       const automaticLlm = new ChatGoogleGenerativeAIEx({ model: llmModel });
-      const automaticAgent = createReactAgent({ llm: automaticLlm, tools: mcpTools });
+      const automaticAgent = createAgent({ model: automaticLlm, tools: mcpTools });
       
       console.log(`  💬 Query: "${serverConfig.testQuery}"`);
       
