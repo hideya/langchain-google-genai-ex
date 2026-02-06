@@ -22,7 +22,7 @@ const client = new MultiServerMCPClient({
       ]
     },
 
-    // This Fetch server (mcp-server-fetch==2025.4.7) fails
+    // This Fetch server has issues
     fetch: {
       command: "uvx",
       args: [
@@ -30,7 +30,7 @@ const client = new MultiServerMCPClient({
       ]
     },
 
-    // This Airtable local server (airtable-mcp-server@1.10.0) fails
+    // This Airtable local server has issues
     airtable: {
       transport: "stdio",
       command: "npx",
@@ -51,6 +51,11 @@ const client = new MultiServerMCPClient({
   }
 });
 
+// const query = "How many weather alerts in California?";
+const query = "Fetch the raw HTML content from bbc.com and tell me the titile";
+// const query = "List all of the Airtable bases I have access to";
+// const query = "Tell me about my GitHub profile";
+
 (async () => {
   const mcpTools = await client.getTools();
 
@@ -58,11 +63,6 @@ const client = new MultiServerMCPClient({
   // const model = new ChatGoogleGenerativeAI({model: MODEL_NAME});
 
   const agent = createAgent({ model, tools: mcpTools });
-
-  // const query = "How many weather alerts in California?";
-  const query = "Fetch the raw HTML content from bbc.com and tell me the titile";
-  // const query = "List all of the Airtable bases I have access to";
-  // const query = "Tell me about my GitHub profile";
 
   console.log("\x1b[33m");  // color to yellow
   console.log("[Q]", query);

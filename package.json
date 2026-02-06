@@ -74,16 +74,16 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@langchain/google-genai": "^2.1.15"
+    "@langchain/google-genai": ">=0.2.16"
   },
   "devDependencies": {
     "@langchain/mcp-adapters": "^1.1.2",
-    "langchain": "^1.2.18",
     "@types/node": "^22.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "dotenv": "^16.4.0",
     "eslint": "^9.0.0",
+    "langchain": "^1.2.18",
     "tsup": "^8.0.0",
     "tsx": "^4.0.0",
     "typedoc": "^0.26.0",

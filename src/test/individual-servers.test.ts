@@ -19,16 +19,10 @@ const LLM_MODELS_TO_TEST = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-3-fl
  * 2. Automatic transformation with ChatGoogleGenerativeAIEx
  * 
  * Servers tested:
- * 1. us-weather: Weather information for US locations
+ * 1. us-weather: Weather information for US locations (sanity check)
  * 2. fetch: Web page fetching
- * 3. notion: Notion workspace integration
- * 4. airtable: Airtable operations
- * 5. brave-search: Brave web and local search
- * 6. filesystem: File system operations
- * 7. sqlite: SQLite database operations
- * 8. github: GitHub API integration  
- * 9. slack: Slack operations
- * 10. playwright: Browser automation
+ * 3. airtable: Airtable operations
+ * 4. github: GitHub API integration (sanity check)
  * 
  * Each server is tested independently to isolate success/failure cases
  * and compare the effectiveness of the ChatGoogleGenerativeAIEx solution.
