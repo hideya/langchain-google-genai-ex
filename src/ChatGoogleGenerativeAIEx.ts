@@ -85,6 +85,9 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   //   return super.bind(kwargs) as ChatGoogleGenerativeAIEx;
   // }
 
+  // Cache for transformed tools
+  private static transformCache = new Map<string, any[]>();
+
   /**
    * Binds tools with automatic schema transformation.
    * 
@@ -104,7 +107,37 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
    */
   override bindTools(tools: any[], kwargs?: Partial<GoogleGenerativeAIChatCallOptions>): ChatGoogleGenerativeAIEx {
     const verbose = process.env.LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE === 'true';
-    const transformedTools = transformMcpToolsForGemini(tools, { verbose });
+
+    // // Check the identity of the tools object
+    // const objId = (tools as any).__bindToolsCallId || 'new-object';
+    // // If it doesn't have an ID, assign one
+    // if (!(tools as any).__bindToolsCallId) {
+    //   (tools as any).__bindToolsCallId = Math.random().toString(36).substring(7);
+    // }
+    // console.log(`- Object reference: ${(tools as any).__bindToolsCallId}`);
+    // console.log(`- Object size: ${JSON.stringify(tools).length}`);
+
+    // Generate hash for caching
+    const toolsHash = require('crypto')
+      .createHash('sha256')
+      .update(JSON.stringify(tools))
+      .digest('hex');
+
+    // Check cache first
+    let transformedTools = ChatGoogleGenerativeAIEx.transformCache.get(toolsHash);
+    
+    if (transformedTools) {
+      if (verbose) {
+        console.log(`✅ Using cached transformation (hash: ${toolsHash.substring(0, 8)})`);
+      }
+    } else {
+      if (verbose) {
+        console.log(`🔑 New tools detected (hash: ${toolsHash.substring(0, 8)})`);
+      }
+      transformedTools = transformMcpToolsForGemini(tools, { verbose });
+      ChatGoogleGenerativeAIEx.transformCache.set(toolsHash, transformedTools);
+    }
+
     return super.bindTools(transformedTools, kwargs) as ChatGoogleGenerativeAIEx;
   }
 }

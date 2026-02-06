@@ -47,7 +47,7 @@ const MCP_SERVERS: ServerTestConfig[] = [
       command: "npx",
       args: ["-y", "@h1deya/mcp-server-weather"]
     },
-    testQuery: "Are there any weather alerts in California?",
+    testQuery: "How many weather alerts in California?",
     expectedToolNames: ["get-alerts", "get-forecast"]
   },
 

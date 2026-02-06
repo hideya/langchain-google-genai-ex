@@ -51,10 +51,12 @@ const client = new MultiServerMCPClient({
   }
 });
 
-// const query = "How many weather alerts in California?";
-const query = "Fetch the raw HTML content from bbc.com and tell me the titile";
-// const query = "List all of the Airtable bases I have access to";
-// const query = "Tell me about my GitHub profile";
+const queries = [
+  "How many weather alerts in California?",
+  "Fetch the raw HTML content from bbc.com and tell me the titile",
+  "List all of the Airtable bases I have access to",
+  "Tell me about my GitHub profile"
+];
 
 (async () => {
   const mcpTools = await client.getTools();
@@ -64,17 +66,19 @@ const query = "Fetch the raw HTML content from bbc.com and tell me the titile";
 
   const agent = createAgent({ model, tools: mcpTools });
 
-  console.log("\x1b[33m");  // color to yellow
-  console.log("[Q]", query);
-  console.log("\x1b[0m");  // reset the color
+  for (const query of queries) {
+    console.log("\x1b[33m");  // color to yellow
+    console.log("[Q]", query);
+    console.log("\x1b[0m");  // reset the color
 
-  const messages =  { messages: [new HumanMessage(query)] };
-  const result = await agent.invoke(messages);
-  const response = result.messages[result.messages.length - 1].content;
+    const messages =  { messages: [new HumanMessage(query)] };
+    const result = await agent.invoke(messages);
+    const response = result.messages[result.messages.length - 1].content;
 
-  console.log("\x1b[36m");  // color to cyan
-  console.log("[A]", response);
-  console.log("\x1b[0m");  // reset the color
+    console.log("\x1b[36m");  // color to cyan
+    console.log("[A]", response);
+    console.log("\x1b[0m");  // reset the color
+  }
 
   await client.close();
 })();
