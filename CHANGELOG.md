@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+
+## [0.1.0] - 2026-02-07
+
 ### Changed
 - Update for compatibility with LangChain 1.2.x and Gemini 3
 - Cache transformed tools (started seeing multiple bindTools() invocations)
