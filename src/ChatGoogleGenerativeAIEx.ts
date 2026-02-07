@@ -88,6 +88,19 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   // Cache for transformed tools
   private static transformCache = new Map<string, any[]>();
 
+  // Simple hash function
+  // Avoided using `require('crypto').createHash('sha256')`, which introduces
+  // dependency on node.  LangChain can run inside a browser.
+  private static simpleHash(str: string): string {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    return hash.toString(36); // Base36 for shorter string
+  }
+
   /**
    * Binds tools with automatic schema transformation.
    * 
@@ -118,26 +131,25 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
     // console.log(`- Object size: ${JSON.stringify(tools).length}`);
 
     // Generate hash for caching
-    const toolsHash = require('crypto')
-      .createHash('sha256')
-      .update(JSON.stringify(tools))
-      .digest('hex');
+    const toolsHash = ChatGoogleGenerativeAIEx.simpleHash(JSON.stringify(tools));
 
     // Check cache first
     let transformedTools = ChatGoogleGenerativeAIEx.transformCache.get(toolsHash);
     
     if (transformedTools) {
       if (verbose) {
-        console.log(`✅ Using cached transformation (hash: ${toolsHash.substring(0, 8)})`);
+        console.log(`✅ Using cached transformation (hash: ${toolsHash})`);
       }
     } else {
       if (verbose) {
-        console.log(`🔑 New tools detected (hash: ${toolsHash.substring(0, 8)})`);
+        console.log(`🔑 New tools detected (hash: ${toolsHash})`);
       }
       transformedTools = transformMcpToolsForGemini(tools, { verbose });
       ChatGoogleGenerativeAIEx.transformCache.set(toolsHash, transformedTools);
     }
 
+    // NOTE: the same transformedTools object is used across invocations.
+    // No concerns about mutations found, as far as I checked.
     return super.bindTools(transformedTools, kwargs) as ChatGoogleGenerativeAIEx;
   }
 }

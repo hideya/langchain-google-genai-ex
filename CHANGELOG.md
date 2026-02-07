@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Changed
-- To be compatible with LangChain 1.2.x
+- Update to be LangChain 1.2.x compatible
+- Cache transformed tools (started seeing multiple bindTools() invocations)
 - Update dependencies
 - Update README.md to reflect the newer checked versions
 - Update test files

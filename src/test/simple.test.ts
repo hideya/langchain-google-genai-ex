@@ -6,7 +6,7 @@ import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 import { createAgent, HumanMessage } from "langchain";
 
 // Uncomment the following to enable verbose logging
-process.env.LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE = "true";
+// process.env.LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE = "true";
 
 // const MODEL_NAME = "gemini-2.0-flash";
 const MODEL_NAME = "gemini-2.5-flash";

@@ -9,7 +9,7 @@ const LLM_MODELS_TO_TEST = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-3-fl
 // const LLM_MODELS_TO_TEST = ["gemini-2.5-flash"]; // Single model for quick testing
 
 // Uncomment the following to enable verbose logging
-// process.env.LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE = "true";
+process.env.LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE = "true";
 
 /**
  * Individual MCP Server Integration Test
