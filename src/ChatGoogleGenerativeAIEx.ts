@@ -85,6 +85,22 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
   //   return super.bind(kwargs) as ChatGoogleGenerativeAIEx;
   // }
 
+  // Cache for transformed tools
+  private static transformCache = new Map<string, any[]>();
+
+  // Simple hash function
+  // Avoided using `require('crypto').createHash('sha256')`, which introduces
+  // dependency on node.  LangChain can run inside a browser.
+  private static simpleHash(str: string): string {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    return hash.toString(36); // Base36 for shorter string
+  }
+
   /**
    * Binds tools with automatic schema transformation.
    * 
@@ -104,7 +120,36 @@ export class ChatGoogleGenerativeAIEx extends ChatGoogleGenerativeAI {
    */
   override bindTools(tools: any[], kwargs?: Partial<GoogleGenerativeAIChatCallOptions>): ChatGoogleGenerativeAIEx {
     const verbose = process.env.LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE === 'true';
-    const transformedTools = transformMcpToolsForGemini(tools, { verbose });
+
+    // // Check the identity of the tools object
+    // const objId = (tools as any).__bindToolsCallId || 'new-object';
+    // // If it doesn't have an ID, assign one
+    // if (!(tools as any).__bindToolsCallId) {
+    //   (tools as any).__bindToolsCallId = Math.random().toString(36).substring(7);
+    // }
+    // console.log(`- Object reference: ${(tools as any).__bindToolsCallId}`);
+    // console.log(`- Object size: ${JSON.stringify(tools).length}`);
+
+    // Generate hash for caching
+    const toolsHash = ChatGoogleGenerativeAIEx.simpleHash(JSON.stringify(tools));
+
+    // Check cache first
+    let transformedTools = ChatGoogleGenerativeAIEx.transformCache.get(toolsHash);
+    
+    if (transformedTools) {
+      if (verbose) {
+        console.log(`✅ Using cached transformation (hash: ${toolsHash})`);
+      }
+    } else {
+      if (verbose) {
+        console.log(`🔑 New tools detected (hash: ${toolsHash})`);
+      }
+      transformedTools = transformMcpToolsForGemini(tools, { verbose });
+      ChatGoogleGenerativeAIEx.transformCache.set(toolsHash, transformedTools);
+    }
+
+    // NOTE: the same transformedTools object is used across invocations.
+    // No concerns about mutations found, as far as I checked.
     return super.bindTools(transformedTools, kwargs) as ChatGoogleGenerativeAIEx;
   }
 }

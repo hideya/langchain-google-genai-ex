@@ -36,11 +36,11 @@ const llm = new ChatGoogleGenerativeAIEx({ ... });
 **That's it!** No configuration, no additional steps.
 
 **This automatically fixes:**
-- ✅ "anyOf must be the only field set" errors
-- ✅ "Unknown name 'exclusiveMaximum'" schema validation errors  
-- ✅ "Invalid JSON payload" errors from complex MCP schemas
-- ✅ Cascading failures where one complex server breaks entire MCP integration
-- ✅ Works with both Gemini 1.5 and 2.5
+- **"anyOf must be the only field set"** errors
+- **"Unknown name 'exclusiveMaximum'"** schema validation errors
+- **"Invalid JSON payload"** errors from complex MCP schemas
+- Cascading failures where one complex server breaks entire MCP integration
+- Works with Gemini 2.0, 2.5 and 3 preview
 
 You can easily switch back to the original `ChatGoogleGenerativeAI`
 when its schema handling improves,
@@ -49,7 +49,7 @@ or when the MCP server's schema improves to meet Gemini's strict requirements.
 A simple usage example, which is ready to clone and run, can be found
 [here](https://github.com/hideya/langchain-google-genai-ex-usage).
 
-> This library addresses compatibility issues present as of September 5, 2025, with LangChain.js (@langchain/core) v0.3.72 and @langchain/google-genai v0.2.16.
+> This library addresses compatibility issues present as of February 6, 2026, with LangChain.js (langchain) v1.2.18 and @langchain/google-genai v2.1.15.
 
 ## Table of Contents
 
@@ -69,11 +69,11 @@ Before installing, make sure you have:
 
 - **Node.js 18+** - Required for modern JavaScript features
 - **Google API Key** - Get yours at [Google AI Studio](https://ai.google.dev/gemini-api/docs/api-key)
-- **LangChain.js** - This package works with [`@langchain/core`](https://www.npmjs.com/package/@langchain/core)
+- **LangChain.js** - This package works with [`langchain`](https://www.npmjs.com/package/langchain)
   and [`@langchain/mcp-adapters`](https://www.npmjs.com/package/@langchain/mcp-adapters)
 - **MCP Servers** - Access to the MCP servers you want to use
 
-Tested with `@langchain/core@0.3.72` and `@langchain/google-genai@0.2.16`.
+Tested with `langchain@1.2.18` and `@langchain/google-genai@2.1.15`.
 
 ## Installation
 
@@ -127,9 +127,8 @@ so you can focus on building instead of debugging schema errors.
 ```typescript
 // import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatGoogleGenerativeAIEx } from '@h1deya/langchain-google-genai-ex';
-import { createReactAgent } from '@langchain/langgraph/prebuilt';
+import { createAgent, HumanMessage } from "langchain";
 import { MultiServerMCPClient } from '@langchain/mcp-adapters';
-import { HumanMessage } from '@langchain/core/messages';
 
 // The following Fetch MCP server causes "400 Bad Request"
 const client = new MultiServerMCPClient({
@@ -143,10 +142,10 @@ const client = new MultiServerMCPClient({
 
 const mcpTools = await client.getTools();
 
-// const llm = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
-const llm = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash"} );
+// const model = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
+const model = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash"} );
 
-const agent = createReactAgent({ llm, tools: mcpTools });
+const agent = createAgent({ model, tools: mcpTools });
 
 // This works! No more schema errors
 const result = await agent.invoke({
@@ -223,6 +222,10 @@ See [this design decision document](./DESIGN_DECISIONS.md) for the implementatio
 ## API Reference
 
 Can be found [here](https://hideya.github.io//langchain-google-genai-ex/classes/ChatGoogleGenerativeAIEx.html)
+
+## Change Log
+
+Can be found [here](https://github.com/hideya/langchain-google-genai-ex/blob/main/CHANGELOG.md)
 
 ## Links
 
