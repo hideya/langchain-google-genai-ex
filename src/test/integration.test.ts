@@ -55,7 +55,7 @@ const queries = [
   "How many weather alerts in California?",
   "Fetch the raw HTML content from bbc.com and tell me the titile",
   "List all of the Airtable bases I have access to",
-  "Tell me about my GitHub profile"
+  "Tell me about my authenticated GitHub profile",
 ];
 
 (async () => {

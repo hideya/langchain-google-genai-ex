@@ -36,9 +36,10 @@ const llm = new ChatGoogleGenerativeAIEx({ ... });
 **That's it!** No configuration, no additional steps.
 
 **This automatically fixes:**
-- **"anyOf must be the only field set"** errors
-- **"Unknown name 'exclusiveMaximum'"** schema validation errors
-- **"Invalid JSON payload"** errors from complex MCP schemas
+- **"Invalid JSON payload"** errors from complex MCP schemas, including:
+  - "anyOf must be the only field set"
+  - "Unknown name 'exclusiveMaximum'"
+  - etc.
 - Cascading failures where one complex server breaks entire MCP integration
 - Works with Gemini 2.0, 2.5 and 3 preview
 
@@ -235,3 +236,9 @@ Can be found [here](https://github.com/hideya/langchain-google-genai-ex/blob/mai
 ## License
 
 [MIT](./LICENSE)
+
+## Contributing
+
+Issues and pull requests welcome!  
+In particular, please share any issues relating to the latest versions of LLM models and specific MCP servers.  
+This tool aims to make MCP server testing as simple as possible.
