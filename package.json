@@ -1,6 +1,6 @@
 {
   "name": "@h1deya/langchain-google-genai-ex",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Drop-in replacement for ChatGoogleGenerativeAI that automatically fixes schema compatibility issues with MCP tools and Gemini API",
   "keywords": [
     "langchain",
@@ -48,7 +48,7 @@
     "build": "tsup src/index.ts --format cjs,esm --dts --clean",
     "build:watch": "tsup src/index.ts --format cjs,esm --dts --watch",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
-    "test": "node --test dist/test/*.js",
+    "test": "npm run type-check && npm run test:simple",
     "test:simple": "tsx src/test/simple.test.ts",
     "test:individual-servers": "tsx src/test/individual-servers.test.ts",
     "test:integration": "tsx src/test/integration.test.ts",
