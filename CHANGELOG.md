@@ -9,11 +9,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 
-## [0.2.2] - 2026-08-26
+## [0.2.3] - 2026-08-26
 
-### Changed
-- Document explicit `apiKey: process.env.GOOGLE_API_KEY` usage in the README examples
-  so Google AI Studio / Gemini Developer API authentication is clear.
+### Fixed
+- Remove the unnecessary explicit `apiKey: process.env.GOOGLE_API_KEY` guidance
+  that only applies to the companion `@h1deya/langchain-google-ex` package.
+
+
+## [0.2.2] - 2026-08-26
 
 ### Fixed
 - Pin the `mcp-server-fetch` integration test launcher to `mcp<2` to avoid the
