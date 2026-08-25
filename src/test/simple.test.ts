@@ -1,61 +1,124 @@
-import "dotenv/config";
+import assert from "node:assert/strict";
 import { ChatGoogleGenerativeAIEx } from "../index.js";
-// import { ChatGoogleGenerativeAIEx } from "@h1deya/langchain-google-genai-ex";
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { MultiServerMCPClient } from "@langchain/mcp-adapters";
-import { createAgent, HumanMessage } from "langchain";
+import {
+  makeJsonSchemaGeminiCompatible,
+  transformMcpToolsForGemini,
+  validateGeminiSchema,
+} from "../schema-adapter-gemini.js";
+import type { JsonSchemaDraft7 } from "../schema-adapter-types.js";
 
-// Uncomment the following to enable verbose logging
-// process.env.LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE = "true";
-
-// const MODEL_NAME = "gemini-2.0-flash";
-const MODEL_NAME = "gemini-2.5-flash";
-// const MODEL_NAME = "gemini-3-flash-preview";
-
-const client = new MultiServerMCPClient({
-  mcpServers: {
-    // This Fetch local server has schema issues
-    // https://pypi.org/project/mcp-server-fetch/
-    fetch: {
-      command: "uvx",
-      args: ["mcp-server-fetch==2025.4.7"]
+const incompatibleSchema: JsonSchemaDraft7 = {
+  type: "object",
+  description: "Fetch a URL",
+  properties: {
+    url: {
+      type: ["string", "null"],
+      format: "uri",
+      description: "URL to fetch",
     },
+    limit: {
+      type: "integer",
+      exclusiveMinimum: 0,
+      exclusiveMaximum: 10,
+    },
+    output: {
+      type: "object",
+      description: "Output format",
+      properties: {
+        mode: {
+          anyOf: [
+            { type: "string", enum: ["raw", "html"] },
+            {
+              type: "object",
+              required: ["missing"],
+              properties: {
+                selector: { type: "string" },
+              },
+            },
+          ],
+          description: "Output mode",
+        },
+      },
+      required: ["mode", "missing"],
+    },
+  },
+  required: ["url", "missing"],
+  additionalProperties: false,
+};
 
-    // // This Airtable local server has schema issues
-    // // https://www.npmjs.com/package/airtable-mcp-server
-    // airtable: {
-    //   transport: "stdio",
-    //   command: "npx",
-    //   args: ["-y", "airtable-mcp-server@1.10.0"],
-    //   env: {
-    //     "AIRTABLE_API_KEY": `${process.env.AIRTABLE_API_KEY}`,
-    //   }
-    // },
-  }
+const transformResult = makeJsonSchemaGeminiCompatible(incompatibleSchema);
+assert.equal(transformResult.wasTransformed, true);
+assert.match(transformResult.changesSummary, /type array/);
+assert.match(transformResult.changesSummary, /exclusive bound/);
+assert.match(transformResult.changesSummary, /unsupported format/);
+
+const validationErrors = validateGeminiSchema(transformResult.schema);
+assert.deepEqual(validationErrors, []);
+
+assert.deepEqual(transformResult.schema, {
+  type: "object",
+  description: "Fetch a URL",
+  properties: {
+    url: {
+      type: "string",
+      description: "URL to fetch",
+      nullable: true,
+    },
+    limit: {
+      type: "integer",
+      minimum: 1,
+      maximum: 9,
+    },
+    output: {
+      type: "object",
+      description: "Output format",
+      properties: {
+        mode: {
+          anyOf: [
+            {
+              type: "string",
+              enum: ["raw", "html"],
+              description: "Output mode",
+            },
+            {
+              type: "object",
+              properties: {
+                selector: {
+                  type: "string",
+                },
+              },
+              description: "Output mode",
+            },
+          ],
+        },
+      },
+      required: ["mode"],
+    },
+  },
+  required: ["url"],
 });
 
-const query = "Fetch the raw HTML content from bbc.com and tell me the titile";
-// const query = "List all of the Airtable bases I have access to";
+const mcpTools = [
+  {
+    name: "fetch",
+    description: "Fetch a URL",
+    schema: incompatibleSchema,
+  },
+];
 
-(async () => {
-  const mcpTools = await client.getTools();
+const transformedTools = transformMcpToolsForGemini(mcpTools);
 
-  // const model = new ChatGoogleGenerativeAI({ model: MODEL_NAME });
-  const model = new ChatGoogleGenerativeAIEx({ model: MODEL_NAME } );
+assert.equal(transformedTools.length, 1);
+assert.equal(transformedTools[0].name, "fetch");
+assert.deepEqual(validateGeminiSchema(transformedTools[0].schema), []);
+assert.deepEqual(transformedTools[0].schema, transformResult.schema);
 
-  const agent = createAgent({ model, tools: mcpTools });
+const model = new ChatGoogleGenerativeAIEx({
+  model: "gemini-2.5-flash",
+  apiKey: "test-api-key",
+});
 
-  console.log("\x1b[33m");  // color to yellow
-  console.log("[Q]", query);
-  console.log("\x1b[0m");  // reset the color
+const boundModel = model.bindTools(mcpTools);
+assert.equal(typeof boundModel.invoke, "function");
 
-  const messages =  { messages: [new HumanMessage(query)] };
-  const result = await agent.invoke(messages);
-  const response = result.messages[result.messages.length - 1].content;
-
-  console.log("\x1b[36m");  // color to cyan
-  console.log("[A]", response);
-  console.log("\x1b[0m");  // reset the color
-
-  await client.close();
-})();
+console.log("simple smoke test passed");

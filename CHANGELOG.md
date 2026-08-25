@@ -22,6 +22,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   MCP client cleanup.
 - Clarify in the README that this package targets `@langchain/google-genai` users, while new
   Google Gemini integrations should consider LangChain's newer `@langchain/google` package.
+- Replace the simple test with a local smoke test that does not require external MCP servers or
+  live Gemini API access.
+
+### Fixed
+- Avoid leaving `required: undefined` on transformed object schemas after invalid required
+  fields are removed.
 
 
 ## [0.1.0] - 2026-02-07

@@ -138,11 +138,17 @@ function transformAnyOfVariants(
     // Special validation for anyOf variants
     if (transformedVariant.type === 'object' && transformedVariant.required) {
       const originalRequired = transformedVariant.required;
-      transformedVariant.required = validateAndFilterRequired(
+      const validRequired = validateAndFilterRequired(
         transformedVariant.required,
         transformedVariant.properties,
         tracker
       );
+
+      if (validRequired) {
+        transformedVariant.required = validRequired;
+      } else {
+        delete transformedVariant.required;
+      }
       
       if (originalRequired && originalRequired.length !== (transformedVariant.required?.length || 0)) {
         tracker.anyOfVariantsFixed++;
@@ -292,7 +298,10 @@ function transformSchemaInternal(
 
   // CRITICAL FIX: Validate required fields against actual properties
   if (Array.isArray(schema.required)) {
-    result.required = validateAndFilterRequired(schema.required, result.properties, tracker);
+    const validRequired = validateAndFilterRequired(schema.required, result.properties, tracker);
+    if (validRequired) {
+      result.required = validRequired;
+    }
   }
 
   // Handle anyOf (supported) but convert allOf/oneOf to anyOf
