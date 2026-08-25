@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 
+## [0.2.4] - 2026-08-26
+### Changed
+- Revert title changes mistakenly incorporated
+
+
 ## [0.2.3] - 2026-08-26
 
 ### Fixed
