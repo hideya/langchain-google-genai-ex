@@ -50,7 +50,13 @@ or when the MCP server's schema improves to meet Gemini's strict requirements.
 A simple usage example, which is ready to clone and run, can be found
 [here](https://github.com/hideya/langchain-google-genai-ex-usage).
 
+> This library is intentionally focused on `@langchain/google-genai` users who need a
+> drop-in replacement for `ChatGoogleGenerativeAI`. For new Google Gemini integrations,
+> LangChain recommends the newer `@langchain/google` package.
+>
 > This library addresses compatibility issues present as of February 6, 2026, with LangChain.js (langchain) v1.2.18 and @langchain/google-genai v2.1.15.
+> Compatibility was re-checked on August 25, 2026, with `langchain` v1.5.10,
+> `@langchain/google-genai` v2.3.0, and `@langchain/mcp-adapters` v1.1.4.
 
 ## Table of Contents
 
@@ -70,16 +76,18 @@ Before installing, make sure you have:
 
 - **Node.js 18+** - Required for modern JavaScript features
 - **Google API Key** - Get yours at [Google AI Studio](https://ai.google.dev/gemini-api/docs/api-key)
-- **LangChain.js** - This package works with [`langchain`](https://www.npmjs.com/package/langchain)
-  and [`@langchain/mcp-adapters`](https://www.npmjs.com/package/@langchain/mcp-adapters)
+- **LangChain.js** - This package works with [`@langchain/google-genai`](https://www.npmjs.com/package/@langchain/google-genai),
+  [`langchain`](https://www.npmjs.com/package/langchain), and
+  [`@langchain/mcp-adapters`](https://www.npmjs.com/package/@langchain/mcp-adapters)
 - **MCP Servers** - Access to the MCP servers you want to use
 
-Tested with `langchain@1.2.18` and `@langchain/google-genai@2.1.15`.
+Tested with `langchain@1.5.10`, `@langchain/google-genai@2.3.0`, and
+`@langchain/mcp-adapters@1.1.4`.
 
 ## Installation
 
 ```bash
-npm i @h1deya/langchain-google-genai-ex
+npm i @h1deya/langchain-google-genai-ex @langchain/google-genai langchain @langchain/mcp-adapters
 ```
 
 ## The Problem You're Probably Having
@@ -127,34 +135,45 @@ so you can focus on building instead of debugging schema errors.
 
 ```typescript
 // import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { ChatGoogleGenerativeAIEx } from '@h1deya/langchain-google-genai-ex';
-import { createAgent, HumanMessage } from "langchain";
-import { MultiServerMCPClient } from '@langchain/mcp-adapters';
+import { ChatGoogleGenerativeAIEx } from "@h1deya/langchain-google-genai-ex";
+import { createAgent } from "langchain";
+import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 
 // The following Fetch MCP server causes "400 Bad Request"
 const client = new MultiServerMCPClient({
+  throwOnLoadError: true,
+  useStandardContentBlocks: true,
   mcpServers: {
     fetch: {
+      transport: "stdio",
       command: "uvx",
-      args: ["mcp-server-fetch==2025.4.7"]
-    }
-  }
+      args: ["mcp-server-fetch==2025.4.7"],
+    },
+  },
 });
 
-const mcpTools = await client.getTools();
+try {
+  const mcpTools = await client.getTools();
 
-// const model = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
-const model = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash"} );
+  // const model = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
+  const model = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
 
-const agent = createAgent({ model, tools: mcpTools });
+  const agent = createAgent({ model, tools: mcpTools });
 
-// This works! No more schema errors
-const result = await agent.invoke({
-  messages: [new HumanMessage("Read the top news headlines on bbc.com")]
-});
+  // This works! No more schema errors
+  const result = await agent.invoke({
+    messages: [
+      {
+        role: "user",
+        content: "Fetch the raw HTML content from bbc.com and tell me the title",
+      },
+    ],
+  });
 
-console.log(result.messages[result.messages.length - 1].content);
-await client.close();
+  console.log(result.messages.at(-1)?.content);
+} finally {
+  await client.close();
+}
 ```
 
 A simple usage example, which is ready to clone and run, can be found
