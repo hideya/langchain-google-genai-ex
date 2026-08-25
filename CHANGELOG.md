@@ -9,7 +9,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 
+## [0.2.5] - 2026-08-27
+- Clarify that `@langchain/google` users should use the companion
+  `@h1deya/langchain-google-ex` package.
+
+
 ## [0.2.4] - 2026-08-26
+
 ### Changed
 - Revert title changes mistakenly incorporated
 

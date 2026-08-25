@@ -35,18 +35,6 @@ const llm = new ChatGoogleGenerativeAIEx({ ... });
 
 **That's it!** No configuration, no additional steps.
 
-When using a Google AI Studio / Gemini Developer API key, pass it explicitly:
-
-```typescript
-const model = new ChatGoogleGenerativeAIEx({
-  model: "gemini-2.5-flash",
-  apiKey: process.env.GOOGLE_API_KEY,
-});
-```
-
-This keeps the sample's authentication path explicit and matches the companion
-`@h1deya/langchain-google-ex` package for `@langchain/google`.
-
 **This automatically fixes:**
 - **"Invalid JSON payload"** errors from complex MCP schemas, including:
   - "anyOf must be the only field set"
@@ -64,7 +52,10 @@ A simple usage example, which is ready to clone and run, can be found
 
 > This library is intentionally focused on `@langchain/google-genai` users who need a
 > drop-in replacement for `ChatGoogleGenerativeAI`. For new Google Gemini integrations,
-> LangChain recommends the newer `@langchain/google` package.
+> LangChain recommends the newer `@langchain/google` package. If you use
+> `@langchain/google`, see the companion
+> [`@h1deya/langchain-google-ex`](https://github.com/hideya/langchain-google-ex)
+> package instead.
 >
 > This library addresses compatibility issues present as of February 6, 2026, with LangChain.js (langchain) v1.2.18 and @langchain/google-genai v2.1.15.
 > Compatibility was re-checked on August 25, 2026, with `langchain` v1.5.10,
@@ -168,10 +159,7 @@ try {
   const mcpTools = await client.getTools();
 
   // const model = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
-  const model = new ChatGoogleGenerativeAIEx({
-    model: "gemini-2.5-flash",
-    apiKey: process.env.GOOGLE_API_KEY,
-  });
+  const model = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
 
   const agent = createAgent({ model, tools: mcpTools });
 
