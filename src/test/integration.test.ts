@@ -4,8 +4,8 @@ import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { createAgent, HumanMessage } from "langchain";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 
-const MODEL_NAME = "gemini-2.5-flash";
-// const MODEL_NAME = "gemini-3-flash-preview";
+// const MODEL_NAME = "gemini-2.5-flash";
+const MODEL_NAME = "gemini-3.5-flash";
 
 // Uncomment the following to enable verbose logging
 process.env.LANGCHAIN_GOOGLE_GENAI_EX_VERBOSE = "true";
@@ -24,8 +24,11 @@ const client = new MultiServerMCPClient({
 
     // This Fetch server has schema issues
     fetch: {
+      transport: "stdio",
       command: "uvx",
       args: [
+        "--with",
+        "mcp<2",
         "mcp-server-fetch==2025.4.7"
       ]
     },
@@ -53,7 +56,7 @@ const client = new MultiServerMCPClient({
 
 const queries = [
   "How many weather alerts in California?",
-  "Fetch the raw HTML content from bbc.com and tell me the titile",
+  "Fetch the raw HTML content from bbc.com and tell me the title",
   "List all of the Airtable bases I have access to",
   "Tell me about my authenticated GitHub profile",
 ];

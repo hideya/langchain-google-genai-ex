@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [Unreleased]
+
+### Fixed
+- Pin the `mcp-server-fetch` integration test launcher to `mcp<2` to avoid the
+  MCP SDK 2.x exception class rename breakage.
+
+
 ## [0.2.1] - 2026-08-25
 
 ### Fixed

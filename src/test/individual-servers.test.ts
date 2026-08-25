@@ -5,7 +5,7 @@ import { createAgent, HumanMessage } from "langchain";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 
 // Configure which LLM models to test
-const LLM_MODELS_TO_TEST = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-3-flash-preview"];
+const LLM_MODELS_TO_TEST = ["gemini-2.5-flash", "gemini-3.5-flash"];
 // const LLM_MODELS_TO_TEST = ["gemini-2.5-flash"]; // Single model for quick testing
 
 // Uncomment the following to enable verbose logging
@@ -52,15 +52,15 @@ const MCP_SERVERS: ServerTestConfig[] = [
   },
 
   {
-    // Fetcg server (mcp-server-fetch==2025.4.7) fails
+    // Fetch server (mcp-server-fetch==2025.4.7) has schema issues
     name: "fetch",
     displayName: "Fetch Server",
     config: {
       transport: "stdio",
       command: "uvx",
-      args: ["mcp-server-fetch"]
+      args: ["--with", "mcp<2", "mcp-server-fetch==2025.4.7"]
     },
-    testQuery: "Fetch the raw HTML content from bbc.com and tell me the titile",
+    testQuery: "Fetch the raw HTML content from bbc.com and tell me the title",
     expectedToolNames: ["fetch"]
   },
 
