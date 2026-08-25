@@ -1,6 +1,6 @@
 {
   "name": "@h1deya/langchain-google-genai-ex",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Drop-in replacement for ChatGoogleGenerativeAI that automatically fixes schema compatibility issues with MCP tools and Gemini API",
   "keywords": [
     "langchain",
@@ -12,7 +12,7 @@
     "tools",
     "function calling",
     "schema",
-    "varidation",
+    "validation",
     "error",
     "400 Error",
     "llm",

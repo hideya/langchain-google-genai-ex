@@ -1,4 +1,4 @@
-# Fix Gemini "400 Error" with LangChain.js + MCP [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/hideya/langchain-google-genai-ex/blob/main/LICENSE) [![npm version](https://img.shields.io/npm/v/@h1deya/langchain-google-genai-ex.svg)](https://www.npmjs.com/package/@h1deya/langchain-google-genai-ex)
+# Fix Gemini schema errors with LangChain.js + MCP [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/hideya/langchain-google-genai-ex/blob/main/LICENSE) [![npm version](https://img.shields.io/npm/v/@h1deya/langchain-google-genai-ex.svg)](https://www.npmjs.com/package/@h1deya/langchain-google-genai-ex)
 
 
 ### Drop-in replacement that unblocks MCP tool schemas in Gemini
@@ -34,6 +34,18 @@ const llm = new ChatGoogleGenerativeAIEx({ ... });
 ```
 
 **That's it!** No configuration, no additional steps.
+
+When using a Google AI Studio / Gemini Developer API key, pass it explicitly:
+
+```typescript
+const model = new ChatGoogleGenerativeAIEx({
+  model: "gemini-2.5-flash",
+  apiKey: process.env.GOOGLE_API_KEY,
+});
+```
+
+This keeps the sample's authentication path explicit and matches the companion
+`@h1deya/langchain-google-ex` package for `@langchain/google`.
 
 **This automatically fixes:**
 - **"Invalid JSON payload"** errors from complex MCP schemas, including:
@@ -147,7 +159,7 @@ const client = new MultiServerMCPClient({
     fetch: {
       transport: "stdio",
       command: "uvx",
-      args: ["mcp-server-fetch==2025.4.7"],
+      args: ["--with", "mcp<2", "mcp-server-fetch==2025.4.7"],
     },
   },
 });
@@ -156,7 +168,10 @@ try {
   const mcpTools = await client.getTools();
 
   // const model = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash" });
-  const model = new ChatGoogleGenerativeAIEx({ model: "gemini-2.5-flash" });
+  const model = new ChatGoogleGenerativeAIEx({
+    model: "gemini-2.5-flash",
+    apiKey: process.env.GOOGLE_API_KEY,
+  });
 
   const agent = createAgent({ model, tools: mcpTools });
 
