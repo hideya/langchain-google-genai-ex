@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [0.2.1] - 2026-08-25
+
+### Fixed
+- Use conditional export types so ESM consumers resolve `dist/index.d.mts` and avoid
+  LangChain type mismatches under `moduleResolution: NodeNext`.
+
+
 ## [0.2.0] - 2026-08-25
 
 ### Changed
