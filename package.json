@@ -54,6 +54,7 @@
     "build:watch": "tsup src/index.ts --format cjs,esm --dts --watch",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "test": "npm run type-check && npm run test:simple",
+    "test:basic": "tsx src/test/basic.test.ts",
     "test:simple": "tsx src/test/simple.test.ts",
     "test:individual-servers": "tsx src/test/individual-servers.test.ts",
     "test:integration": "tsx src/test/integration.test.ts",

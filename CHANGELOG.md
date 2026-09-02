@@ -8,8 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- Refine README
+
 
 ## [0.2.5] - 2026-08-27
+
+### Changed
 - Clarify that `@langchain/google` users should use the companion
   `@h1deya/langchain-google-ex` package.
 
