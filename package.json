@@ -70,7 +70,7 @@
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
-    "@langchain/google-genai": ">=0.2.16 <3"
+    "@langchain/google-genai": ">=0.2.16"
   },
   "devDependencies": {
     "@langchain/google-genai": "^2.3.0",
