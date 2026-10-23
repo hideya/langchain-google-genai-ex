@@ -73,23 +73,24 @@
     "@langchain/google-genai": ">=0.2.16"
   },
   "devDependencies": {
-    "@langchain/google-genai": "^2.3.0",
+    "@langchain/google-genai": "^2.3.4",
     "@langchain/mcp-adapters": "^1.1.4",
-    "@types/node": "^22.20.1",
-    "@typescript-eslint/eslint-plugin": "^8.0.0",
-    "@typescript-eslint/parser": "^8.0.0",
-    "dotenv": "^16.4.0",
-    "eslint": "^9.0.0",
-    "langchain": "^1.5.10",
-    "tsup": "^8.0.0",
-    "tsx": "^4.0.0",
-    "typedoc": "^0.26.0",
-    "typescript": "^5.5.0"
+    "@types/node": "^22.20.5",
+    "@typescript-eslint/eslint-plugin": "^8.72.0",
+    "@typescript-eslint/parser": "^8.72.0",
+    "dotenv": "^16.6.1",
+    "eslint": "^10.13.0",
+    "langchain": "^1.5.19",
+    "tsup": "^8.5.1",
+    "tsx": "^4.23.15",
+    "typedoc": "^0.28.20",
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "packageManager": "pnpm@10.28.2+sha512.41872f037ad22f7348e3b1debbaf7e867cfd448f2726d9cf74c08f19507c31d2c8e7a11525b983febc2df640b5438dee6023ebb1f84ed43cc2d654d2bc326264"
 }
