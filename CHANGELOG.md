@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 - Update dependencies and resolve warnings
+- Ensure to work with Gemini 3.8
 
 
 ### Changed
