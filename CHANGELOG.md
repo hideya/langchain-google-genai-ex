@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+
+## [0.2.6] - 2026-10-27
+
 ### Changed
 - Update dependencies and resolve warnings
 - Ensure to work with Gemini 3.8
